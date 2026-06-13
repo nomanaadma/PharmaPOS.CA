@@ -12,14 +12,14 @@
 	<script src="~/js/custom.js" asp-append-version="true"></script>
 </head>
 <body>
-	<div class="lgn-background" style="background-image: url('');">
+	<div class="lgn-background">
 		<div class="lgn-wrapper rounded-4 pt-4 p-2">
 			<div class="lgn-logo text-center">
 				<a href="{{ common.url }}">
 					<img src="{{ common.logo }}" alt="{{ common.name }}">
 				</a>
 			</div>
-			<div class="text-gray-900 fw-bolder lgn-title">Reset Password</div>
+			<div class="text-gray-900 fw-bolder lgn-title">@ViewData["Title"]</div>
 			@RenderBody()
 		</div>
 	</div>

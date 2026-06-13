@@ -21407,3 +21407,9 @@ body[data-reports=""] tfoot
 {
   display: none !important;
 }
+
+.remember-checkbox {
+    position: relative;
+    top: 2px;
+}
+
