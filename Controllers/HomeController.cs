@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
 	public IActionResult Index()
