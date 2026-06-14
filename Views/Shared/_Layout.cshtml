@@ -1,12 +1,15 @@
-﻿<!DOCTYPE html>
+@inject PharmaPOS_MVC.Data.ApplicationDbContext DbContext
+@{
+	var systemSetting = DbContext.Settings.FirstOrDefault() ?? new PharmaPOS_MVC.Domain.Entities.Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>{{ page_title~' | '~common.info.name }}</title>
-	@* <title>{{ page_title~' | '~common.info.name }}</title> *@
-	<link rel="icon" type="image/x-icon" href="{{ common.theme.favicon }}">
+	<title>@ViewData["Title"] | @systemSetting.Name</title>
+	<link rel="icon" type="image/x-icon" href="/public/uploads/@systemSetting.Favicon">
 	<!-- Include css files -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 	<link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css" />
@@ -37,7 +40,7 @@
 					    </div>
 					    <div class="modal-body">
 						    <div class="media-upload-container">
-							    <form action="{{ common.info.url_route }}media/upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data"><div class="fallback"><input name="file" type="file" /></div></form>
+							    <form action="/media/upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data"><div class="fallback"><input name="file" type="file" /></div></form>
 						    </div>
 						    <div class="media-all pt-3"></div>
 						    <input type="hidden" class="uploaded" value="0">
@@ -53,7 +56,15 @@
 					    <li>
 						    <a href="/"><i class="las la-chalkboard"></i><span>Dashboard</span></a>
 					    </li>
-					    
+					    <li class="has-sub">
+						    <a><i class="las la-cog"></i><span>Setting</span><i class="arrow"></i></a>
+						    <ul class="sub-menu">
+							    <li><a asp-controller="SystemInfo" asp-action="Index"><span>System Info</span></a></li>
+							    <li><a href="http://pharmapos.test/index.php?route=medicine/category"><span>Medicine Category</span></a></li>
+							    <li><a href="http://pharmapos.test/index.php?route=paymentmethod"><span>Payment Methods</span></a></li>
+							    <li><a href="http://pharmapos.test/index.php?route=suppliers"><span>Suppliers</span></a></li>
+						    </ul>
+					    </li>
 					    <li>
 						    <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
 							    <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
@@ -74,10 +85,10 @@
 					    <!-- Logo Container -->
 					    <div id="logo">
 						    <div class="logo-icon">
-							    <a href="#"><img src="{{ common.theme.logo_icon }}" alt="Icon"></a>
+							    <a href="#"><img src="/public/uploads/@systemSetting.LogoIcon" alt="Icon"></a>
 						    </div>
 						    <div class="logo">
-							    <a href="#"><img src="{{ common.theme.logo }}" alt="Logo"></a>
+							    <a href="#"><img src="/public/uploads/@systemSetting.Logo" alt="Logo"></a>
 						    </div>
 					    </div>
 				    </div>
@@ -170,9 +181,10 @@
                 
 				    @RenderBody()
                 
-				    {% if message %}
-				    <input type="hidden" class="alert-message" value="{{ message|json_encode()|e }}">
-				    {% endif %}
+				    @if (TempData["Message"] != null)
+				    {
+					    <input type="hidden" class="alert-message" value="@TempData["Message"]">
+				    }
 				
 			    </div>
 		    </div>

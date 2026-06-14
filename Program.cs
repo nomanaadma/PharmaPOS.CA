@@ -45,6 +45,13 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseStaticFiles(new StaticFileOptions
+{
+	FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+		Path.Combine(app.Environment.WebRootPath, "uploads")),
+	RequestPath = "/public/uploads"
+});
+
 app.UseAuthorization();
 
 app.MapStaticAssets();

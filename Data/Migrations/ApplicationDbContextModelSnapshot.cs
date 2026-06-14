@@ -222,6 +222,56 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Setting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Favicon")
+                        .HasColumnType("text")
+                        .HasColumnName("favicon");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("LgBackground")
+                        .HasColumnType("text")
+                        .HasColumnName("lg_background");
+
+                    b.Property<string>("Logo")
+                        .HasColumnType("text")
+                        .HasColumnName("logo");
+
+                    b.Property<string>("LogoIcon")
+                        .HasColumnType("text")
+                        .HasColumnName("logo_icon");
+
+                    b.Property<string>("Mail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("mail");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("phone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("settings", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -270,6 +320,45 @@ namespace PharmaPOS_MVC.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Setting", b =>
+                {
+                    b.OwnsOne("PharmaPOS_MVC.Domain.ValueObjects.Address", "Address", b1 =>
+                        {
+                            b1.Property<int>("SettingId")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("City")
+                                .HasColumnType("text")
+                                .HasColumnName("city");
+
+                            b1.Property<string>("Country")
+                                .HasColumnType("text")
+                                .HasColumnName("country");
+
+                            b1.Property<string>("Line1")
+                                .HasColumnType("text")
+                                .HasColumnName("address_line1");
+
+                            b1.Property<string>("Line2")
+                                .HasColumnType("text")
+                                .HasColumnName("address_line2");
+
+                            b1.Property<string>("Postal")
+                                .HasColumnType("text")
+                                .HasColumnName("postal");
+
+                            b1.HasKey("SettingId");
+
+                            b1.ToTable("settings");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SettingId");
+                        });
+
+                    b.Navigation("Address")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
