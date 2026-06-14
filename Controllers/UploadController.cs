@@ -9,11 +9,12 @@ using IOFile = System.IO.File;
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
+[Route("media")]
 public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbContext) : Controller
 {
 	[HttpGet]
-	[Route("get/media")]
-	public async Task<IActionResult> GetMedia()
+	[Route("get")]
+	public async Task<IActionResult> Get()
 	{
 		var result = await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync();
 		var html = "";
@@ -28,7 +29,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 			 <a class="remove" data-toggle="tooltip" data-placement="top" title="Remove"><i class="las la-trash-alt"></i></a>
 			 <input type="hidden" class="block-id" value="{value.Id}">
 			 <div class="picture">
-			 <img src="~/uploads/{value.Filename}" title="{value.Filename}">
+			 <img src="/uploads/{value.Filename}" title="{value.Filename}">
 			 <input type="radio" id="{value.Filename}" value="{value.Filename}">
 			 <label for="{value.Filename}">{value.Filename}</label>
 			 </div>
@@ -41,8 +42,8 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	}
 
 	[HttpPost]
-	[Route("media/upload")]
-	public async Task<IActionResult> UploadMedia(IFormFile? file)
+	[Route("upload")]
+	public async Task<IActionResult> Upload(IFormFile? file)
 	{
 		if (file == null || file.Length == 0)
 		{
@@ -83,8 +84,8 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	}
 
 	[HttpPost]
-	[Route("media/delete")]
-	public async Task<IActionResult> DeleteMedia(string name, int id)
+	[Route("delete")]
+	public async Task<IActionResult> Delete(string name, int id)
 	{
 		if (string.IsNullOrEmpty(name))
 		{

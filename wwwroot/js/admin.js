@@ -7,7 +7,7 @@
      })
   
     "use strict";
-    var path = $('.site_url').val();
+    var path = site_url;
 
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover()
@@ -128,11 +128,11 @@
     $('#media-upload').on('show.bs.modal', function (e) {
         var uploaded = $('#media-upload .uploaded');
         if (uploaded.val() === '0') {
-            var path = $('.site_url').val().concat('get/media');
+            var path = site_url.concat('media/get');
             $.ajax({
                 type: 'get',
                 url: path,
-                data: { name: 'media', _token: $('.s_token').val() },
+                data: { name: 'media', _token: s_token },
                 error: function () {},
                 success: function (response) {
                     $('#media-upload .media-all').append(response);
@@ -162,14 +162,13 @@
         init: function() {
             var reportDropzone = this;
             reportDropzone.on("sending", function(file, xhr, formData) {
-                formData.append("_token", $('.s_token').val());
+                formData.append("_token", s_token);
             });
 
-            reportDropzone.on("success", function(file, xhr) {
-                var response = JSON.parse(xhr);
+            reportDropzone.on("success", function(file, response) {
                 if (response.error === false) {
                     $('.media-all').prepend(response.media);
-                    toastr.success('Uploaded Succefully', 'Report uploaded Succefully.');
+                    toastr.success('Uploaded Succefully', 'Media Uploaded Succefully.');
                 } else {
                     toastr.error('Error', response.message);
                 }
@@ -202,12 +201,11 @@
         $.ajax({
             method: "POST",
             url: path.concat('media/delete'),
-            data: { page: 'media', name: media, id: id, _token: $('.s_token').val() },
+            data: { page: 'media', name: media, id: id, _token: s_token },
             error: function () {
                 alert('Sorry Try Again!');
             },
             success: function (response) {
-                response = JSON.parse(response);
                 if (response.error === false) {
                     ele.parents('.block').remove();
                     toastr.success('Deleted', 'File deleted Succefully.');
@@ -263,15 +261,17 @@
         $('#picture_container input[type=hidden]').val("");
         $('.picture').show();
     });
+    
+    const dateFormat = "dd/mm/yy";
 
     //Filter date picker
     $('.filter-date').datepicker({
-        dateFormat: $('.common_date_format').val()
+        dateFormat: dateFormat
     });
 
     //Filter date picker
     $('.date').datepicker({
-        dateFormat: $('.common_date_format').val()
+        dateFormat: dateFormat
     });
 
     if ($('.table-date-range').length) {
@@ -283,7 +283,7 @@
             applyButtonClasses: 'btn-danger',
             cancelClass: 'btn-white',
             locale: {
-                format: $('.common_daterange_format').val(),
+                format: "DD/MM/YYYY",
                 separator: " => ",
             },
             startDate: tabledate_data.start,
@@ -311,14 +311,14 @@
         $('#addPaymentType input[name="id"]').val(ele.data("id"));
         $('#addPaymentType select[name="status"]').val(ele.data("status"));
         $('#addPaymentType .modal-title').text('Edit Payment Method');
-        $('#addPaymentType form').attr('action', $('.site_url').val().concat('paymentmethod/edit'));
+        $('#addPaymentType form').attr('action', site_url.concat('paymentmethod/edit'));
         $('#addPaymentType').modal('show');
     });
     $('#addPaymentType').on('hidden.bs.modal', function (e) {
         $('#addPaymentType .modal-title').text('New Payment Method');
         $('#addPaymentType input').not( "[name='_token']" ).val('');
         $('#addPaymentType textarea').val('');
-        $('#addPaymentType form').attr('action', $('.site_url').val().concat('paymentmethod/add'));
+        $('#addPaymentType form').attr('action', site_url.concat('paymentmethod/add'));
     });
 
     //New or Edit Medicine Category Modal *************
@@ -328,14 +328,14 @@
         $('#add-mcategory input[name="name"]').val(ele.data("name"));
         $('#add-mcategory input[name="id"]').val(ele.data("id"));
         $('#add-mcategory .modal-title').text('Edit Medicine Category');
-        $('#add-mcategory form').attr('action', $('.site_url').val().concat('medicine/category/edit'));
+        $('#add-mcategory form').attr('action', site_url.concat('medicine/category/edit'));
         $('#add-mcategory').modal('show');
     });
     $('#add-mcategory').on('hidden.bs.modal', function (e) {
         $('#add-mcategory .modal-title').text('New Medicine Category');
         $('#add-mcategory input').not( "[name='_token']" ).val('');
         $('#add-mcategory textarea').val('');
-        $('#add-mcategory form').attr('action', $('.site_url').val().concat('medicine/category/add'));
+        $('#add-mcategory form').attr('action', site_url.concat('medicine/category/add'));
     });
 
     $("#uploadmedicine-modal").on('change', '#medicinefile', function(e) {
@@ -373,7 +373,7 @@
         $('#add-supplier textarea[name="address"]').val(ele.data("address"));
         $('#add-supplier input[name="id"]').val(ele.data("id"));
         $('#add-supplier .modal-title').text('Edit Supplier');
-        $('#add-supplier form').attr('action', $('.site_url').val().concat('supplier/edit'));
+        $('#add-supplier form').attr('action', site_url.concat('supplier/edit'));
         $('#add-supplier').modal('show');
     });
 
@@ -381,7 +381,7 @@
         $('#add-supplier .modal-title').text('New Supplier');
         $('#add-supplier input').not( "[name='_token']" ).val('');
         $('#add-supplier textarea').val('');
-        $('#add-supplier form').attr('action', $('.site_url').val().concat('supplier/add'));
+        $('#add-supplier form').attr('action', site_url.concat('supplier/add'));
     });
 
     var dataTable = $('.datatable-table').DataTable({
@@ -463,7 +463,7 @@
                                 let numbers = column.toFixed(2);
 
                                 if( currencyCol.includes(columnTitle) ) {
-                                    numbers = $('.common_currency').val()+column.toFixed(2);
+                                    numbers = common_currency+column.toFixed(2);
                                 }
 
                                 dataHtml += `
@@ -486,7 +486,7 @@
                             
                             if( cols.includes(columnTitle) ) {
 
-                                let numbers = $('.common_currency').val()+column.toFixed(2);
+                                let numbers = common_currency+column.toFixed(2);
 
                                 dataHtml += `
                                     <div class="col">
@@ -504,7 +504,7 @@
 
                         } else {
                          
-                            $( api.column(i).footer() ).html($('.common_currency').val()+column.toFixed(2));
+                            $( api.column(i).footer() ).html(common_currency+column.toFixed(2));
 
                         }
                     }

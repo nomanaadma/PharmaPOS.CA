@@ -141,14 +141,14 @@ function bind() {
 function initAutocomplete() {
 	$(".billing-items .item-name").autocomplete({
 		minLength: 0,
-		source: $('.site_url').val().concat('getmedicine'),
+		source: site_url.concat('getmedicine'),
 		focus: function( event, ui ) {
 			$(this).parents('tr').find('.item-name').val( ui.item.label );
 			return false;
 		},
 		select: function( event, ui ) {
 			var ele = $(this), ele_parent = ele.parents('tr.item-row'),
-			path = $('.site_url').val().concat('getbatch');
+			path = site_url.concat('getbatch');
 			ele_parent.find('.item-name').val( ui.item.label );
 			ele_parent.find('.item-medicine-id').val( ui.item.id );
 			ele_parent.find('.item-batch option').remove();
@@ -158,7 +158,7 @@ function initAutocomplete() {
 			$.ajax({
 				type: 'POST',
 				url: path,
-				data: { id: ui.item.id, _token: $('.s_token').val() },
+				data: { id: ui.item.id, _token: s_token },
 				error: function() {
 					toastr.error('No data Found', 'Server Error');
 				},
@@ -253,7 +253,7 @@ $(document).ready(function () {
 
 	$('.billing-items').on('change', '.item-batch', function () {
 		var ele = $(this), ele_parent = ele.parents('tr.item-row'),
-		path = $('.site_url').val().concat('getbatchdata');
+		path = site_url.concat('getbatchdata');
 		if (ele.val() === "") {
 			ele_parent.find('.item-expiry').val('');
 			ele_parent.find('.item-qty').val('');
@@ -265,7 +265,7 @@ $(document).ready(function () {
 			$.ajax({
 				type: 'POST',
 				url: path,
-				data: { medicine: ele_parent.find('.item-medicine-id').val(), batch: ele.val(), _token: $('.s_token').val() },
+				data: { medicine: ele_parent.find('.item-medicine-id').val(), batch: ele.val(), _token: s_token },
 				error: function() {
 					toastr.error('No data Found', 'Server Error');
 				},

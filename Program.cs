@@ -49,7 +49,7 @@ app.UseStaticFiles(new StaticFileOptions
 {
 	FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
 		Path.Combine(app.Environment.WebRootPath, "uploads")),
-	RequestPath = "/public/uploads"
+	RequestPath = "/uploads"
 });
 
 app.UseAuthorization();

@@ -41,7 +41,7 @@ $(function () {
         ajax: {
             url: '/index.php?route=purchase/filter',
             data: {
-                _token: $('.s_token').val()
+                _token: s_token
             },
             type: 'POST'
         },
@@ -83,7 +83,7 @@ $(function () {
 
                     if (!Number.isNaN(column))  {
 
-                        const numbers = $('.common_currency').val()+column.toFixed(2);
+                        const numbers = common_currency+column.toFixed(2);
                         const columnTitle = $(api.column(i).header()).text();
 
                         dataHtml += `

@@ -4,40 +4,36 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.ValueObjects;
+using PharmaPOS_MVC.Helper;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-public class SettingController(ApplicationDbContext context) : Controller
+public class SettingController(ApplicationDbContext context, IWebHostEnvironment env) : Controller
 {
 	[HttpGet]
 	public async Task<IActionResult> Index()
 	{
-		var settings = await context.Settings.FirstOrDefaultAsync();
-		if (settings == null)
-		{
-			settings = new Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
-			context.Settings.Add(settings);
-			await context.SaveChangesAsync();
-		}
+		var siteInfo = await SiteInfoHelper.GetSiteInfoAsync(context, env);
+		var rawSetting = await context.Settings.FirstOrDefaultAsync();
 
 		var model = new SystemInfoViewModel
 		{
-			Logo = settings.Logo,
-			LogoIcon = settings.LogoIcon,
-			LgBackground = settings.LgBackground,
-			Favicon = settings.Favicon,
-			Name = settings.Name,
-			LegalName = settings.LegalName,
-			Mail = settings.Mail,
-			Phone = settings.Phone,
-			AddressLine1 = settings.Address?.Line1,
-			AddressLine2 = settings.Address?.Line2,
-			City = settings.Address?.City,
-			Country = settings.Address?.Country,
-			Postal = settings.Address?.Postal
+			Logo = rawSetting?.Logo,
+			LogoIcon = rawSetting?.LogoIcon,
+			LgBackground = rawSetting?.LgBackground,
+			Favicon = rawSetting?.Favicon,
+			Name = siteInfo.Name,
+			LegalName = siteInfo.LegalName,
+			Mail = siteInfo.Mail,
+			Phone = siteInfo.Phone,
+			AddressLine1 = siteInfo.Address?.Line1,
+			AddressLine2 = siteInfo.Address?.Line2,
+			City = siteInfo.Address?.City,
+			Country = siteInfo.Address?.Country,
+			Postal = siteInfo.Address?.Postal
 		};
 
 		return View("Info", model);
@@ -51,10 +47,10 @@ public class SettingController(ApplicationDbContext context) : Controller
 		{
 			var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Validation failed: " + errors });
-			return View(model);
+			return View("Info", model);
 		}
 
-		var settings = await context.Settings.FirstOrDefaultAsync();
+		var settings = await context.Settings.AsTracking().FirstOrDefaultAsync();
 		if (settings == null)
 		{
 			settings = new Setting(model.Name, model.LegalName, model.Mail, model.Phone);

@@ -1,6 +1,9 @@
+@using Microsoft.AspNetCore.Hosting;
+@using PharmaPOS_MVC.Helper;
 @inject PharmaPOS_MVC.Data.ApplicationDbContext DbContext
+@inject IWebHostEnvironment Env
 @{
-	var systemSetting = DbContext.Settings.FirstOrDefault() ?? new PharmaPOS_MVC.Domain.Entities.Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+	var siteInfo = await SiteInfoHelper.GetSiteInfoAsync(DbContext, Env);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -8,8 +11,8 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>@ViewData["Title"] | @systemSetting.Name</title>
-	<link rel="icon" type="image/x-icon" href="/public/uploads/@systemSetting.Favicon">
+	<title>@ViewData["Title"] | @siteInfo.Name</title>
+	<link rel="icon" type="image/x-icon" href="@siteInfo.Favicon">
 	<!-- Include css files -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 	<link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css" />
@@ -23,6 +26,11 @@
 	<script type="text/javascript" src="~/js/dataTables.searchBuilder.js" asp-append-version="true"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<script type="text/javascript" src="~/js/admin.js" asp-append-version="true"></script>
+	<script>
+		const common_currency = '$';
+		const site_url = '/';
+		const s_token = 'abc';
+	</script>
 </head>
 
 <body data-reports="{{ common.report_permission }}">
@@ -85,10 +93,10 @@
 					    <!-- Logo Container -->
 					    <div id="logo">
 						    <div class="logo-icon">
-							    <a href="#"><img src="/public/uploads/@systemSetting.LogoIcon" alt="Icon"></a>
+							    <a href="#"><img src="@siteInfo.LogoIcon" alt="Icon"></a>
 						    </div>
 						    <div class="logo">
-							    <a href="#"><img src="/public/uploads/@systemSetting.Logo" alt="Logo"></a>
+							    <a href="#"><img src="@siteInfo.Logo" alt="Logo"></a>
 						    </div>
 					    </div>
 				    </div>
@@ -165,13 +173,6 @@
 							    <a href="#"><i class="las la-ellipsis-h"></i></a>
 						    </div>
 					    </div>
-					    <input type="hidden" class="common_date_format" value="{{ common.info.picker_date_format }}">
-					    <input type="hidden" class="common_date_my_format" value="{{ common.info.picker_my_format }}">
-					    <input type="hidden" class="common_daterange_format" value="{{ common.info.range_date_format }}">
-					    <input type="hidden" class="common_daterange_my_format" value="{{ common.info.range_my_format }}">
-					    <input type="hidden" class="common_currency" value="{{ common.info.currency_abbr }}">
-					    <input type="hidden" class="site_url" value="{{ common.info.url_route }}">
-					    <input type="hidden" class="s_token" value="{{ common.token }}">
 				    </div>
 			    </div>
 		    </div>

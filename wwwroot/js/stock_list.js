@@ -38,7 +38,7 @@ $(function () {
                     }, 0 );
 
                     if (column) {
-                        $( api.column(i).footer() ).html($('.common_currency').val()+column.toFixed(2));
+                        $( api.column(i).footer() ).html(common_currency+column.toFixed(2));
                     }
                 }
 

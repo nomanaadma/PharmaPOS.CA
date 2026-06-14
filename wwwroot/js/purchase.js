@@ -122,7 +122,7 @@
  function initDatepicker() {
  	$('.exp-date').datetimepicker({
  		viewMode: 'years',
- 		format: $('.common_daterange_my_format').val(),
+ 		format: "MM-YYYY",
  		widgetPositioning: {
  			horizontal: 'auto',
  			vertical: 'auto'
@@ -143,7 +143,7 @@
  function initAutocomplete() {
  	$(".item-name").autocomplete({
  		minLength: 0,
- 		source: $('.site_url').val().concat('getmedicine'),
+ 		source: site_url.concat('getmedicine'),
  		focus: function( event, ui ) {
  			$(this).parents('tr').find('.item-name').val( ui.item.label );
  			return false;

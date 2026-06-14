@@ -56,7 +56,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LogoIcon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LogoIcon))
 											{
-												<img class="img-thumbnail" src="/public/uploads/@Model.LogoIcon" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.LogoIcon" alt="">
 											}
 											<input type="hidden" asp-for="LogoIcon">
 										</div>
@@ -76,7 +76,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LgBackground) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LgBackground))
 											{
-												<img class="img-thumbnail" src="/public/uploads/@Model.LgBackground" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.LgBackground" alt="">
 											}
 											<input type="hidden" asp-for="LgBackground">
 										</div>
@@ -96,7 +96,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Favicon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Favicon))
 											{
-												<img class="img-thumbnail" src="/public/uploads/@Model.Favicon" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.Favicon" alt="">
 											}
 											<input type="hidden" asp-for="Favicon">
 										</div>
