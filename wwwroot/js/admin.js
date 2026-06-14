@@ -185,7 +185,7 @@
 
     $('#media-upload').on('click', '.media-modal-open .picture', function () {
         var image = $(this).find('input').val();
-        $('.image-upload-progress .saved-picture').append('<img src="public/uploads/' + image + '" alt="">');
+        $('.image-upload-progress .saved-picture').append('<img src="/uploads/' + image + '" alt="">');
         $('.image-upload-progress .saved-picture input[type=hidden]').val(image);
         $('.image-upload-progress .saved-picture').show();
         $('.image-upload-progress .image-upload').hide();

@@ -10,24 +10,17 @@ using System.Text.Json;
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-public class SystemInfoController : Controller
+public class SettingController(ApplicationDbContext context) : Controller
 {
-	private readonly ApplicationDbContext _context;
-
-	public SystemInfoController(ApplicationDbContext context)
-	{
-		_context = context;
-	}
-
 	[HttpGet]
 	public async Task<IActionResult> Index()
 	{
-		var settings = await _context.Settings.FirstOrDefaultAsync();
+		var settings = await context.Settings.FirstOrDefaultAsync();
 		if (settings == null)
 		{
 			settings = new Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
-			_context.Settings.Add(settings);
-			await _context.SaveChangesAsync();
+			context.Settings.Add(settings);
+			await context.SaveChangesAsync();
 		}
 
 		var model = new SystemInfoViewModel
@@ -47,7 +40,7 @@ public class SystemInfoController : Controller
 			Postal = settings.Address?.Postal
 		};
 
-		return View(model);
+		return View("Info", model);
 	}
 
 	[HttpPost]
@@ -61,11 +54,11 @@ public class SystemInfoController : Controller
 			return View(model);
 		}
 
-		var settings = await _context.Settings.FirstOrDefaultAsync();
+		var settings = await context.Settings.FirstOrDefaultAsync();
 		if (settings == null)
 		{
 			settings = new Setting(model.Name, model.LegalName, model.Mail, model.Phone);
-			_context.Settings.Add(settings);
+			context.Settings.Add(settings);
 		}
 		else
 		{
@@ -75,7 +68,7 @@ public class SystemInfoController : Controller
 		settings.UpdateImages(model.Logo, model.LogoIcon, model.LgBackground, model.Favicon);
 		settings.UpdateAddress(new Address(model.AddressLine1, model.AddressLine2, model.City, model.Country, model.Postal));
 
-		await _context.SaveChangesAsync();
+		await context.SaveChangesAsync();
 
 		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "System settings updated successfully." });
 

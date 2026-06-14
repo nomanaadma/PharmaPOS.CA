@@ -17,7 +17,7 @@
 	</div>
 </div>
 
-<form asp-controller="SystemInfo" asp-action="Index" method="post">
+<form asp-controller="Setting" asp-action="Index" method="post">
 	@Html.AntiForgeryToken()
 	<div class="panel panel-default">
 		<div class="panel-body">
@@ -36,7 +36,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Logo) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Logo))
 											{
-												<img class="img-thumbnail" src="/public/uploads/@Model.Logo" alt="">
+												<img class="img-thumbnail" src="~/uploads/@Model.Logo" alt="">
 											}
 											<input type="hidden" asp-for="Logo">
 										</div>

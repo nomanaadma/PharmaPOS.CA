@@ -1,9 +1,9 @@
 namespace PharmaPOS_MVC.Domain.ValueObjects;
 
-public class Address
+
+public record Address
 {
-	// Private parameterless constructor for EF Core
-	private Address() { }
+	private Address() { } // Still needed for EF Core
 
 	public Address(string? line1, string? line2, string? city, string? country, string? postal)
 	{
@@ -20,27 +20,5 @@ public class Address
 	public string? Country { get; private set; }
 	public string? Postal { get; private set; }
 
-	public static Address Empty => new Address(null, null, null, null, null);
-
-	protected bool Equals(Address other)
-	{
-		return Line1 == other.Line1 &&
-		       Line2 == other.Line2 &&
-		       City == other.City &&
-		       Country == other.Country &&
-		       Postal == other.Postal;
-	}
-
-	public override bool Equals(object? obj)
-	{
-		if (ReferenceEquals(null, obj)) return false;
-		if (ReferenceEquals(this, obj)) return true;
-		if (obj.GetType() != this.GetType()) return false;
-		return Equals((Address)obj);
-	}
-
-	public override int GetHashCode()
-	{
-		return HashCode.Combine(Line1, Line2, City, Country, Postal);
-	}
+	public static Address Empty => new(null, null, null, null, null);
 }
