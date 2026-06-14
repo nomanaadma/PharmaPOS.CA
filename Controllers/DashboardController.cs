@@ -6,18 +6,13 @@ using PharmaPOS_MVC.Models;
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-public class HomeController : Controller
+public class DashboardController : Controller
 {
 	public IActionResult Index()
 	{
 		return View();
 	}
-
-	public IActionResult Privacy()
-	{
-		return View();
-	}
-
+	
 	[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 	public IActionResult Error()
 	{

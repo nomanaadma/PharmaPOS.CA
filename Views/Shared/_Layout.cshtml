@@ -48,6 +48,25 @@
 		    <!-- Menu Wrapper -->
 		    <div class="menu-wrapper">
 			    <div class="menu">{{ common.admin_menu | raw }}</div>
+			    <div class="menu">
+				    <ul>
+					    <li>
+						    <a href="/"><i class="las la-chalkboard"></i><span>Dashboard</span></a>
+					    </li>
+					    
+					    <li>
+						    <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+							    <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
+						    </form>
+
+						    <a class="logout-link" href="javascript:void(0);">
+							    <i class="las la-sign-out-alt"></i>
+							    <span>Logout</span>
+						    </a>
+
+					    </li>
+				    </ul>
+			    </div>
 		    </div>
 		    <div class="page-hdr">
 			    <div class="row align-items-center">

@@ -1,6 +1,10 @@
  Dropzone.autoDiscover = false;
  
  $(document).ready(function () {
+
+     $('.logout-link').click(function () {
+         $('#logoutForm').trigger('submit');
+     })
   
     "use strict";
     var path = $('.site_url').val();
