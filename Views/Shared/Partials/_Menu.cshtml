@@ -1,0 +1,29 @@
+﻿<div class="menu-wrapper">
+	<div class="menu">
+		<ul>
+			<li>
+				<a href="/"><i class="las la-chalkboard"></i><span>Dashboard</span></a>
+			</li>
+			<li class="has-sub">
+				<a><i class="las la-cog"></i><span>Setting</span><i class="arrow"></i></a>
+				<ul class="sub-menu">
+					<li><a asp-controller="Setting" asp-action="Index"><span>System Info</span></a></li>
+					<li><a href="http://pharmapos.test/index.php?route=medicine/category"><span>Medicine Category</span></a></li>
+					<li><a href="http://pharmapos.test/index.php?route=paymentmethod"><span>Payment Methods</span></a></li>
+					<li><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
+				</ul>
+			</li>
+			<li>
+				<form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+					<button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
+				</form>
+
+				<a class="logout-link" href="javascript:void(0);">
+					<i class="las la-sign-out-alt"></i>
+					<span>Logout</span>
+				</a>
+
+			</li>
+		</ul>
+	</div>
+</div>

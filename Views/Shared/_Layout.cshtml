@@ -1,11 +1,6 @@
-@using System.Security.Claims
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
 	var siteInfo = await SiteInfo.GetSettingsAsync();
-	
-	var userName = User.Identity?.Name ?? "Guest";
-	var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "No Role";
-	
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -38,17 +33,20 @@
     <div class="wrapper">
 	    <!-- Main Container -->
 	    <div id="main-wrapper">
+		    
 		    <!-- Media Modal -->
 		    <div id="media-upload" class="modal fade">
 			    <div class="modal-dialog modal-xl">
 				    <div class="modal-content">
 					    <div class="modal-header">
-						    <div class="media-hdr"><p>Media <span>(Click On Image To Select)</span></p></div>
+						    <div class="media-hdr">
+							    <p>Media <span>(Click On Image To Select)</span></p></div>
 						    <button type="button" class="close" data-dismiss="modal">&times;</button>
 					    </div>
 					    <div class="modal-body">
 						    <div class="media-upload-container">
-							    <form action="/media/upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data"><div class="fallback"><input name="file" type="file" /></div></form>
+							    <form action="/media/upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data">
+								    <div class="fallback"><input name="file" type="file"/></div></form>
 						    </div>
 						    <div class="media-all pt-3"></div>
 						    <input type="hidden" class="uploaded" value="0">
@@ -56,135 +54,20 @@
 				    </div>
 			    </div>
 		    </div>
-		    <!-- Menu Wrapper -->
-		    <div class="menu-wrapper">
-			    <div class="menu">
-				    <ul>
-					    <li>
-						    <a href="/"><i class="las la-chalkboard"></i><span>Dashboard</span></a>
-					    </li>
-					    <li class="has-sub">
-						    <a><i class="las la-cog"></i><span>Setting</span><i class="arrow"></i></a>
-						    <ul class="sub-menu">
-							    <li><a asp-controller="Setting" asp-action="Index"><span>System Info</span></a></li>
-							    <li><a href="http://pharmapos.test/index.php?route=medicine/category"><span>Medicine Category</span></a></li>
-							    <li><a href="http://pharmapos.test/index.php?route=paymentmethod"><span>Payment Methods</span></a></li>
-							    <li><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
-						    </ul>
-					    </li>
-					    <li>
-						    <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
-							    <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
-						    </form>
 
-						    <a class="logout-link" href="javascript:void(0);">
-							    <i class="las la-sign-out-alt"></i>
-							    <span>Logout</span>
-						    </a>
-
-					    </li>
-				    </ul>
-			    </div>
-		    </div>
-		    <div class="page-hdr">
-			    <div class="row align-items-center">
-				    <div class="col-4 col-md-7 page-hdr-left">
-					    <!-- Logo Container -->
-					    <div id="logo">
-						    <div class="logo-icon">
-							    <a href="#"><img src="@siteInfo.LogoIcon" alt="Icon"></a>
-						    </div>
-						    <div class="logo">
-							    <a href="#"><img src="@siteInfo.Logo" alt="Logo"></a>
-						    </div>
-					    </div>
-				    </div>
-				    <div class="col-8 col-md-5 page-hdr-right">	
-					    <div class="page-hdr-desktop">
-						    @* {% if common.new_bill %} *@
-						    @* <div class="page-menu"> *@
-							   @*  <a href="{{ common.info.url_route }}medicine/billing/add" class="active" data-toggle="tooltip" data-placement="bottom" title="New POS/Bill"><i class="las las la-cart-plus"></i></a> *@
-						    @* </div> *@
-						    @* {% endif %} *@
-						    @* {% if common.new_purchase %} *@
-						    @* <div class="page-menu"> *@
-							   @*  <a href="{{ common.info.url_route }}medicine/purchase/add" data-toggle="tooltip" data-placement="bottom" title="New Purchase"><i class="las la-file-invoice-dollar font-20"></i></a> *@
-						    @* </div> *@
-						    @* {% endif %} *@
-						    @* {% if common.new_customer %} *@
-						    @* <div class="page-menu"> *@
-							   @*  <a href="{{ common.info.url_route }}customer/add" data-toggle="tooltip" data-placement="bottom" title="New Customer"><i class="las la-user-md"></i></a> *@
-						    @* </div> *@
-						    @* {% endif %} *@
-						    @* {% if common.live_stock %} *@
-						    @* <div class="page-menu menu-dropdown-wrapper menu-user"> *@
-							   @*  <a><i class="las la-balance-scale"></i></a> *@
-							   @*  <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right"> *@
-								  @*   <div class="arrow arrow-right"></div>  *@
-								  @*   <div class="menu-dropdown-inner"> *@
-									 @*    <div class="menu-dropdown-head">Stock adjustment</div> *@
-									 @*    <div class="menu-dropdown-body p-2"> *@
-										@*     <ul class="menu-nav"> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=live"><i class="las la-hourglass"></i><span>Live Stock</span></a></li> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=expired"><i class="las la-hourglass-end"></i><span>Expired Stock</span></a></li> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=willexpirein1"><i class="las la-hourglass-end"></i><span>Expire in 1 Month</span></a></li> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=willexpirein2"><i class="las la-hourglass-half"></i><span>Expire in 2 Month</span></a></li> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=willexpirein3"><i class="las la-hourglass-start"></i><span>Expire in 3 Month</span></a></li> *@
-										@* 	    <li><a href="{{ common.info.url_route }}medicine/stock&type=willexpirein6"><i class="las la-hourglass-start"></i><span>Expire in 6 Month</span></a></li> *@
-										@*     </ul> *@
-									 @*    </div> *@
-								  @*   </div> *@
-							   @*  </div> *@
-						    @* </div> *@
-						    @* {% endif %} *@
-						    <div class="page-menu menu-dropdown-wrapper menu-user">
-							    <a><div><i class="las la-user-tie"></i></div></a>
-							    <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
-								    <div class="arrow arrow-right"></div> 
-								    <div class="menu-dropdown-inner">
-									    <div class="menu-dropdown-head pb-3">
-										    <div class="tbl-cell">
-											    <i class="las la-user-tie"></i>
-										    </div>
-										    <div class="tbl-cell pl-2 text-left">
-											    <p class="m-0 font-18">@userName</p>
-											    <p class="m-0 font-14">@userRole</p>
-										    </div>
-									    </div>
-									    <div class="menu-dropdown-body">
-										    <ul class="menu-nav">
-											    <li><a asp-area="Identity" asp-page="/Account/Manage/Index"><i class="las la-id-badge"></i><span>Profile</span></a></li>
-											    <li><a asp-area="Identity" asp-page="/Account/Manage/ChangePassword"><i class="las la-key"></i><span>Change Password</span></a></li>
-										    </ul>
-									    </div>
-									    <div class="menu-dropdown-footer text-right">
-										    <a href="javascript:void(0);" class="btn btn-outline btn-primary btn-pill btn-outline-2x font-12 btn-sm logout-link">Logout</a>
-									    </div>
-								    </div>
-							    </div>
-						    </div>
-					    </div>
-					    <div class="page-hdr-mobile">
-						    <div class="page-menu open-left-menu">
-							    <a href="#"><i class="las la-bars"></i></a>
-						    </div>
-						    <div class="page-menu open-page-menu-desktop">
-							    <a href="#"><i class="las la-ellipsis-h"></i></a>
-						    </div>
-					    </div>
-				    </div>
-			    </div>
-		    </div>
+		    <partial name="Partials/_Menu.cshtml"/>
+		    <partial name="Partials/_Topbar.cshtml" model="@siteInfo" />
+		    
 		    <div class="page-wrapper">
 			    <div class="page-body">
-                
+
 				    @RenderBody()
-                
+
 				    @if (TempData["Message"] != null)
 				    {
 					    <input type="hidden" class="alert-message" value="@TempData["Message"]">
 				    }
-				
+
 			    </div>
 		    </div>
 	    </div>
