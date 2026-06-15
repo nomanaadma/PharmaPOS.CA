@@ -1,4 +1,3 @@
-@using Microsoft.AspNetCore.Hosting;
 @using PharmaPOS_MVC.Helper;
 @inject PharmaPOS_MVC.Data.ApplicationDbContext DbContext
 @inject IWebHostEnvironment Env
@@ -34,7 +33,6 @@
 </head>
 
 <body data-reports="{{ common.report_permission }}">
-    {% autoescape %}
     <div class="wrapper">
 	    <!-- Main Container -->
 	    <div id="main-wrapper">
@@ -58,7 +56,6 @@
 		    </div>
 		    <!-- Menu Wrapper -->
 		    <div class="menu-wrapper">
-			    <div class="menu">{{ common.admin_menu | raw }}</div>
 			    <div class="menu">
 				    <ul>
 					    <li>

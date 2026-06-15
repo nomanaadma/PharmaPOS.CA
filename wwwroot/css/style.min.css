@@ -20655,8 +20655,9 @@ div.dtsb-searchBuilder div.dtsb-titleRow div.dtsb-title {
   min-height: 100%;
   padding: 16px;
   background-color: #f5f9fc;
-  background-image: url(../images/login-bg.jpg);
   display: flex;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .lgn-wrapper {
@@ -21413,3 +21414,6 @@ body[data-reports=""] tfoot
     top: 2px;
 }
 
+.no-event {
+    pointer-events: none;
+}
