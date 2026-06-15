@@ -1,6 +1,5 @@
-@using PharmaPOS_MVC.Domain.Entities
 @{
-	var siteInfo = (Setting)ViewData["SiteInfo"]!;
+	var siteInfo = await SiteInfo.GetSettingsAsync();
 }
 <!DOCTYPE html>
 <html lang="en">

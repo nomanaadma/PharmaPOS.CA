@@ -4,19 +4,23 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.ValueObjects;
-using PharmaPOS_MVC.Helper;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Services;
 
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-public class SettingController(ApplicationDbContext context, IWebHostEnvironment env) : Controller
+public class SettingController(
+	ApplicationDbContext context,
+	SiteInfoService siteInfoService, 
+	IWebHostEnvironment env
+) : Controller
 {
 	[HttpGet]
 	public async Task<IActionResult> Index()
 	{
-		var siteInfo = await SiteInfoHelper.GetSiteInfoAsync(context, env);
+		var siteInfo = await siteInfoService.GetSettingsAsync();
 		var rawSetting = await context.Settings.FirstOrDefaultAsync();
 
 		var model = new SystemInfoViewModel

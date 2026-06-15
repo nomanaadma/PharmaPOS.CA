@@ -1,16 +1,17 @@
+﻿namespace PharmaPOS_MVC.Services;
+
+using Domain.ValueObjects;
+using Extensions;
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS_MVC.Data;
-using PharmaPOS_MVC.Domain.Entities;
-using PharmaPOS_MVC.Domain.ValueObjects;
-using PharmaPOS_MVC.Extensions;
+using Data;
+using Domain.Entities;
 
-namespace PharmaPOS_MVC.Helper;
-
-public static class SiteInfoHelper
+public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment env)
 {
-	public static async Task<Setting> GetSiteInfoAsync(ApplicationDbContext context, IWebHostEnvironment env)
+	public async Task<Setting> GetSettingsAsync()
 	{
-		var settings = await context.Settings.FirstOrDefaultAsync();
+		
+		var settings = await dbContext.Settings.FirstOrDefaultAsync();
 	
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)
@@ -51,5 +52,6 @@ public static class SiteInfoHelper
 		settings.UpdateImages(logo, logoIcon, lgBackground, favicon);
 		
 		return settings;
+		
 	}
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
+using PharmaPOS_MVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 	.AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<SiteInfoService>();
 
 var app = builder.Build();
 

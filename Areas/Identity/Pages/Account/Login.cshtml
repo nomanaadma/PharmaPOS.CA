@@ -1,13 +1,9 @@
 @page
-@using PharmaPOS_MVC.Helper
-@inject PharmaPOS_MVC.Data.ApplicationDbContext DbContext
-@inject IWebHostEnvironment Env
 @model LoginModel
 
 @{
     ViewData["Title"] = "Sign in";
-    var siteInfo = await SiteInfoHelper.GetSiteInfoAsync(DbContext, Env);
-    ViewData["SiteInfo"] = siteInfo;
+    var siteInfo = await SiteInfo.GetSettingsAsync();
 }
 
 <div class="text-center">

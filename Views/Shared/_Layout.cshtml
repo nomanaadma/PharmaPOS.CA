@@ -1,8 +1,5 @@
-@using PharmaPOS_MVC.Helper;
-@inject PharmaPOS_MVC.Data.ApplicationDbContext DbContext
-@inject IWebHostEnvironment Env
 @{
-	var siteInfo = await SiteInfoHelper.GetSiteInfoAsync(DbContext, Env);
+	var siteInfo = await SiteInfo.GetSettingsAsync();
 }
 <!DOCTYPE html>
 <html lang="en">
