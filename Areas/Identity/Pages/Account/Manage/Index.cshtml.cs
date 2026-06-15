@@ -4,11 +4,14 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Data;
 
 namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
 {
@@ -16,13 +19,16 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
         public IndexModel(
             UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager)
+            SignInManager<IdentityUser> signInManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         /// <summary>
@@ -51,10 +57,15 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            [Required]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Required]
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -67,9 +78,15 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
 
             Username = userName;
 
+            var claims = await _userManager.GetClaimsAsync(user);
+            var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
+            var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
+
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                FirstName = firstName,
+                LastName = lastName
             };
         }
 
@@ -109,6 +126,44 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
+
+            // Update or add First Name Claim directly with tracking
+            var dbFirstNameClaim = await _context.UserClaims.AsTracking()
+                .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.GivenName);
+
+            if (dbFirstNameClaim != null)
+            {
+                dbFirstNameClaim.ClaimValue = Input.FirstName ?? "";
+            }
+            else
+            {
+                _context.UserClaims.Add(new IdentityUserClaim<string>
+                {
+                    UserId = user.Id,
+                    ClaimType = ClaimTypes.GivenName,
+                    ClaimValue = Input.FirstName ?? ""
+                });
+            }
+
+            // Update or add Last Name Claim directly with tracking
+            var dbLastNameClaim = await _context.UserClaims.AsTracking()
+                .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.Surname);
+
+            if (dbLastNameClaim != null)
+            {
+                dbLastNameClaim.ClaimValue = Input.LastName ?? "";
+            }
+            else
+            {
+                _context.UserClaims.Add(new IdentityUserClaim<string>
+                {
+                    UserId = user.Id,
+                    ClaimType = ClaimTypes.Surname,
+                    ClaimValue = Input.LastName ?? ""
+                });
+            }
+
+            await _context.SaveChangesAsync();
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";

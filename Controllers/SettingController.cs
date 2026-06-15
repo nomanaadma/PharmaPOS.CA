@@ -13,8 +13,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Authorize]
 public class SettingController(
 	ApplicationDbContext context,
-	SiteInfoService siteInfoService, 
-	IWebHostEnvironment env
+	SiteInfoService siteInfoService
 ) : Controller
 {
 	[HttpGet]
