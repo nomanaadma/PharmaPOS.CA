@@ -295,8 +295,8 @@ namespace PharmaPOS_MVC.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
+                    b.Property<bool>("Status")
+                        .HasColumnType("boolean")
                         .HasColumnName("status");
 
                     b.HasKey("Id");

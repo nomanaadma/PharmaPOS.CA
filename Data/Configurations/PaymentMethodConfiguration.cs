@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Data.Configurations;
 
@@ -22,6 +23,10 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 
 		builder.Property(pm => pm.Status)
 			.HasColumnName("status")
+			.HasColumnType("boolean")
+			.HasConversion(
+				v => v == PaymentMethodStatus.Active,
+				v => v ? PaymentMethodStatus.Active : PaymentMethodStatus.InActive)
 			.IsRequired();
 
 		builder.Property(pm => pm.CreatedDate)

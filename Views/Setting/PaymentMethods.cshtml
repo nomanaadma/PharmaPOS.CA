@@ -1,3 +1,4 @@
+@using PharmaPOS_MVC.Extensions
 @model IEnumerable<PharmaPOS_MVC.Models.PaymentMethodViewModel>
 @{
 	ViewData["Title"] = "Payment Methods";
@@ -42,15 +43,7 @@
 							<td>@index</td>
 							<td class="text-primary">@value.Name</td>
 							<td>
-								@switch (value.Status)
-								{
-									case 1:
-										<span class="label label-success">Active</span>
-										break;
-									case 0:
-										<span class="label label-danger">InActive</span>
-										break;
-								}
+								<span class="label @value.Status.GetCssClass()">@value.Status</span>
 							</td>
 							<td class="table-action">
 								<a class="text-primary" 

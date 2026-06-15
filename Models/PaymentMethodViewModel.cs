@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Models;
 
@@ -11,6 +12,6 @@ public class PaymentMethodViewModel
 	public string Name { get; init; } = null!;
 
 	[Required(ErrorMessage = "Status is required.")]
-	[Range(0, 1, ErrorMessage = "Status must be Active (1) or InActive (0).")]
-	public int Status { get; init; } = 1; // Default to Active
+	[EnumDataType(typeof(PaymentMethodStatus), ErrorMessage = "Invalid status value.")]
+	public PaymentMethodStatus Status { get; init; } = PaymentMethodStatus.Active;
 }

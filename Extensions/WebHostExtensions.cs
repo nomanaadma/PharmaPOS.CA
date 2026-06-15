@@ -4,7 +4,7 @@ public static class WebHostExtensions
 {
 	extension(IWebHostEnvironment webHost)
 	{
-		public string UploadsDir()
+		private string UploadsDir()
 		{
 			return Path.Combine(webHost.WebRootPath, "uploads");
 		}
