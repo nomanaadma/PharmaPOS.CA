@@ -360,6 +360,7 @@ namespace PharmaPOS_MVC.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)")
                         .HasColumnName("email");
@@ -377,6 +378,9 @@ namespace PharmaPOS_MVC.Migrations
                         .HasColumnName("phone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("suppliers", (string)null);
                 });

@@ -81,15 +81,25 @@ public class SettingController(
 		return View(suppliers);
 	}
 
-	[HttpPost("/supplier/add")]
+	[HttpGet]
+	public IActionResult SupplierAdd()
+	{
+		return View("SupplierForm", new SupplierViewModel());
+	}
+
+	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> SupplierAdd(SupplierViewModel model)
 	{
 		if (!ModelState.IsValid)
 		{
-			var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Validation failed: " + errors });
-			return RedirectToAction(nameof(Suppliers));
+			return View("SupplierForm", model);
+		}
+
+		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email))
+		{
+			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
+			return View("SupplierForm", model);
 		}
 
 		try
@@ -99,16 +109,38 @@ public class SettingController(
 			await context.SaveChangesAsync();
 
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Supplier created successfully." });
+			return RedirectToAction(nameof(Suppliers));
 		}
 		catch (Exception ex)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving supplier: " + ex.Message });
+			return View("SupplierForm", model);
 		}
-
-		return RedirectToAction(nameof(Suppliers));
 	}
 
-	[HttpPost("/supplier/edit")]
+	[HttpGet]
+	public async Task<IActionResult> SupplierEdit(int id)
+	{
+		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
+		if (supplier == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
+			return RedirectToAction(nameof(Suppliers));
+		}
+
+		var model = new SupplierViewModel
+		{
+			Id = supplier.Id,
+			Name = supplier.Name,
+			Email = supplier.Email,
+			Phone = supplier.Phone,
+			Address = supplier.Address
+		};
+
+		return View("SupplierForm", model);
+	}
+
+	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> SupplierEdit(SupplierViewModel model)
 	{
@@ -120,9 +152,13 @@ public class SettingController(
 
 		if (!ModelState.IsValid)
 		{
-			var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Validation failed: " + errors });
-			return RedirectToAction(nameof(Suppliers));
+			return View("SupplierForm", model);
+		}
+
+		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email && s.Id != model.Id.Value))
+		{
+			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
+			return View("SupplierForm", model);
 		}
 
 		try
@@ -138,16 +174,16 @@ public class SettingController(
 			await context.SaveChangesAsync();
 
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Supplier updated successfully." });
+			return RedirectToAction(nameof(Suppliers));
 		}
 		catch (Exception ex)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating supplier: " + ex.Message });
+			return View("SupplierForm", model);
 		}
-
-		return RedirectToAction(nameof(Suppliers));
 	}
 
-	[HttpPost("/supplier/delete")]
+	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> SupplierDelete(int id)
 	{

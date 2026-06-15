@@ -22,7 +22,11 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
 
 		builder.Property(s => s.Email)
 			.HasColumnName("email")
+			.IsRequired()
 			.HasMaxLength(254);
+
+		builder.HasIndex(s => s.Email)
+			.IsUnique();
 
 		builder.Property(s => s.Phone)
 			.HasColumnName("phone")
