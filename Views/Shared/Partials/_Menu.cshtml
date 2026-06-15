@@ -1,4 +1,4 @@
-﻿<div class="menu-wrapper">
+<div class="menu-wrapper">
 	<div class="menu">
 		<ul>
 			<li>
@@ -8,7 +8,7 @@
 				<a><i class="las la-cog"></i><span>Setting</span><i class="arrow"></i></a>
 				<ul class="sub-menu">
 					<li><a asp-controller="Setting" asp-action="Index"><span>System Info</span></a></li>
-					<li><a href="http://pharmapos.test/index.php?route=medicine/category"><span>Medicine Category</span></a></li>
+					<li><a asp-controller="Setting" asp-action="Categories"><span>Medicine Category</span></a></li>
 					<li><a href="http://pharmapos.test/index.php?route=paymentmethod"><span>Payment Methods</span></a></li>
 					<li><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
 				</ul>

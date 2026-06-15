@@ -1,0 +1,54 @@
+@model PharmaPOS_MVC.Models.MedicineCategoryViewModel
+@{
+	var isEdit = Model?.Id.HasValue ?? false;
+	var pageType = isEdit ? "Edit" : "Add";
+	
+	ViewData["Title"] = pageType + " Category";
+}
+
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="/">Dashboard</a></li>
+					<li><a asp-controller="Setting" asp-action="Categories">Medicine Categories</a></li>
+					<li>@ViewData["Title"]</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<form asp-controller="Setting" asp-action="@( "Category" + pageType )" method="post">
+	@Html.AntiForgeryToken()
+	@if (isEdit)
+	{
+		<input type="hidden" asp-for="Id" />
+	}
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="form-group">
+						<label>Category Name <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-tag"></i></span></div>
+							<input type="text" asp-for="Name" class="form-control" placeholder="Enter Category Name . . ." required>
+						</div>
+						<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer text-center">
+			<button type="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+			<a asp-controller="Setting" asp-action="Categories" class="btn btn-secondary"><i class="las la-times pr-2"></i> Cancel</a>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

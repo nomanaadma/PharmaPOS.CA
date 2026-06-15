@@ -318,23 +318,6 @@
         $('#addPaymentType form').attr('action', ('/paymentmethod/add'));
     });
 
-    //New or Edit Medicine Category Modal *************
-    $('body').on('click', '.edit-mcategory', function () {
-        var ele = $(this);
-        var data = ele.data();
-        $('#add-mcategory input[name="name"]').val(ele.data("name"));
-        $('#add-mcategory input[name="id"]').val(ele.data("id"));
-        $('#add-mcategory .modal-title').text('Edit Medicine Category');
-        $('#add-mcategory form').attr('action', ('/medicine/category/edit'));
-        $('#add-mcategory').modal('show');
-    });
-    $('#add-mcategory').on('hidden.bs.modal', function (e) {
-        $('#add-mcategory .modal-title').text('New Medicine Category');
-        $('#add-mcategory input').not( "[name='_token']" ).val('');
-        $('#add-mcategory textarea').val('');
-        $('#add-mcategory form').attr('action', ('/medicine/category/add'));
-    });
-
     $("#uploadmedicine-modal").on('change', '#medicinefile', function(e) {
         if (e.target.files.length > 0) {
             $(this).siblings('label').text(e.target.files[0].name);
@@ -358,27 +341,6 @@
 
     $('#editstock-modal').on('hidden.bs.modal', function (e) {
         $('#editstock-modal input').not( "[name='_token']" ).val('');
-    });
-
-    //New or Edit supplier Modal *************
-    $('body').on('click', '.edit-supplier', function () {
-        var ele = $(this);
-        var data = ele.data();
-        $('#add-supplier input[name="name"]').val(ele.data("name"));
-        $('#add-supplier input[name="email"]').val(ele.data("email"));
-        $('#add-supplier input[name="phone"]').val(ele.data("phone"));
-        $('#add-supplier textarea[name="address"]').val(ele.data("address"));
-        $('#add-supplier input[name="id"]').val(ele.data("id"));
-        $('#add-supplier .modal-title').text('Edit Supplier');
-        $('#add-supplier form').attr('action', ('/supplier/edit'));
-        $('#add-supplier').modal('show');
-    });
-
-    $('#add-supplier').on('hidden.bs.modal', function (e) {
-        $('#add-supplier .modal-title').text('New Supplier');
-        $('#add-supplier input').not( "[name='_token']" ).val('');
-        $('#add-supplier textarea').val('');
-        $('#add-supplier form').attr('action', ('/supplier/add'));
     });
 
     var dataTable = $('.datatable-table').DataTable({

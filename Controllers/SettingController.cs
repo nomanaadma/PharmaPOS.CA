@@ -77,7 +77,17 @@ public class SettingController(
 	[HttpGet]
 	public async Task<IActionResult> Suppliers()
 	{
-		var suppliers = await context.Suppliers.OrderBy(s => s.Id).ToListAsync();
+		var suppliers = await context.Suppliers
+			.OrderBy(s => s.Id)
+			.Select(c => new SupplierViewModel()
+			{
+				Id = c.Id,
+				Name = c.Name, 
+				Email = c.Name, 
+				Phone = c.Name, 
+				Address = c.Address
+			})
+			.ToListAsync();
 		return View(suppliers);
 	}
 
@@ -207,5 +217,145 @@ public class SettingController(
 		}
 
 		return RedirectToAction(nameof(Suppliers));
+	}
+
+	[HttpGet]
+	public async Task<IActionResult> Categories()
+	{
+		var categories = await context.MedicineCategories
+			.OrderBy(c => c.Id)
+			.Select(c => new MedicineCategoryViewModel
+			{
+				Id = c.Id,
+				Name = c.Name, 
+			})
+			.ToListAsync();
+		
+		return View(categories);
+	}
+
+	[HttpGet]
+	public IActionResult CategoryAdd()
+	{
+		return View("CategoryForm", new MedicineCategoryViewModel());
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> CategoryAdd(MedicineCategoryViewModel model)
+	{
+		if (!ModelState.IsValid)
+		{
+			return View("CategoryForm", model);
+		}
+
+		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name))
+		{
+			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
+			return View("CategoryForm", model);
+		}
+
+		try
+		{
+			var category = new MedicineCategory(model.Name);
+			context.MedicineCategories.Add(category);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category created successfully." });
+			return RedirectToAction(nameof(Categories));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving category: " + ex.Message });
+			return View("CategoryForm", model);
+		}
+	}
+
+	[HttpGet]
+	public async Task<IActionResult> CategoryEdit(int id)
+	{
+		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
+		if (category == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+			return RedirectToAction(nameof(Categories));
+		}
+
+		var model = new MedicineCategoryViewModel
+		{
+			Id = category.Id,
+			Name = category.Name
+		};
+
+		return View("CategoryForm", model);
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> CategoryEdit(MedicineCategoryViewModel model)
+	{
+		if (!model.Id.HasValue)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category ID is required for editing." });
+			return RedirectToAction(nameof(Categories));
+		}
+
+		if (!ModelState.IsValid)
+		{
+			return View("CategoryForm", model);
+		}
+
+		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id.Value))
+		{
+			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
+			return View("CategoryForm", model);
+		}
+
+		try
+		{
+			var category = await context.MedicineCategories.AsTracking().FirstOrDefaultAsync(c => c.Id == model.Id.Value);
+			if (category == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+				return RedirectToAction(nameof(Categories));
+			}
+
+			category.Update(model.Name);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category updated successfully." });
+			return RedirectToAction(nameof(Categories));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating category: " + ex.Message });
+			return View("CategoryForm", model);
+		}
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> CategoryDelete(int id)
+	{
+		try
+		{
+			var category = await context.MedicineCategories.AsTracking().FirstOrDefaultAsync(c => c.Id == id);
+			if (category == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+				return RedirectToAction(nameof(Categories));
+			}
+
+			context.MedicineCategories.Remove(category);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category deleted successfully." });
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting category: " + ex.Message });
+		}
+
+		return RedirectToAction(nameof(Categories));
 	}
 }
