@@ -141,14 +141,14 @@ function bind() {
 function initAutocomplete() {
 	$(".billing-items .item-name").autocomplete({
 		minLength: 0,
-		source: site_url.concat('getmedicine'),
+		source: ('/getmedicine'),
 		focus: function( event, ui ) {
 			$(this).parents('tr').find('.item-name').val( ui.item.label );
 			return false;
 		},
 		select: function( event, ui ) {
 			var ele = $(this), ele_parent = ele.parents('tr.item-row'),
-			path = site_url.concat('getbatch');
+			path = ('/getbatch');
 			ele_parent.find('.item-name').val( ui.item.label );
 			ele_parent.find('.item-medicine-id').val( ui.item.id );
 			ele_parent.find('.item-batch option').remove();
@@ -253,7 +253,7 @@ $(document).ready(function () {
 
 	$('.billing-items').on('change', '.item-batch', function () {
 		var ele = $(this), ele_parent = ele.parents('tr.item-row'),
-		path = site_url.concat('getbatchdata');
+		path = ('/getbatchdata');
 		if (ele.val() === "") {
 			ele_parent.find('.item-expiry').val('');
 			ele_parent.find('.item-qty').val('');

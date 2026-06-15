@@ -7,7 +7,6 @@
      })
   
     "use strict";
-    var path = site_url;
 
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover()
@@ -37,7 +36,7 @@
         });
 
         $(".medicine_report_name").autocomplete({
-            source: path.concat('getmedicine'),
+            source: ('/getmedicine'),
             minLength: 2,
             focus: function() {return false;},
             select: function( event, ui ) {
@@ -60,7 +59,7 @@
         });
 
         $(".customer-name").autocomplete({
-            source: path.concat('customer/search'),
+            source: ('/customer/search'),
             minLength: 2,
             focus: function() {return false;},
             select: function( event, ui ) {
@@ -128,10 +127,9 @@
     $('#media-upload').on('show.bs.modal', function (e) {
         var uploaded = $('#media-upload .uploaded');
         if (uploaded.val() === '0') {
-            var path = site_url.concat('media/get');
             $.ajax({
                 type: 'get',
-                url: path,
+                url: '/media/get',
                 data: { name: 'media' },
                 success: function (response) {
                     $('#media-upload .media-all').append(response);
@@ -199,7 +197,7 @@
         id = ele_par.find('.block-id').val();
         $.ajax({
             method: "POST",
-            url: path.concat('media/delete'),
+            url: ('/media/delete'),
             data: { page: 'media', name: media, id: id, __RequestVerificationToken: xsrfToken },
             error: function () {
                 alert('Sorry Try Again!');
@@ -300,7 +298,7 @@
         });
 
         $('.table-date-range').on('apply.daterangepicker', function(ev, picker) {
-            window.location.replace(path+tabledate_data.route+'&start='+picker.startDate.format('YYYY-MM-DD')+'&end='+picker.endDate.format('YYYY-MM-DD')+'&medicine_id='+$('.item-medicine-id').val()+'&medicine_name='+$('.medicine_report_name').val());
+            window.location.replace('/'+tabledate_data.route+'&start='+picker.startDate.format('YYYY-MM-DD')+'&end='+picker.endDate.format('YYYY-MM-DD')+'&medicine_id='+$('.item-medicine-id').val()+'&medicine_name='+$('.medicine_report_name').val());
         });
     }
 
@@ -310,14 +308,14 @@
         $('#addPaymentType input[name="id"]').val(ele.data("id"));
         $('#addPaymentType select[name="status"]').val(ele.data("status"));
         $('#addPaymentType .modal-title').text('Edit Payment Method');
-        $('#addPaymentType form').attr('action', site_url.concat('paymentmethod/edit'));
+        $('#addPaymentType form').attr('action', ('/paymentmethod/edit'));
         $('#addPaymentType').modal('show');
     });
     $('#addPaymentType').on('hidden.bs.modal', function (e) {
         $('#addPaymentType .modal-title').text('New Payment Method');
         $('#addPaymentType input').not( "[name='_token']" ).val('');
         $('#addPaymentType textarea').val('');
-        $('#addPaymentType form').attr('action', site_url.concat('paymentmethod/add'));
+        $('#addPaymentType form').attr('action', ('/paymentmethod/add'));
     });
 
     //New or Edit Medicine Category Modal *************
@@ -327,14 +325,14 @@
         $('#add-mcategory input[name="name"]').val(ele.data("name"));
         $('#add-mcategory input[name="id"]').val(ele.data("id"));
         $('#add-mcategory .modal-title').text('Edit Medicine Category');
-        $('#add-mcategory form').attr('action', site_url.concat('medicine/category/edit'));
+        $('#add-mcategory form').attr('action', ('/medicine/category/edit'));
         $('#add-mcategory').modal('show');
     });
     $('#add-mcategory').on('hidden.bs.modal', function (e) {
         $('#add-mcategory .modal-title').text('New Medicine Category');
         $('#add-mcategory input').not( "[name='_token']" ).val('');
         $('#add-mcategory textarea').val('');
-        $('#add-mcategory form').attr('action', site_url.concat('medicine/category/add'));
+        $('#add-mcategory form').attr('action', ('/medicine/category/add'));
     });
 
     $("#uploadmedicine-modal").on('change', '#medicinefile', function(e) {
@@ -372,7 +370,7 @@
         $('#add-supplier textarea[name="address"]').val(ele.data("address"));
         $('#add-supplier input[name="id"]').val(ele.data("id"));
         $('#add-supplier .modal-title').text('Edit Supplier');
-        $('#add-supplier form').attr('action', site_url.concat('supplier/edit'));
+        $('#add-supplier form').attr('action', ('/supplier/edit'));
         $('#add-supplier').modal('show');
     });
 
@@ -380,7 +378,7 @@
         $('#add-supplier .modal-title').text('New Supplier');
         $('#add-supplier input').not( "[name='_token']" ).val('');
         $('#add-supplier textarea').val('');
-        $('#add-supplier form').attr('action', site_url.concat('supplier/add'));
+        $('#add-supplier form').attr('action', ('/supplier/add'));
     });
 
     var dataTable = $('.datatable-table').DataTable({

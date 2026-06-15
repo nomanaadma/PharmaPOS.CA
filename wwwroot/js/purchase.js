@@ -143,7 +143,7 @@
  function initAutocomplete() {
  	$(".item-name").autocomplete({
  		minLength: 0,
- 		source: site_url.concat('getmedicine'),
+ 		source: ('/getmedicine'),
  		focus: function( event, ui ) {
  			$(this).parents('tr').find('.item-name').val( ui.item.label );
  			return false;
