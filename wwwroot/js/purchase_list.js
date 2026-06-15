@@ -41,7 +41,7 @@ $(function () {
         ajax: {
             url: '/index.php?route=purchase/filter',
             data: {
-                _token: s_token
+                __RequestVerificationToken: xsrfToken
             },
             type: 'POST'
         },

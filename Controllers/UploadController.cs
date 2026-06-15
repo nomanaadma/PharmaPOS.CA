@@ -43,6 +43,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 
 	[HttpPost]
 	[Route("upload")]
+	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Upload(IFormFile? file)
 	{
 		if (file == null || file.Length == 0)
@@ -85,6 +86,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 
 	[HttpPost]
 	[Route("delete")]
+	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Delete(string name, int id)
 	{
 		if (string.IsNullOrEmpty(name))

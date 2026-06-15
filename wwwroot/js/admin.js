@@ -132,8 +132,7 @@
             $.ajax({
                 type: 'get',
                 url: path,
-                data: { name: 'media', _token: s_token },
-                error: function () {},
+                data: { name: 'media' },
                 success: function (response) {
                     $('#media-upload .media-all').append(response);
                     uploaded.val('1');
@@ -162,7 +161,7 @@
         init: function() {
             var reportDropzone = this;
             reportDropzone.on("sending", function(file, xhr, formData) {
-                formData.append("_token", s_token);
+                formData.append("__RequestVerificationToken", xsrfToken);
             });
 
             reportDropzone.on("success", function(file, response) {
@@ -201,7 +200,7 @@
         $.ajax({
             method: "POST",
             url: path.concat('media/delete'),
-            data: { page: 'media', name: media, id: id, _token: s_token },
+            data: { page: 'media', name: media, id: id, __RequestVerificationToken: xsrfToken },
             error: function () {
                 alert('Sorry Try Again!');
             },

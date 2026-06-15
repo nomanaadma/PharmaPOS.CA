@@ -158,7 +158,7 @@ function initAutocomplete() {
 			$.ajax({
 				type: 'POST',
 				url: path,
-				data: { id: ui.item.id, _token: s_token },
+				data: { id: ui.item.id, __RequestVerificationToken: xsrfToken },
 				error: function() {
 					toastr.error('No data Found', 'Server Error');
 				},
@@ -265,7 +265,7 @@ $(document).ready(function () {
 			$.ajax({
 				type: 'POST',
 				url: path,
-				data: { medicine: ele_parent.find('.item-medicine-id').val(), batch: ele.val(), _token: s_token },
+				data: { medicine: ele_parent.find('.item-medicine-id').val(), batch: ele.val(), __RequestVerificationToken: xsrfToken },
 				error: function() {
 					toastr.error('No data Found', 'Server Error');
 				},

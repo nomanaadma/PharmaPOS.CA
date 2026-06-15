@@ -21402,6 +21402,7 @@ div.dtsb-searchBuilder div.dtsb-group div.dtsb-logicContainer {
   right: 0;
 }
 
+#logoutForm,
 body[data-reports=""] .dtsb-searchBuilder,
 body[data-reports=""] .datatotals,
 body[data-reports=""] tfoot

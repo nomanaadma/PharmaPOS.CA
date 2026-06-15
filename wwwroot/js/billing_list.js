@@ -34,7 +34,7 @@ $(function () {
         ajax: {
             url: '/index.php?route=billing/filter',
             data: {
-                _token: s_token
+                __RequestVerificationToken: xsrfToken
             },
             type: 'POST'
         },

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
+using PharmaPOS_MVC.Middlewares;
 using PharmaPOS_MVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +48,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<BlockRegisterMiddleware>();
 
 app.UseStaticFiles(new StaticFileOptions
 {
