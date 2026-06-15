@@ -302,21 +302,6 @@
         });
     }
 
-    $('body').on('click', '.edit-paymenttype', function () {
-        var ele = $(this);
-        $('#addPaymentType input[name="name"]').val(ele.data("name"));
-        $('#addPaymentType input[name="id"]').val(ele.data("id"));
-        $('#addPaymentType select[name="status"]').val(ele.data("status"));
-        $('#addPaymentType .modal-title').text('Edit Payment Method');
-        $('#addPaymentType form').attr('action', ('/paymentmethod/edit'));
-        $('#addPaymentType').modal('show');
-    });
-    $('#addPaymentType').on('hidden.bs.modal', function (e) {
-        $('#addPaymentType .modal-title').text('New Payment Method');
-        $('#addPaymentType input').not( "[name='_token']" ).val('');
-        $('#addPaymentType textarea').val('');
-        $('#addPaymentType form').attr('action', ('/paymentmethod/add'));
-    });
 
     $("#uploadmedicine-modal").on('change', '#medicinefile', function(e) {
         if (e.target.files.length > 0) {

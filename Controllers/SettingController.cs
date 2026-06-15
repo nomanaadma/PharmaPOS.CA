@@ -358,4 +358,146 @@ public class SettingController(
 
 		return RedirectToAction(nameof(Categories));
 	}
+
+	[HttpGet]
+	public async Task<IActionResult> PaymentMethods()
+	{
+		var methods = await context.PaymentMethods
+			.OrderBy(pm => pm.Id)
+			.Select(pm => new PaymentMethodViewModel
+			{
+				Id = pm.Id,
+				Name = pm.Name,
+				Status = pm.Status
+			})
+			.ToListAsync();
+		
+		return View(methods);
+	}
+
+	[HttpGet]
+	public IActionResult PaymentMethodAdd()
+	{
+		return View("PaymentMethodForm", new PaymentMethodViewModel());
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> PaymentMethodAdd(PaymentMethodViewModel model)
+	{
+		if (!ModelState.IsValid)
+		{
+			return View("PaymentMethodForm", model);
+		}
+
+		if (await context.PaymentMethods.AnyAsync(pm => pm.Name == model.Name))
+		{
+			ModelState.AddModelError(nameof(model.Name), "Payment Method Name must be unique.");
+			return View("PaymentMethodForm", model);
+		}
+
+		try
+		{
+			var method = new PaymentMethod(model.Name, model.Status);
+			context.PaymentMethods.Add(method);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment Method created successfully." });
+			return RedirectToAction(nameof(PaymentMethods));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving payment method: " + ex.Message });
+			return View("PaymentMethodForm", model);
+		}
+	}
+
+	[HttpGet]
+	public async Task<IActionResult> PaymentMethodEdit(int id)
+	{
+		var method = await context.PaymentMethods.FirstOrDefaultAsync(pm => pm.Id == id);
+		if (method == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method not found." });
+			return RedirectToAction(nameof(PaymentMethods));
+		}
+
+		var model = new PaymentMethodViewModel
+		{
+			Id = method.Id,
+			Name = method.Name,
+			Status = method.Status
+		};
+
+		return View("PaymentMethodForm", model);
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> PaymentMethodEdit(PaymentMethodViewModel model)
+	{
+		if (!model.Id.HasValue)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method ID is required for editing." });
+			return RedirectToAction(nameof(PaymentMethods));
+		}
+
+		if (!ModelState.IsValid)
+		{
+			return View("PaymentMethodForm", model);
+		}
+
+		if (await context.PaymentMethods.AnyAsync(pm => pm.Name == model.Name && pm.Id != model.Id.Value))
+		{
+			ModelState.AddModelError(nameof(model.Name), "Payment Method Name must be unique.");
+			return View("PaymentMethodForm", model);
+		}
+
+		try
+		{
+			var method = await context.PaymentMethods.AsTracking().FirstOrDefaultAsync(pm => pm.Id == model.Id.Value);
+			if (method == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method not found." });
+				return RedirectToAction(nameof(PaymentMethods));
+			}
+
+			method.Update(model.Name, model.Status);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment Method updated successfully." });
+			return RedirectToAction(nameof(PaymentMethods));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating payment method: " + ex.Message });
+			return View("PaymentMethodForm", model);
+		}
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> PaymentMethodDelete(int id)
+	{
+		try
+		{
+			var method = await context.PaymentMethods.AsTracking().FirstOrDefaultAsync(pm => pm.Id == id);
+			if (method == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method not found." });
+				return RedirectToAction(nameof(PaymentMethods));
+			}
+
+			context.PaymentMethods.Remove(method);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment Method deleted successfully." });
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting payment method: " + ex.Message });
+		}
+
+		return RedirectToAction(nameof(PaymentMethods));
+	}
 }

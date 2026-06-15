@@ -1,11 +1,61 @@
-﻿ok just like we have supplier
+﻿ok just like the supplier or medicine category
 
-we will have Medicine category crud
- 
-so table name would be medicine_category
+I now want you to make another crud
 
-with column id, name, created_date
+which is payment method 
 
-where name is required
+table will be called payment_method
 
+column would be 
+
+id, name, status = 0,1, and created_date
+
+let me show you the form of payment method it has this dropdown of status 
+
+
+{% if page_add or page_edit %}
+    <!-- ADD EDIT MODAL -->
+    <div class="modal fade" id="addPaymentType" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Payment Method</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ action }}" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="col-form-label">Payment Method Name <span class="form-required">*</span></label>
+                            <input type="text" class="form-control" name="name" placeholder="Enter Payment Method Name . . ." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Status</label>
+                            <select name="status" class="custom-select">
+                                <option value="1">Active</option>
+                                <option value="0">InActive</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="id">
+                        <input type="hidden" name="_token" value="{{ common.token }}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+and in the list it shows status like 
+
+<td>
+    {% if value.status == '1' %}
+        <span class="label label-success">Active</span>
+    {% elseif value.status == '0' %}
+        <span class="label label-danger">InActive</span>
+    {% endif %}
+</td>
 

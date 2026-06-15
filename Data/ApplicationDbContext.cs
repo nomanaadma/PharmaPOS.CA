@@ -10,6 +10,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 	public DbSet<Media> Media { get; set; } = null!;
 	public DbSet<Supplier> Suppliers { get; set; } = null!;
 	public DbSet<MedicineCategory> MedicineCategories { get; set; } = null!;
+	public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder builder)
 	{
