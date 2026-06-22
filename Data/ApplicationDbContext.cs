@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 	public DbSet<Supplier> Suppliers { get; set; } = null!;
 	public DbSet<MedicineCategory> MedicineCategories { get; set; } = null!;
 	public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
+	public DbSet<Customer> Customers { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder builder)
 	{

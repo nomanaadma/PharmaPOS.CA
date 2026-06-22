@@ -7,7 +7,7 @@ public class PaymentMethod
 	// EF Core parameterless constructor
 	private PaymentMethod() { }
 
-	public PaymentMethod(string name, PaymentMethodStatus status)
+	public PaymentMethod(string name, Status status)
 	{
 		Update(name, status);
 		CreatedDate = DateTime.UtcNow;
@@ -15,10 +15,10 @@ public class PaymentMethod
 
 	public int Id { get; private set; }
 	public string Name { get; private set; } = null!;
-	public PaymentMethodStatus Status { get; private set; }
+	public Status Status { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 
-	public void Update(string name, PaymentMethodStatus status)
+	public void Update(string name, Status status)
 	{
 		if (string.IsNullOrWhiteSpace(name))
 			throw new ArgumentException("Payment Method Name is required.", nameof(name));

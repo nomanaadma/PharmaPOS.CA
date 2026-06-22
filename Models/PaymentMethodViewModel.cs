@@ -12,6 +12,6 @@ public class PaymentMethodViewModel
 	public string Name { get; init; } = null!;
 
 	[Required(ErrorMessage = "Status is required.")]
-	[EnumDataType(typeof(PaymentMethodStatus), ErrorMessage = "Invalid status value.")]
-	public PaymentMethodStatus Status { get; init; } = PaymentMethodStatus.Active;
+	[EnumDataType(typeof(Status), ErrorMessage = "Invalid status value.")]
+	public Status Status { get; init; } = Status.Active;
 }

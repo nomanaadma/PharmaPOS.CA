@@ -1,61 +1,132 @@
-﻿ok just like the supplier or medicine category
-
-I now want you to make another crud
-
-which is payment method 
-
-table will be called payment_method
-
-column would be 
-
-id, name, status = 0,1, and created_date
-
-let me show you the form of payment method it has this dropdown of status 
+﻿You know this is a rewrite of an application which 
+was developed using php now I am rewriting it to asp.net core mvc
+it's a domain driven design application 
 
 
-{% if page_add or page_edit %}
-    <!-- ADD EDIT MODAL -->
-    <div class="modal fade" id="addPaymentType" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">New Payment Method</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form action="{{ action }}" method="post">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="col-form-label">Payment Method Name <span class="form-required">*</span></label>
-                            <input type="text" class="form-control" name="name" placeholder="Enter Payment Method Name . . ." required>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-form-label">Status</label>
-                            <select name="status" class="custom-select">
-                                <option value="1">Active</option>
-                                <option value="0">InActive</option>
-                            </select>
-                        </div>
-                        <input type="hidden" name="id">
-                        <input type="hidden" name="_token" value="{{ common.token }}">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-{% endif %}
+I want to add a customer section. The table fields
+This application is a rewrite of an existing PHP system that is being migrated to ASP.NET Core MVC using Domain-Driven Design (DDD).
 
-and in the list it shows status like 
+I want to add a Customer module with the following fields:
 
-<td>
-    {% if value.status == '1' %}
-        <span class="label label-success">Active</span>
-    {% elseif value.status == '0' %}
-        <span class="label label-danger">InActive</span>
-    {% endif %}
-</td>
+* Id
+* FirstName
+* LastName
+* Email
+* Mobile
+* Gender
+* Status
+* CreatedDate
+
+The `Status` field should use an enum with the following values:
+
+* `Inactive = 0`
+* `Active = 1`
+
+This is similar to the existing `PaymentMethodStatus.cs`.
+
+Instead of creating a separate enum, let's consider renaming `PaymentMethodStatus.cs` to a more generic `Status.cs` enum so it can be reused across multiple modules.
+
+Next, I will provide the page content and requirements for the Customer module.
+
+Please review the requirements and implement the module while following the existing project structure, conventions, and overall design patterns.
+
+
+customer_list.twig 
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-4">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-sm-8 text-right">
+			<a href="{{ common.info.url_route }}customer/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Customer</a>
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="table-responsive">
+			<table class="table table-middle table-bordered table-striped datatable-table">
+				<thead>
+					<tr class="table-heading">
+						<th>#</th>
+						<th>Customer Info</th>
+						<th>Gender</th>
+						<th>Email</th>
+						<th>Number</th>
+						<th>Status</th>
+						<th>Created Date</th>
+							<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for value in result %}
+						<tr>
+							<td>{{ loop.index }}</td>
+							<td>
+								<p class="m-0 text-primary">{{ value.firstname~value.lastname }}</p>
+							</td>
+							<td>{{ value.gender }}</td>
+							<td>{{ value.email }}</td>
+							<td>{{ value.mobile }}</td>
+							<td>
+								{% if value.status == '1' %}
+									<span class="label label-success">Active</span>
+								{% elseif value.status == '0' %}
+									<span class="label label-danger">InActive</span>
+								{% endif %}
+							</td>
+							<td>{{ value.created_date|date(common.info.date_format) }}</td>
+								<td class="table-action">
+                                    <div class="dropdown d-inline-block">
+                                        <a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+                                        <ul class="dropdown-menu dropdown-menu-right">
+                                                <li><a href="{{ common.info.url_route~'customer/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
+                                                <li><a href="{{ common.info.url_route~'customer/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
+                                        </ul>
+                                    </div>
+                                    <a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}"></a>
+								</td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+{{ include('common/footer.twig') }}
+
+
+controller.php
+
+public function index()
+	{
+		
+		$data['page_title'] = 'Customers';
+	
+		$this->load->model('customer');
+		$data['result'] = $this->model_customer->getCustomers();
+
+		/*Render User list view*/
+		$this->response->setOutput($this->load->view('customer/customer_list', $data));
+	}
+
+    model = 
+
+
+    public function getCustomers()
+	{
+		$query = $this->database->query("SELECT * FROM `customers` ORDER BY `created_date` DESC");		
+		return $query->rows;
+	}
+
 

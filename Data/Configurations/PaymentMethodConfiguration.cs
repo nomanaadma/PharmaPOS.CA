@@ -25,8 +25,8 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 			.HasColumnName("status")
 			.HasColumnType("boolean")
 			.HasConversion(
-				v => v == PaymentMethodStatus.Active,
-				v => v ? PaymentMethodStatus.Active : PaymentMethodStatus.InActive)
+				v => v == Status.Active,
+				v => v ? Status.Active : Status.InActive)
 			.IsRequired();
 
 		builder.Property(pm => pm.CreatedDate)

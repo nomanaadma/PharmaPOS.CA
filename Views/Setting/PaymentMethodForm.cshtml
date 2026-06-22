@@ -41,7 +41,7 @@
 				<div class="col-md-6">
 					<div class="form-group">
 						<label class="col-form-label">Status</label>
-						<select asp-for="Status" class="custom-select" asp-items="Html.GetEnumSelectList<PaymentMethodStatus>()">
+						<select asp-for="Status" class="custom-select" asp-items="Html.GetEnumSelectList<Status>()">
 						</select>
 						<span asp-validation-for="Status" class="text-danger"></span>
 					</div>
