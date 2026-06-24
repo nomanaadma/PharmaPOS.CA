@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace PharmaPOS_MVC.Data;
@@ -31,8 +31,10 @@ public static class DbInitializer
 			"medicine/purchase", "medicine/purchase/add", "medicine/purchase/edit", "medicine/purchase/delete", "medicine/purchase/view",
 			"medicine/stock", "medicine/stock/delete", "medicines", "medicine/add", "medicine/edit", "medicine/delete", "medicine/view",
 			"medicine/category", "medicine/category/add", "medicine/category/edit", "medicine/category/delete",
-			"reportss", "users", "user/add", "user/edit", "user/delete", "info", "tax", "tax/add", "tax/edit", "tax/delete",
-			"paymentmethod", "paymentmethod/add", "paymentmethod/edit", "paymentmethod/delete", "get/media", "media/upload", "media/delete"
+			"tax", "tax/add", "tax/edit", "tax/delete", "paymentmethod", "paymentmethod/add", "paymentmethod/edit", "paymentmethod/delete",
+			"get/media", "media/upload", "media/delete",
+			"reports", "users", "user/add", "user/edit", "user/delete", "info", 
+			"suppliers", "supplier/add", "supplier/edit", "supplier/delete",
 		];
 
 		string[] storeManagerPermissions =

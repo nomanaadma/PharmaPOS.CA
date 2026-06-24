@@ -1,17 +1,222 @@
-﻿Here is the implementation of the Customer Add/Edit form. Please integrate it into the current application accordingly.
+﻿Just like you worked on the Customer module, which included Add, Edit, Delete, and List functionality, I would like you to work on the Medicine module with the same set of features.
 
-customer_form.twig
+I will provide the PHP implementation below.
+
+In the implementation, you will see code related to roles and permissions. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later.
 
 
-{{ include('common/header.twig') }}
+controller
+
+public function index()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/**
+		* Get all Medicine data from DB using Medicine model 
+		**/
+		$this->load->model('medicine');
+		$data['result'] = $this->model_medicine->getMedicines();
+
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'Medicines';
+		$data['page_view'] = $this->user_agent->hasPermission('medicine/view') ? true : false;
+		$data['page_add'] = $this->user_agent->hasPermission('medicine/add') ? true : false;
+		$data['page_edit'] = $this->user_agent->hasPermission('medicine/edit') ? true : false;
+		$data['page_delete'] = $this->user_agent->hasPermission('medicine/delete') ? true : false;
+		
+		$data['action_delete'] = URL.DIR_ROUTE.'medicine/delete';
+		
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/medicine_list', $data));
+	}
+
+
+
+	/**
+	* Medicine index add method
+	* This method will be called on Medicine add
+	**/
+	public function indexAdd()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		
+		$this->load->model('medicine');
+		$data['category'] = $this->model_medicine->getMCategory();
+		/* Set page title */
+		$data['page_title'] = 'Add Medicine';
+		/* Set empty data to array */
+		$data['result'] =  NULL;
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action'] = URL.DIR_ROUTE.'medicine/add';
+		/*Render Medicine add view*/
+		$this->response->setOutput($this->load->view('medicine/medicine_form', $data));
+	}
+
+	/**
+	* Medicine index edit method
+	* This method will be called on Medicine edit view
+	**/
+	public function indexEdit()
+	{
+		/**
+		* Check if id exist in url if not exist then redirect to Medicine list view 
+		**/
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id)) {
+			$this->url->redirect('medicines');
+		}
+		/**
+		* Call getBlog method from Blog model to get data from DB for single Medicine
+		* If Medicine does not exist then redirect it to Medicine list view
+		**/
+		$this->load->model('medicine');
+		$data['result'] = $this->model_medicine->getMedicine($id);
+		if (empty($data['result'])) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Medicine does not exist in database!');
+			$this->url->redirect('medicines');
+		}
+		$data['category'] = $this->model_medicine->getMCategory();
+
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/* Set Edit Medicine page title */
+		$data['page_title'] = 'Edit Medicine';
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action'] = URL.DIR_ROUTE.'medicine/edit';
+		/*Render Medicine edit view*/
+		$this->response->setOutput($this->load->view('medicine/medicine_form', $data));
+	}
+
+	/**
+	* Medicine index action method
+	* This method will be called on Medicine submit/save view
+	**/
+	public function indexAction()
+	{
+		/**
+		* Check if from is submitted or not 
+		**/
+		if (!isset($_POST['submit'])) {
+			$this->url->redirect('medicines');
+		}
+		$data = $this->url->post;
+		$this->load->controller('common');
+		if ($validate_field = $this->validateField($data['medicine'])) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
+			if (!empty($data['medicine']['id'])) {
+				$this->url->redirect('medicine/edit&id='.$data['medicine']['id']);
+			} else {
+				$this->url->redirect('medicine/add');
+			}
+		}
+		$data['medicine']['datetime'] =  date('Y-m-d H:i:s');
+		$data['medicine']['user_id'] = $this->session->data['user_id'];
+		
+		$this->load->model('medicine');
+		if (!empty($data['medicine']['id'])) {
+			$this->model_medicine->updateMedicine($data['medicine']);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine updated successfully.');
+			
+		} else {
+			$data['medicine']['id'] = $this->model_medicine->createMedicine($data['medicine']);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine created successfully.');
+		}
+		$this->url->redirect('medicine/edit&id='.$data['medicine']['id']);
+	}
+
+	/**
+	* Medicine index delete method
+	* This method will be called on Medicine delete action
+	**/
+	public function indexDelete()
+	{
+		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
+			$this->url->redirect('medicines');
+		}
+		
+		$this->load->model('medicine');
+		$result = $this->model_medicine->deleteMedicine($this->url->post('id'));
+		$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine deleted successfully.');
+		$this->url->redirect('medicines');
+	}
+
+
+
+model 
+
+public function getMedicines()
+	{
+		$query = $this->database->query("SELECT m.*, mc.name AS category_name, SUM(mb.qty) AS qty, SUM(mb.qty) - SUM(mb.sold) AS livestock FROM `medicines` AS m LEFT JOIN `medicine_category` AS mc ON mc.id = m.category LEFT JOIN `medicine_batch_view` AS mb ON mb.medicine_id = m.id AND mb.expiry > '".date('Y-m')."' GROUP BY m.id ORDER BY m.created_date DESC");
+		return $query->rows;
+	}
+
+public function getMedicine($id)
+	{
+		$query = $this->database->query("SELECT m.*, mc.name AS category_name FROM `medicines` AS m LEFT JOIN `medicine_category` AS mc ON mc.id = m.category WHERE m.id = ? LIMIT 1", array((int)$id));
+		if ($query->num_rows > 0) {
+			return $query->row;
+		} else {
+			return false;
+		}
+	}
+
+public function updateMedicine($data)
+	{
+		$this->database->query("UPDATE `medicines` SET `name` = ?, `company` = ?, `generic` = ?, `medicine_group` = ?, `category` = ?, `storebox` = ?, `minlevel` = ?, `reorderlevel` = ?, `unit` = ?, `unitpacking` = ?, `note` = ? WHERE `id` = ?", array($this->database->escape($data['name']), $data['company'], $data['generic'], $data['medicine_group'], (int)$data['category'], $data['storebox'], $data['minlevel'], $data['reorderlevel'], $data['unit'], $data['unitpacking'], $data['note'], (int)$data['id']));
+		return true;
+	}
+
+	public function createMedicine($data)
+	{
+		$query = $this->database->query("INSERT INTO `medicines` (`name`, `company`, `generic`, `medicine_group`, `category`, `storebox`, `minlevel`, `reorderlevel`, `unit`, `unitpacking`, `note`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['name']), $data['company'], $data['generic'], $data['medicine_group'], (int)$data['category'], $data['storebox'], $data['minlevel'], $data['reorderlevel'], $data['unit'], $data['unitpacking'], $data['note'], $data['datetime']));
+		if ($query->num_rows > 0) {
+			return $this->database->last_id();
+		} else {
+			return false;
+		}
+	}
+
+
+
+	public function deleteMedicine($id)
+	{
+		$query = $this->database->query("DELETE FROM `medicines` WHERE `id` = ?", array((int)$id));
+		if ($query->num_rows > 0) { return true; }
+		else { return false; }
+	}
+
+
+
+	view
+
+	medicine_form.twig
+
+
+	{{ include('common/header.twig') }}
 <div class="page-title">
 	<div class="row align-items-center">
 		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
 			<div class="breadcrumbs d-inline-block">
 				<ul>
-					<li><a href="#">Home</a></li>
-					<li><a href="{{ common.info.url_route }}customers">Customers</a></li>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}medicines">Medicine</a></li>
 					<li>{{ page_title }}</li>
 				</ul>
 			</div>
@@ -20,249 +225,252 @@ customer_form.twig
 </div>
 
 <form action="{{ action }}" method="post">
-	<input type="hidden" name="_token" value="{{ token }}">
-	<input type="hidden" name="customer[id]" value="{{ result.id }}">
+	<input type="hidden" name="_token" value="{{ common.token }}">
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">
-				<div class="col-md-3">
+				<div class="col-md-6">
 					<div class="form-group">
-						<label>First Name <span class="form-required">*</span></label>
+						<label>Medicine Name <span class="form-required">*</span></label>
 						<div class="input-group">
 							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-user"></i></span>
+								<span class="input-group-text"><i class="las la-pills"></i></span>
 							</div>
-							<input type="text" name="customer[firstname]" class="form-control" value="{{ result.firstname }}" placeholder="Enter First Name . . . ">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="form-group">
-						<label>Last Name <span class="form-required">*</span></label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-user"></i></span>
-							</div>
-							<input type="text" name="customer[lastname]" class="form-control" value="{{ result.lastname }}" placeholder="Enter Last Name . . . ">
+							<input type="text" name="medicine[name]" class="form-control" value="{{ result.name }}" placeholder="Enter Medicine Name . . .">
 						</div>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
-						<label>Email Address <span class="form-required">*</span></label>
+						<label>Medicine Category <span class="form-required">*</span></label>
 						<div class="input-group">
 							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-envelope"></i></span>
+								<span class="input-group-text"><i class="las la-tag"></i></span>
 							</div>
-							<input type="email" name="customer[mail]" class="form-control" value="{{ result.email }}" placeholder="Enter Email Address . . . ">
+							<select name="medicine[category]" class="custom-select">
+								{% for value in category %}
+								    <option value="{{ value.id }}" {{ result.category == value.id ? 'selected' : false }}>{{ value.name }}</option>
+								{% endfor %}
+							</select>
 						</div>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
-						<label>Mobile Number <span class="form-required">*</span></label>
+						<label>Medicine Company <span class="form-required">*</span></label>
 						<div class="input-group">
 							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-mobile"></i></span>
+								<span class="input-group-text"><i class="las la-building"></i></span>
 							</div>
-							<input type="text" name="customer[mobile]" class="form-control" value="{{ result.mobile }}" placeholder="Enter Mobile Number . . . ">
+							<input type="text" name="medicine[company]" class="form-control" value="{{ result.company }}" placeholder="Enter Medicine Company . . .">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Medicine Generic <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-mortar-pestle"></i></span>
+							</div>
+							<input type="text" name="medicine[generic]" class="form-control" value="{{ result.generic }}" placeholder="Enter Medicine Generic . . .">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Medicine Group</label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-object-group"></i></span>
+							</div>
+							<input type="text" name="medicine[medicine_group]" class="form-control" value="{{ result.medicine_group }}" placeholder="Enter Medicine Group . . .">
 						</div>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="row">
-						<div class="col-md-6">
+						<div class="col-sm-6">
 							<div class="form-group">
-								<label>Gender</label>
+								<label>Unit<span class="form-required">*</span></label>
 								<div class="input-group">
-									<div class="input-group-prepend"><span class="input-group-text"><i class="las la-genderless"></i></span></div>
-									<select name="customer[gender]" class="custom-select">
-										<option value="Male" {{ result.gender == 'Male' ? 'selected' : '' }}>Male</option>
-										<option value="Female" {{ result.gender == 'Female' ? 'selected' : '' }}>Female</option>
-									</select>
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-atom"></i></span>
+									</div>
+									<input type="text" name="medicine[unit]" class="form-control" value="{{ result.unit }}" placeholder="Enter Medicine unit . . .">
 								</div>
 							</div>
 						</div>
-						{% if result.id %}
-							<div class="col-md-6">
-								<div class="form-group">
-									<label>Status</label>
-									<div class="input-group">
-										<div class="input-group-prepend"><span class="input-group-text"><i class="las la-check-square"></i></span></div>
-										<select name="customer[status]" class="custom-select">
-											<option value="1" {{ result.status == '1' ? 'selected' : '' }}>Active</option>
-											<option value="0" {{ result.status == '0' ? 'selected' : '' }}>InActive</option>
-										</select>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label>Unit/Packing</label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-atom"></i></span>
 									</div>
+									<input type="text" name="medicine[unitpacking]" class="form-control" value="{{ result.unitpacking }}" placeholder="Enter Unit/Packing . . .">
 								</div>
 							</div>
-						{% endif %}
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Store Box</label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-box"></i></span>
+							</div>
+							<input type="text" name="medicine[storebox]" class="form-control" value="{{ result.storebox }}" placeholder="Enter Store Box or Drawer . . .">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label>Min Level</label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-level-down-alt"></i></span>
+									</div>
+									<input type="text" name="medicine[minlevel]" class="form-control" value="{{ result.minlevel }}" placeholder="Enter Min Level . . .">
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label>Re-Order Level</label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-level-down-alt"></i></span>
+									</div>
+									<input type="text" name="medicine[reorderlevel]" class="form-control" value="{{ result.reorderlevel }}" placeholder="Enter Re-Order Level . . .">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Note</label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-paragraph"></i></span>
+							</div>
+							<textarea name="medicine[note]" class="form-control" placeholder="Enter Note . . .">{{ result.note }}</textarea>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+		<input type="hidden" name="medicine[id]" value="{{ result.id }}">
 		<div class="panel-footer text-center">
 			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
 		</div>
 	</div>
 </form>
-<!-- Footer -->
 {{ include('common/footer.twig') }}
 
 
-controller action
+medicine_list.twig
 
-public function indexAdd()
-	{
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-4">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-sm-8 text-right">
+			{% if page_add %}
+				<a href="{{ common.info.url_route }}medicine/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Medicine</a>
+			{% endif %}
+		</div>
+	</div>
+</div>
 
-		$data['result'] = NULL;
-		/* Set confirmation message if page submitted before */
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="table-responsive">
+			<table class="table table-middle table-bordered table-striped datatable-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Medicine</th>
+						<th>Company</th>
+						<th>Unit</th>
+						<th>Unit/Packing</th>
+						<th>Category</th>
+						<th>Storebox</th>
+						<th>Reorderlevel</th>
+						<th>Live Stock</th>
+						<th>Status</th>
+						{% if page_view or page_edit or page_delete %}
+							<th></th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for value in result %}
+						<tr>
+							<td>{{ loop.index }}</td>
+							<td>
+								<p class="text-primary mb-0">{{ value.name }}</p>
+								<p class="mb-0">{{ value.generic }}</p>
+							</td>
+							<td>{{ value.company }}</td>
+							<th>{{ value.unit }}</th>
+							<td>{{ value.unitpacking }}</td>
+							<td>{{ value.category_name }}</td>
+							<td>{{ value.storebox }}</td>
+							<td>{{ value.reorderlevel }}</td>
+							<td>{{ value.livestock }}</td>
+							<td>
+								{% if value.minlevel >= value.livestock %}
+									<span class="badge badge-sm badge-danger">Minlevel</span>
+								{% elseif value.reorderlevel >= value.livestock %}
+									<span class="badge badge-sm badge-warning">Reorderlevel</span>
+								{% else %}
+									<span class="badge badge-sm badge-primary">Normal</span>
+								{% endif %}
+							</td>
+							{% if page_view or page_edit or page_delete %}
+								<td class="table-action">
+									{% if page_view or page_edit %}
+										<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">
+												{% if page_view %}
+													<li><a href="{{ common.info.url_route~'medicine/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
+												{% endif %}
+												{% if page_edit %}
+													<li><a href="{{ common.info.url_route~'medicine/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
+												{% endif %}
+											</ul>
+										</div>
+									{% endif %}
+									{% if page_delete %}
+										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+											<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
+										</a>
+									{% endif %}
+								</td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
 
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-		
-		$data['page_title'] = 'Add Customer';
-		$data['action'] = URL.DIR_ROUTE.'customer/add';
-		/*Render User add view*/
-		$this->response->setOutput($this->load->view('customer/customer_form', $data));
-	}
-
-	public function indexEdit()
-	{
-		$id = (int)$this->url->get('id');
-		if (empty($id) || !is_int($id)) { $this->url->redirect('customers'); }
-
-		$this->load->model('customer');
-
-		$data['result'] = $this->model_customer->getCustomer($id);
-
-		if (empty($data['result'])) {
-			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Customer does not exist in database!');
-			$this->url->redirect('customers');
-		}
-		
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-		$data['page_title'] = 'Edit Customer';
-		
-		/*Render User add view*/
-		$this->response->setOutput($this->load->view('customer/customer_form', $data));
-	}
-
-	public function indexAction()
-	{
-		/**
-		* Check if from is submitted or not 
-		**/
-		if (!isset($_POST['submit'])) { $this->url->redirect('customers'); }
-
-		$data = $this->url->post('customer');
-
-		/**
-		* Validate form data
-		* If some data is missing or data does not match pattern
-		* Return to info view 
-		**/
-
-		$this->load->controller('common');
-		if ($validate_field = $this->validateField($data)) {
-			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
-			if (!empty($data['id'])) {
-				$this->url->redirect('customer/edit&id='.$data['id']);
-			} else {
-				$this->url->redirect('customer/add');
-			}
-		}
-		
-
-		$this->load->model('customer');
-		if (!empty($data['id'])) {
-			if ($this->model_customer->checkCustomerEmail($data['mail'], $data['id']) >= 1) {
-				$this->session->data['message'] = array('alert' => 'error', 'value' => 'Email  \'' . $this->url->post('email') . '\'  already exist in database.');
-				$this->url->redirect('customer/edit&id='.$data['id']);
-			}
-			$result = $this->model_customer->updateCustomer($data);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Customer updated successfully.');
-		} else {
-			if ($this->model_customer->checkCustomerEmail($data['mail']) >= 1) {
-				$this->session->data['message'] = array('alert' => 'error', 'value' => 'Email  \'' . $this->url->post('email') . '\'  already exist in database.');
-				$this->url->redirect('customer/add');
-			}
-			$data['id'] = $this->model_customer->createCustomer($data);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Customer created successfully.');
-		}
-		$this->url->redirect('customer/view&id='.$data['id']);
-	}
-
-	public function searchCustomer()
-	{
-		$data = $this->url->get;
-		$this->load->model('customer');
-		$result = $this->model_customer->getSearchedCustomer($data['term']);
-		echo json_encode($result);
-	}
-
-
-
-	public function getSearchedCustomer($data)
-	{
-		$query = $this->database->query("SELECT id, CONCAT(firstname, ' ', lastname) AS label, email, mobile FROM `customers` WHERE firstname like '%".$data."%' OR lastname like '%".$this->database->escape($data)."%' OR mobile like '%".$this->database->escape($data)."%' LIMIT 7");
-		return $query->rows;
-	}
+{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+	{{ include('common/footer.twig') }}
 
 	
-
-
-public function getCustomer($id)
-{
-	$query = $this->database->query("SELECT * FROM `customers` WHERE `id` = ? ORDER BY `created_date` DESC", array((int)$id));
-	return $query->row;
-}
-
-
-
-public function checkCustomerEmail($mail, $id = NULL)
-	{
-		if (!empty($id)) {
-			$query = $this->database->query("SELECT count(*) AS total FROM `customers` WHERE `email` = ? AND id != ?", array($this->database->escape($mail), (int)$id));
-		} else {
-			$query = $this->database->query("SELECT count(*) AS total FROM `customers` WHERE `email` = ? ", array($this->database->escape($mail)));
-		}
-
-		if ($query->num_rows > 0) {
-			return $query->row['total'];
-		} else{
-			return false;
-		}
-	}
-
-	public function getCustomerByMail($mail)
-	{
-		$query = $this->database->query("SELECT * FROM `customers` WHERE `email` = ? ", array($this->database->escape($mail)));
-		return $query->row;
-	}
-
-	public function createCustomer($data)
-	{
-		$query = $this->database->query("INSERT INTO `customers` (`firstname`, `lastname`, `email`, `mobile`, `gender`, `status`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), 1, $data['datetime']));
-		if ($this->database->error()) {
-			return false;
-		} else {
-			return $this->database->last_id();
-		}
-	}
-
-	public function updateCustomer($data)
-	{
-		$query = $this->database->query("UPDATE `customers` SET `firstname` = ?, `lastname` = ?, `email` = ?, `mobile` = ?, `gender` = ?, `status` = ? WHERE `id` = ?" , array($this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), $data['status'], (int)$data['id']));
-	}
-
-

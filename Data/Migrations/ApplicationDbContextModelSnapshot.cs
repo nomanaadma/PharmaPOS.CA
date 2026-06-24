@@ -249,7 +249,6 @@ namespace PharmaPOS_MVC.Migrations
                         .HasColumnName("firstname");
 
                     b.Property<string>("Gender")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("gender");
@@ -306,6 +305,80 @@ namespace PharmaPOS_MVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("media", (string)null);
+                });
+
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Medicine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("company");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<string>("Generic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("generic");
+
+                    b.Property<string>("MedicineGroup")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("medicine_group");
+
+                    b.Property<decimal?>("MinLevel")
+                        .HasColumnType("numeric")
+                        .HasColumnName("minlevel");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<decimal?>("ReOrderLevel")
+                        .HasColumnType("numeric")
+                        .HasColumnName("reorderlevel");
+
+                    b.Property<string>("StoreBox")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storebox");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("unit");
+
+                    b.Property<string>("UnitPacking")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("unitpacking");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("medicines", (string)null);
                 });
 
             modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineCategory", b =>
@@ -543,6 +616,17 @@ namespace PharmaPOS_MVC.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Medicine", b =>
+                {
+                    b.HasOne("PharmaPOS_MVC.Domain.Entities.MedicineCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
                 });
 #pragma warning restore 612, 618
         }
