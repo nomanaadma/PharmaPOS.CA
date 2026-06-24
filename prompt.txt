@@ -1,132 +1,268 @@
-﻿You know this is a rewrite of an application which 
-was developed using php now I am rewriting it to asp.net core mvc
-it's a domain driven design application 
+﻿Here is the implementation of the Customer Add/Edit form. Please integrate it into the current application accordingly.
 
+customer_form.twig
 
-I want to add a customer section. The table fields
-This application is a rewrite of an existing PHP system that is being migrated to ASP.NET Core MVC using Domain-Driven Design (DDD).
-
-I want to add a Customer module with the following fields:
-
-* Id
-* FirstName
-* LastName
-* Email
-* Mobile
-* Gender
-* Status
-* CreatedDate
-
-The `Status` field should use an enum with the following values:
-
-* `Inactive = 0`
-* `Active = 1`
-
-This is similar to the existing `PaymentMethodStatus.cs`.
-
-Instead of creating a separate enum, let's consider renaming `PaymentMethodStatus.cs` to a more generic `Status.cs` enum so it can be reused across multiple modules.
-
-Next, I will provide the page content and requirements for the Customer module.
-
-Please review the requirements and implement the module while following the existing project structure, conventions, and overall design patterns.
-
-
-customer_list.twig 
 
 {{ include('common/header.twig') }}
 <div class="page-title">
 	<div class="row align-items-center">
-		<div class="col-sm-4">
+		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
 			<div class="breadcrumbs d-inline-block">
 				<ul>
-					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="#">Home</a></li>
+					<li><a href="{{ common.info.url_route }}customers">Customers</a></li>
 					<li>{{ page_title }}</li>
 				</ul>
 			</div>
 		</div>
-		<div class="col-sm-8 text-right">
-			<a href="{{ common.info.url_route }}customer/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Customer</a>
-		</div>
 	</div>
 </div>
-<div class="panel panel-default">
-	<div class="panel-body">
-		<div class="table-responsive">
-			<table class="table table-middle table-bordered table-striped datatable-table">
-				<thead>
-					<tr class="table-heading">
-						<th>#</th>
-						<th>Customer Info</th>
-						<th>Gender</th>
-						<th>Email</th>
-						<th>Number</th>
-						<th>Status</th>
-						<th>Created Date</th>
-							<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for value in result %}
-						<tr>
-							<td>{{ loop.index }}</td>
-							<td>
-								<p class="m-0 text-primary">{{ value.firstname~value.lastname }}</p>
-							</td>
-							<td>{{ value.gender }}</td>
-							<td>{{ value.email }}</td>
-							<td>{{ value.mobile }}</td>
-							<td>
-								{% if value.status == '1' %}
-									<span class="label label-success">Active</span>
-								{% elseif value.status == '0' %}
-									<span class="label label-danger">InActive</span>
-								{% endif %}
-							</td>
-							<td>{{ value.created_date|date(common.info.date_format) }}</td>
-								<td class="table-action">
-                                    <div class="dropdown d-inline-block">
-                                        <a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-                                        <ul class="dropdown-menu dropdown-menu-right">
-                                                <li><a href="{{ common.info.url_route~'customer/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
-                                                <li><a href="{{ common.info.url_route~'customer/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
-                                        </ul>
-                                    </div>
-                                    <a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}"></a>
-								</td>
-							{% endif %}
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+
+<form action="{{ action }}" method="post">
+	<input type="hidden" name="_token" value="{{ token }}">
+	<input type="hidden" name="customer[id]" value="{{ result.id }}">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>First Name <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-user"></i></span>
+							</div>
+							<input type="text" name="customer[firstname]" class="form-control" value="{{ result.firstname }}" placeholder="Enter First Name . . . ">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>Last Name <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-user"></i></span>
+							</div>
+							<input type="text" name="customer[lastname]" class="form-control" value="{{ result.lastname }}" placeholder="Enter Last Name . . . ">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Email Address <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-envelope"></i></span>
+							</div>
+							<input type="email" name="customer[mail]" class="form-control" value="{{ result.email }}" placeholder="Enter Email Address . . . ">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Mobile Number <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-mobile"></i></span>
+							</div>
+							<input type="text" name="customer[mobile]" class="form-control" value="{{ result.mobile }}" placeholder="Enter Mobile Number . . . ">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label>Gender</label>
+								<div class="input-group">
+									<div class="input-group-prepend"><span class="input-group-text"><i class="las la-genderless"></i></span></div>
+									<select name="customer[gender]" class="custom-select">
+										<option value="Male" {{ result.gender == 'Male' ? 'selected' : '' }}>Male</option>
+										<option value="Female" {{ result.gender == 'Female' ? 'selected' : '' }}>Female</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						{% if result.id %}
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>Status</label>
+									<div class="input-group">
+										<div class="input-group-prepend"><span class="input-group-text"><i class="las la-check-square"></i></span></div>
+										<select name="customer[status]" class="custom-select">
+											<option value="1" {{ result.status == '1' ? 'selected' : '' }}>Active</option>
+											<option value="0" {{ result.status == '0' ? 'selected' : '' }}>InActive</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer text-center">
+			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
 		</div>
 	</div>
-</div>
-{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+</form>
+<!-- Footer -->
 {{ include('common/footer.twig') }}
 
 
-controller.php
+controller action
 
-public function index()
+public function indexAdd()
 	{
-		
-		$data['page_title'] = 'Customers';
-	
-		$this->load->model('customer');
-		$data['result'] = $this->model_customer->getCustomers();
 
-		/*Render User list view*/
-		$this->response->setOutput($this->load->view('customer/customer_list', $data));
+		$data['result'] = NULL;
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		
+		$data['page_title'] = 'Add Customer';
+		$data['action'] = URL.DIR_ROUTE.'customer/add';
+		/*Render User add view*/
+		$this->response->setOutput($this->load->view('customer/customer_form', $data));
 	}
 
-    model = 
-
-
-    public function getCustomers()
+	public function indexEdit()
 	{
-		$query = $this->database->query("SELECT * FROM `customers` ORDER BY `created_date` DESC");		
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id)) { $this->url->redirect('customers'); }
+
+		$this->load->model('customer');
+
+		$data['result'] = $this->model_customer->getCustomer($id);
+
+		if (empty($data['result'])) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Customer does not exist in database!');
+			$this->url->redirect('customers');
+		}
+		
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		$data['page_title'] = 'Edit Customer';
+		
+		/*Render User add view*/
+		$this->response->setOutput($this->load->view('customer/customer_form', $data));
+	}
+
+	public function indexAction()
+	{
+		/**
+		* Check if from is submitted or not 
+		**/
+		if (!isset($_POST['submit'])) { $this->url->redirect('customers'); }
+
+		$data = $this->url->post('customer');
+
+		/**
+		* Validate form data
+		* If some data is missing or data does not match pattern
+		* Return to info view 
+		**/
+
+		$this->load->controller('common');
+		if ($validate_field = $this->validateField($data)) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
+			if (!empty($data['id'])) {
+				$this->url->redirect('customer/edit&id='.$data['id']);
+			} else {
+				$this->url->redirect('customer/add');
+			}
+		}
+		
+
+		$this->load->model('customer');
+		if (!empty($data['id'])) {
+			if ($this->model_customer->checkCustomerEmail($data['mail'], $data['id']) >= 1) {
+				$this->session->data['message'] = array('alert' => 'error', 'value' => 'Email  \'' . $this->url->post('email') . '\'  already exist in database.');
+				$this->url->redirect('customer/edit&id='.$data['id']);
+			}
+			$result = $this->model_customer->updateCustomer($data);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Customer updated successfully.');
+		} else {
+			if ($this->model_customer->checkCustomerEmail($data['mail']) >= 1) {
+				$this->session->data['message'] = array('alert' => 'error', 'value' => 'Email  \'' . $this->url->post('email') . '\'  already exist in database.');
+				$this->url->redirect('customer/add');
+			}
+			$data['id'] = $this->model_customer->createCustomer($data);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Customer created successfully.');
+		}
+		$this->url->redirect('customer/view&id='.$data['id']);
+	}
+
+	public function searchCustomer()
+	{
+		$data = $this->url->get;
+		$this->load->model('customer');
+		$result = $this->model_customer->getSearchedCustomer($data['term']);
+		echo json_encode($result);
+	}
+
+
+
+	public function getSearchedCustomer($data)
+	{
+		$query = $this->database->query("SELECT id, CONCAT(firstname, ' ', lastname) AS label, email, mobile FROM `customers` WHERE firstname like '%".$data."%' OR lastname like '%".$this->database->escape($data)."%' OR mobile like '%".$this->database->escape($data)."%' LIMIT 7");
 		return $query->rows;
+	}
+
+	
+
+
+public function getCustomer($id)
+{
+	$query = $this->database->query("SELECT * FROM `customers` WHERE `id` = ? ORDER BY `created_date` DESC", array((int)$id));
+	return $query->row;
+}
+
+
+
+public function checkCustomerEmail($mail, $id = NULL)
+	{
+		if (!empty($id)) {
+			$query = $this->database->query("SELECT count(*) AS total FROM `customers` WHERE `email` = ? AND id != ?", array($this->database->escape($mail), (int)$id));
+		} else {
+			$query = $this->database->query("SELECT count(*) AS total FROM `customers` WHERE `email` = ? ", array($this->database->escape($mail)));
+		}
+
+		if ($query->num_rows > 0) {
+			return $query->row['total'];
+		} else{
+			return false;
+		}
+	}
+
+	public function getCustomerByMail($mail)
+	{
+		$query = $this->database->query("SELECT * FROM `customers` WHERE `email` = ? ", array($this->database->escape($mail)));
+		return $query->row;
+	}
+
+	public function createCustomer($data)
+	{
+		$query = $this->database->query("INSERT INTO `customers` (`firstname`, `lastname`, `email`, `mobile`, `gender`, `status`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), 1, $data['datetime']));
+		if ($this->database->error()) {
+			return false;
+		} else {
+			return $this->database->last_id();
+		}
+	}
+
+	public function updateCustomer($data)
+	{
+		$query = $this->database->query("UPDATE `customers` SET `firstname` = ?, `lastname` = ?, `email` = ?, `mobile` = ?, `gender` = ?, `status` = ? WHERE `id` = ?" , array($this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), $data['status'], (int)$data['id']));
 	}
 
 
