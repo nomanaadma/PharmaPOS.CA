@@ -41,8 +41,8 @@ public class MedicinePurchaseController(
 		{
 			decimal.TryParse(searchValue, out var searchDecimal);
 			query = query.Where(mp => 
-				mp.Supplier.Name.Contains(searchValue) ||
-				(mp.Note != null && mp.Note.Contains(searchValue)) ||
+				EF.Functions.ILike(mp.Supplier.Name, $"%{searchValue}%") ||
+				(mp.Note != null && EF.Functions.ILike(mp.Note, $"%{searchValue}%")) ||
 				(searchDecimal != 0 && (mp.Total == searchDecimal || mp.Tax == searchDecimal || mp.DiscountValue == searchDecimal || mp.Amount == searchDecimal))
 			);
 		}
@@ -54,8 +54,8 @@ public class MedicinePurchaseController(
 			var origData = Request.Form[$"searchBuilder[criteria][{sbIndex}][origData]"].FirstOrDefault();
 			var condition = Request.Form[$"searchBuilder[criteria][{sbIndex}][condition]"].FirstOrDefault();
 			var type = Request.Form[$"searchBuilder[criteria][{sbIndex}][type]"].FirstOrDefault();
-			var value0 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value][0]"].FirstOrDefault();
-			var value1 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value][1]"].FirstOrDefault();
+			var value0 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value1]"].FirstOrDefault();
+			var value1 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value2]"].FirstOrDefault();
 
 			if (!string.IsNullOrEmpty(origData) && !string.IsNullOrEmpty(condition))
 			{
@@ -64,14 +64,14 @@ public class MedicinePurchaseController(
 					var val = value0 ?? "";
 					query = condition switch
 					{
-						"=" => query.Where(mp => mp.Supplier.Name == val),
-						"!=" => query.Where(mp => mp.Supplier.Name != val),
-						"starts" => query.Where(mp => mp.Supplier.Name.StartsWith(val)),
-						"!starts" => query.Where(mp => !mp.Supplier.Name.StartsWith(val)),
-						"contains" => query.Where(mp => mp.Supplier.Name.Contains(val)),
-						"!contains" => query.Where(mp => !mp.Supplier.Name.Contains(val)),
-						"ends" => query.Where(mp => mp.Supplier.Name.EndsWith(val)),
-						"!ends" => query.Where(mp => !mp.Supplier.Name.EndsWith(val)),
+						"=" => query.Where(mp => EF.Functions.ILike(mp.Supplier.Name, val)),
+						"!=" => query.Where(mp => !EF.Functions.ILike(mp.Supplier.Name, val)),
+						"starts" => query.Where(mp => EF.Functions.ILike(mp.Supplier.Name, $"{val}%")),
+						"!starts" => query.Where(mp => !EF.Functions.ILike(mp.Supplier.Name, $"{val}%")),
+						"contains" => query.Where(mp => EF.Functions.ILike(mp.Supplier.Name, $"%{val}%")),
+						"!contains" => query.Where(mp => !EF.Functions.ILike(mp.Supplier.Name, $"%{val}%")),
+						"ends" => query.Where(mp => EF.Functions.ILike(mp.Supplier.Name, $"%{val}")),
+						"!ends" => query.Where(mp => !EF.Functions.ILike(mp.Supplier.Name, $"%{val}")),
 						"null" => query.Where(mp => string.IsNullOrEmpty(mp.Supplier.Name)),
 						"!null" => query.Where(mp => !string.IsNullOrEmpty(mp.Supplier.Name)),
 						_ => query
