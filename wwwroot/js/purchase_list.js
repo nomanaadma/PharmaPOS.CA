@@ -39,7 +39,7 @@ $(function () {
         },
         columns,
         ajax: {
-            url: '/index.php?route=purchase/filter',
+            url: '/Medicines/Purchase/Filter',
             data: {
                 __RequestVerificationToken: xsrfToken
             },
