@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
+using System.Text.Json;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -280,5 +281,23 @@ public class MedicinePurchaseController(
 			recordsFiltered = filteredRecords,
 			data = formattedData
 		});
+	}
+
+	[HttpGet("{id:int}")]
+	public async Task<IActionResult> View(int id)
+	{
+		var purchase = await context.MedicinePurchases
+			.Include(mp => mp.Supplier)
+			.Include(mp => mp.Batches)
+				.ThenInclude(b => b.Medicine)
+			.FirstOrDefaultAsync(mp => mp.Id == id);
+
+		if (purchase == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
+			return RedirectToAction(nameof(Index));
+		}
+
+		return View(purchase);
 	}
 }
