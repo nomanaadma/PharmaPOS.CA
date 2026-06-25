@@ -13,6 +13,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 	public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
 	public DbSet<Customer> Customers { get; set; } = null!;
 	public DbSet<Medicine> Medicines { get; set; } = null!;
+	public DbSet<MedicinePurchase> MedicinePurchases { get; set; } = null!;
+	public DbSet<MedicineBatch> MedicineBatches { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder builder)
 	{

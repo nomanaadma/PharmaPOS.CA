@@ -1,379 +1,53 @@
-﻿Just like you worked on the Customer module, which included Add, Edit, Delete, and List functionality, I would like you to work on the Medicine module with the same set of features.
-
-I will provide the PHP implementation below.
-
-In the implementation, you will see code related to roles and permissions. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later.
-
-
-controller
-
-public function index()
-	{
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-		/**
-		* Get all Medicine data from DB using Medicine model 
-		**/
-		$this->load->model('medicine');
-		$data['result'] = $this->model_medicine->getMedicines();
-
-		/* Set confirmation message if page submitted before */
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-		/* Set page title */
-		$data['page_title'] = 'Medicines';
-		$data['page_view'] = $this->user_agent->hasPermission('medicine/view') ? true : false;
-		$data['page_add'] = $this->user_agent->hasPermission('medicine/add') ? true : false;
-		$data['page_edit'] = $this->user_agent->hasPermission('medicine/edit') ? true : false;
-		$data['page_delete'] = $this->user_agent->hasPermission('medicine/delete') ? true : false;
-		
-		$data['action_delete'] = URL.DIR_ROUTE.'medicine/delete';
-		
-		/*Render Medicine view*/
-		$this->response->setOutput($this->load->view('medicine/medicine_list', $data));
-	}
+﻿I want you to work on the purchase model. In the implementation, you will see code related to roles and permissions. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later
 
 
 
-	/**
-	* Medicine index add method
-	* This method will be called on Medicine add
-	**/
-	public function indexAdd()
-	{
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-		
-		$this->load->model('medicine');
-		$data['category'] = $this->model_medicine->getMCategory();
-		/* Set page title */
-		$data['page_title'] = 'Add Medicine';
-		/* Set empty data to array */
-		$data['result'] =  NULL;
-		/* Set confirmation message if page submitted before */
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
-		$data['action'] = URL.DIR_ROUTE.'medicine/add';
-		/*Render Medicine add view*/
-		$this->response->setOutput($this->load->view('medicine/medicine_form', $data));
-	}
 
-	/**
-	* Medicine index edit method
-	* This method will be called on Medicine edit view
-	**/
-	public function indexEdit()
-	{
-		/**
-		* Check if id exist in url if not exist then redirect to Medicine list view 
-		**/
-		$id = (int)$this->url->get('id');
-		if (empty($id) || !is_int($id)) {
-			$this->url->redirect('medicines');
-		}
-		/**
-		* Call getBlog method from Blog model to get data from DB for single Medicine
-		* If Medicine does not exist then redirect it to Medicine list view
-		**/
-		$this->load->model('medicine');
-		$data['result'] = $this->model_medicine->getMedicine($id);
-		if (empty($data['result'])) {
-			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Medicine does not exist in database!');
-			$this->url->redirect('medicines');
-		}
-		$data['category'] = $this->model_medicine->getMCategory();
-
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-		/* Set Edit Medicine page title */
-		$data['page_title'] = 'Edit Medicine';
-		/* Set confirmation message if page submitted before */
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
-		$data['action'] = URL.DIR_ROUTE.'medicine/edit';
-		/*Render Medicine edit view*/
-		$this->response->setOutput($this->load->view('medicine/medicine_form', $data));
-	}
-
-	/**
-	* Medicine index action method
-	* This method will be called on Medicine submit/save view
-	**/
-	public function indexAction()
-	{
-		/**
-		* Check if from is submitted or not 
-		**/
-		if (!isset($_POST['submit'])) {
-			$this->url->redirect('medicines');
-		}
-		$data = $this->url->post;
-		$this->load->controller('common');
-		if ($validate_field = $this->validateField($data['medicine'])) {
-			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
-			if (!empty($data['medicine']['id'])) {
-				$this->url->redirect('medicine/edit&id='.$data['medicine']['id']);
-			} else {
-				$this->url->redirect('medicine/add');
-			}
-		}
-		$data['medicine']['datetime'] =  date('Y-m-d H:i:s');
-		$data['medicine']['user_id'] = $this->session->data['user_id'];
-		
-		$this->load->model('medicine');
-		if (!empty($data['medicine']['id'])) {
-			$this->model_medicine->updateMedicine($data['medicine']);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine updated successfully.');
-			
-		} else {
-			$data['medicine']['id'] = $this->model_medicine->createMedicine($data['medicine']);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine created successfully.');
-		}
-		$this->url->redirect('medicine/edit&id='.$data['medicine']['id']);
-	}
-
-	/**
-	* Medicine index delete method
-	* This method will be called on Medicine delete action
-	**/
-	public function indexDelete()
-	{
-		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
-			$this->url->redirect('medicines');
-		}
-		
-		$this->load->model('medicine');
-		$result = $this->model_medicine->deleteMedicine($this->url->post('id'));
-		$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine deleted successfully.');
-		$this->url->redirect('medicines');
-	}
+This is my medicine_purchase table 
 
 
 
-model 
-
-public function getMedicines()
-	{
-		$query = $this->database->query("SELECT m.*, mc.name AS category_name, SUM(mb.qty) AS qty, SUM(mb.qty) - SUM(mb.sold) AS livestock FROM `medicines` AS m LEFT JOIN `medicine_category` AS mc ON mc.id = m.category LEFT JOIN `medicine_batch_view` AS mb ON mb.medicine_id = m.id AND mb.expiry > '".date('Y-m')."' GROUP BY m.id ORDER BY m.created_date DESC");
-		return $query->rows;
-	}
-
-public function getMedicine($id)
-	{
-		$query = $this->database->query("SELECT m.*, mc.name AS category_name FROM `medicines` AS m LEFT JOIN `medicine_category` AS mc ON mc.id = m.category WHERE m.id = ? LIMIT 1", array((int)$id));
-		if ($query->num_rows > 0) {
-			return $query->row;
-		} else {
-			return false;
-		}
-	}
-
-public function updateMedicine($data)
-	{
-		$this->database->query("UPDATE `medicines` SET `name` = ?, `company` = ?, `generic` = ?, `medicine_group` = ?, `category` = ?, `storebox` = ?, `minlevel` = ?, `reorderlevel` = ?, `unit` = ?, `unitpacking` = ?, `note` = ? WHERE `id` = ?", array($this->database->escape($data['name']), $data['company'], $data['generic'], $data['medicine_group'], (int)$data['category'], $data['storebox'], $data['minlevel'], $data['reorderlevel'], $data['unit'], $data['unitpacking'], $data['note'], (int)$data['id']));
-		return true;
-	}
-
-	public function createMedicine($data)
-	{
-		$query = $this->database->query("INSERT INTO `medicines` (`name`, `company`, `generic`, `medicine_group`, `category`, `storebox`, `minlevel`, `reorderlevel`, `unit`, `unitpacking`, `note`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['name']), $data['company'], $data['generic'], $data['medicine_group'], (int)$data['category'], $data['storebox'], $data['minlevel'], $data['reorderlevel'], $data['unit'], $data['unitpacking'], $data['note'], $data['datetime']));
-		if ($query->num_rows > 0) {
-			return $this->database->last_id();
-		} else {
-			return false;
-		}
-	}
 
 
+id
+supplier
+date
+total
+tax
+discount_value
+amount
+note
+created_date
 
-	public function deleteMedicine($id)
-	{
-		$query = $this->database->query("DELETE FROM `medicines` WHERE `id` = ?", array((int)$id));
-		if ($query->num_rows > 0) { return true; }
-		else { return false; }
-	}
+
+and this is my 
+medicine batch table 
+
+id	int			True
+batch	varchar	255		True
+expiry	varchar	10		True
+pqty	varchar	10		True
+qty	decimal	10	2	True
+saleprice	decimal	10	2	False
+purchaseprice	decimal	10	2	True
+gross	decimal	10	2	True
+discounttype	int			True
+discount	decimal	10	2	True
+discountvalue	decimal	10	2	True
+tax	decimal	10	2	True
+taxprice	decimal	10	2	True
+price	decimal	10	2	True
+sold	decimal	10	2	True
+medicine_id	int			True
+purchase_id	int			True
+status	tinyint			False
+created_date	datetime			True
 
 
 
-	view
-
-	medicine_form.twig
 
 
-	{{ include('common/header.twig') }}
-<div class="page-title">
-	<div class="row align-items-center">
-		<div class="col-sm-12">
-			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="{{ common.info.url }}">Dashboard</a></li>
-					<li><a href="{{ common.info.url_route }}medicines">Medicine</a></li>
-					<li>{{ page_title }}</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-</div>
-
-<form action="{{ action }}" method="post">
-	<input type="hidden" name="_token" value="{{ common.token }}">
-	<div class="panel panel-default">
-		<div class="panel-body">
-			<div class="row">
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Medicine Name <span class="form-required">*</span></label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-pills"></i></span>
-							</div>
-							<input type="text" name="medicine[name]" class="form-control" value="{{ result.name }}" placeholder="Enter Medicine Name . . .">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Medicine Category <span class="form-required">*</span></label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-tag"></i></span>
-							</div>
-							<select name="medicine[category]" class="custom-select">
-								{% for value in category %}
-								    <option value="{{ value.id }}" {{ result.category == value.id ? 'selected' : false }}>{{ value.name }}</option>
-								{% endfor %}
-							</select>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Medicine Company <span class="form-required">*</span></label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-building"></i></span>
-							</div>
-							<input type="text" name="medicine[company]" class="form-control" value="{{ result.company }}" placeholder="Enter Medicine Company . . .">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Medicine Generic <span class="form-required">*</span></label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-mortar-pestle"></i></span>
-							</div>
-							<input type="text" name="medicine[generic]" class="form-control" value="{{ result.generic }}" placeholder="Enter Medicine Generic . . .">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Medicine Group</label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-object-group"></i></span>
-							</div>
-							<input type="text" name="medicine[medicine_group]" class="form-control" value="{{ result.medicine_group }}" placeholder="Enter Medicine Group . . .">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="row">
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Unit<span class="form-required">*</span></label>
-								<div class="input-group">
-									<div class="input-group-prepend">
-										<span class="input-group-text"><i class="las la-atom"></i></span>
-									</div>
-									<input type="text" name="medicine[unit]" class="form-control" value="{{ result.unit }}" placeholder="Enter Medicine unit . . .">
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Unit/Packing</label>
-								<div class="input-group">
-									<div class="input-group-prepend">
-										<span class="input-group-text"><i class="las la-atom"></i></span>
-									</div>
-									<input type="text" name="medicine[unitpacking]" class="form-control" value="{{ result.unitpacking }}" placeholder="Enter Unit/Packing . . .">
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Store Box</label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-box"></i></span>
-							</div>
-							<input type="text" name="medicine[storebox]" class="form-control" value="{{ result.storebox }}" placeholder="Enter Store Box or Drawer . . .">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="row">
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Min Level</label>
-								<div class="input-group">
-									<div class="input-group-prepend">
-										<span class="input-group-text"><i class="las la-level-down-alt"></i></span>
-									</div>
-									<input type="text" name="medicine[minlevel]" class="form-control" value="{{ result.minlevel }}" placeholder="Enter Min Level . . .">
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label>Re-Order Level</label>
-								<div class="input-group">
-									<div class="input-group-prepend">
-										<span class="input-group-text"><i class="las la-level-down-alt"></i></span>
-									</div>
-									<input type="text" name="medicine[reorderlevel]" class="form-control" value="{{ result.reorderlevel }}" placeholder="Enter Re-Order Level . . .">
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Note</label>
-						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-paragraph"></i></span>
-							</div>
-							<textarea name="medicine[note]" class="form-control" placeholder="Enter Note . . .">{{ result.note }}</textarea>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<input type="hidden" name="medicine[id]" value="{{ result.id }}">
-		<div class="panel-footer text-center">
-			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
-		</div>
-	</div>
-</form>
-{{ include('common/footer.twig') }}
-
-
-medicine_list.twig
+purchase_list.twig
 
 {{ include('common/header.twig') }}
 <div class="page-title">
@@ -389,7 +63,7 @@ medicine_list.twig
 		</div>
 		<div class="col-sm-8 text-right">
 			{% if page_add %}
-				<a href="{{ common.info.url_route }}medicine/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Medicine</a>
+				<a href="{{ common.info.url_route }}medicine/purchase/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Purchase</a>
 			{% endif %}
 		</div>
 	</div>
@@ -397,80 +71,821 @@ medicine_list.twig
 
 <div class="panel panel-default">
 	<div class="panel-body">
-		<div class="table-responsive">
-			<table class="table table-middle table-bordered table-striped datatable-table">
+		<div class="table-responsive hide_id">
+			<table class="table table-middle table-bordered table-striped datatable-table-custom">
 				<thead>
 					<tr>
 						<th>#</th>
-						<th>Medicine</th>
-						<th>Company</th>
-						<th>Unit</th>
-						<th>Unit/Packing</th>
-						<th>Category</th>
-						<th>Storebox</th>
-						<th>Reorderlevel</th>
-						<th>Live Stock</th>
-						<th>Status</th>
+						<th>Supplier Name</th>
+						<th>Sub Total</th>
+						<th>Tax</th>
+						<th>Discount</th>
+						<th>Amount</th>
+						<th>Purchase Date</th>
+						{% if page_view or page_edit or page_delete %}
+							<th class="action-th"></th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody></tbody>
+				<tfoot>
+					<tr>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
 						{% if page_view or page_edit or page_delete %}
 							<th></th>
 						{% endif %}
 					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</div>
+</div>
+{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+<script type="text/javascript" src="public/js/purchase_list.js"></script>
+{{ include('common/footer.twig') }}
+
+
+
+purchase_form.twig
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}medicine/purchase">Purchase</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<form action="{{ action }}" method="post" class="purchase_form">
+	<input type="hidden" name="_token" value="{{ common.token }}">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Suppliers <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-id-card"></i></span></div>
+							<select name="purchase[supplier]" class="custom-select" required>
+								<option value="">Select Suppliers</option>
+								{% for value in suppliers %}
+									<option value="{{ value.id }}" {{ result.supplier == value.id ? 'selected' : false }}>{{ value.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Purchase Date <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-calendar-alt"></i></span></div>
+							<input type="text" name="purchase[date]" class="form-control bg-white date" value="{{ result.date|date(common.info.date_format) }}" placeholder="Purchase Date" readonly required>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Note</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-paragraph"></i></span></div>
+							<textarea name="purchase[note]" class="form-control" placeholder="Enter Note or Comment . . .">{{ result.note }}</textarea>
+						</div>
+					</div>	
+				</div>
+			</div>
+			<div class="purchase-items">
+				<table class="table table-input">
+					<thead> 
+						<tr>
+							<th>Name<span class="form-required">*</span></th>
+							<th>Batch No<span class="form-required">*</span></th>
+							<th>Expiry Date<span class="form-required">*</span></th>
+							<th>Packing Qty</th>
+							<th>Quantity<span class="form-required">*</span></th>
+							<th>Purchase Price<span class="form-required">*</span></th>
+							<th>Sale Price<span class="form-required">*</span></th>
+							<th>Gross</th>
+							<th>Discount</th>
+							<th>Tax</th>
+							<th>Price<span class="form-required">*</span></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for key, value in batches %} 
+							<tr class="item-row">
+								<td>
+									<textarea class="item-name" name="purchase[items][{{ key }}][name]" required>{{ value.name }}</textarea>
+									<input type="hidden" class="item-id" name="purchase[items][{{ key }}][medicine_id]" value="{{ value.medicine_id }}" required>
+									<input type="hidden" name="purchase[items][{{ key }}][id]" value="{{ value.id }}" required>
+								</td>
+								<td>
+									<textarea class="item-batch" name="purchase[items][{{ key }}][batch]" required>{{ value.batch }}</textarea>
+								</td>
+								<td>
+									<input type="text" class="item-expiry exp-date p-2 datetimepicker-input" name="purchase[items][{{ key }}][expiry]" value="{{ value.expiry|date(common.info.date_my_format) }}" required>
+								</td>
+								<td>
+									<textarea class="item-pqty" name="purchase[items][{{ key }}][pqty]">{{ value.pqty }}</textarea>
+								</td>
+								<td>
+									<textarea class="item-qty" name="purchase[items][{{ key }}][qty]" required>{{ value.qty }}</textarea>
+								</td>
+								<td>
+									<textarea class="item-purchaseprice" name="purchase[items][{{ key }}][purchaseprice]" required>{{ value.purchaseprice }}</textarea>
+								</td>
+								<td>
+									<textarea class="item-saleprice" name="purchase[items][{{ key }}][saleprice]" required>{{ value.saleprice }}</textarea>
+								</td>
+								<td>
+									<input type="text" readonly class="item-gross" name="purchase[items][{{ key }}][gross]" value="{{ value.gross }}" />
+								</td>
+								<td class="">
+                                    <div class="row no-gutters">
+                                        <div class="col">
+                                            <select name="purchase[items][{{ key }}][discounttype]" class="custom-select border-light item-discounttype">
+                                                <option value="1"{% if value.discounttype == '1' %} selected{% endif %}>%</option>
+                                                <option value="2"{% if value.discounttype == '2' %} selected{% endif %}>Flat</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <textarea type="text" name="purchase[items][{{ key }}][discount]" class="item-discount">{{ value.discount }}</textarea>
+											<input type="text" readonly name="purchase[items][{{ key }}][discountvalue]" class="item-discountvalue" value="{{ value.discountvalue }}">
+                                        </div>
+                                    </div>
+                                </td>
+								<td class="invoice-tax">
+									<input type="text" name="purchase[items][{{ key }}][tax]" class="item-tax" value="{{ value.tax }}">
+									<input type="text" readonly name="purchase[items][{{ key }}][taxprice]" class="item-taxprice" value="{{ value.taxprice }}">
+								</td>
+								<td>
+									<textarea class="bg-white item-price" name="purchase[items][{{ key }}][price]" required readonly>{{ value.price }}</textarea>
+								</td>
+								<td>
+									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+								</td>
+							</tr>
+						{% else %}
+							<tr class="item-row">
+								<td>
+									<textarea class="item-name" name="purchase[items][0][name]" required></textarea>
+									<input type="hidden" class="item-id" name="purchase[items][0][medicine_id]" required>
+									<input type="hidden" name="purchase[items][0][id]" required>
+								</td>
+								<td>
+									<textarea class="item-batch" name="purchase[items][0][batch]" required></textarea>
+								</td>
+								<td>
+									<input type="text" class="item-expiry exp-date p-2 datetimepicker-input" name="purchase[items][0][expiry]" required>
+								</td>
+								<td>
+									<textarea class="item-pqty" name="purchase[items][0][pqty]"></textarea>
+								</td>
+								<td>
+									<textarea class="item-qty" name="purchase[items][0][qty]" required></textarea>
+								</td>
+								<td>
+									<textarea class="item-purchaseprice" name="purchase[items][0][purchaseprice]" required></textarea>
+								</td>
+								<td>
+									<textarea class="item-saleprice" name="purchase[items][0][saleprice]" required></textarea>
+								</td>
+								<td>
+									<input type="text" readonly class="item-gross" name="purchase[items][0][gross]" />
+								</td>
+								<td>
+                                    <div class="row no-gutters">
+                                        <div class="col">
+                                            <select name="purchase[items][0][discounttype]" class="custom-select border-light item-discounttype">
+                                                <option value="1">%</option>
+                                                <option value="2">Flat</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <textarea type="text" name="purchase[items][0][discount]" class="item-discount">0.00</textarea>
+											<input type="text" readonly name="purchase[items][0][discountvalue]" class="item-discountvalue" value="0.00">
+                                        </div>
+                                    </div>
+                                </td>
+								<td class="invoice-tax">
+									<input type="text" name="purchase[items][0][tax]" class="item-tax">
+									<input type="text" readonly name="purchase[items][0][taxprice]" class="item-taxprice">
+								</td>
+								<td>
+									<textarea class="bg-white item-price" name="purchase[items][0][price]" required readonly></textarea>
+								</td>
+								<td>
+									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+								</td>
+							</tr>
+						{% endfor %}
+						<tr>
+							<td colspan="12">
+								<div class="add-items d-inline-block">
+									<a class="btn btn-success btn-sm m-1"><i class="icon-plus mr-1"></i> Add Item</a>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="5" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Sub Total</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="purchase[total]" class="form-transparent p-2 total-price" value="{{ result.total }}" readonly>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="5" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Discount</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="purchase[discount_value]" class="form-transparent p-2 total-discount" value="{{ result.discount_value }}" readonly>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="5" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Tax</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="purchase[tax]" class="form-transparent p-2 total-tax" value="{{ result.tax }}" readonly>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="5" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Amount</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="purchase[amount]" class="form-transparent p-2 total-amount" value="{{ result.amount }}" readonly>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<input type="hidden" name="purchase[id]" value="{{ result.id }}">
+		<div class="panel-footer text-center">
+			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+		</div>
+	</div>
+</form>
+
+<link rel="stylesheet" href="public/css/bootstrap-datetimepicker.min.css">
+<script type="text/javascript" src="public/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="public/js/purchase.js"></script>
+<!-- Footer -->
+{{ include('common/footer.twig') }}
+
+
+
+purchase_view.twig 
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-7">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}medicine/purchase">Purchase</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-sm-5 text-right">
+			{% if page_edit %}
+				<a href="{{ common.info.url_route~'medicine/purchase/edit&id='~result.id }}" class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+			{% endif %}
+		</div>
+	</div>
+</div>
+<div class="inv-template mb-4">
+	<div class="inv-template-bdy table-responsive p-4">
+		<div class="meta table-responsive" style="border-top: 0">
+			<table>
+				<tbody>
+					<tr>
+						<td class="bill-to v-aling-bottom">
+							<div class="heading">Supplier</div>
+							<div class="title">{{ result.name }}</div>
+							<div class="text">{{ result.email }}</div>
+							<div class="text">{{ result.phone }}</div>
+						</td>
+						<td class="info v-aling-bottom">
+							<table class="text-right">
+								<tbody>
+									<tr>
+										<td class="text">#</td>
+										<td class="text w-min-130">{{ "%05d"|format(result.id) }}</td>
+									</tr>
+									<tr>
+										<td class="text">Purchase Date</td>
+										<td class="text w-min-130">{{ result.date|date(common.info.date_format) }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="item table-responsive">
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>BatchNo</th>
+						<th>ExpiryDate</th>
+						<th>PackingQty</th>
+						<th>Quantity</th>
+						<th>PurchasePrice</th>
+						<th>SalePrice</th>
+						<th>Gross</th>
+						<th>Discount</th>
+						<th>Tax</th>
+						<th>Price</th>
+					</tr>
 				</thead>
 				<tbody>
-					{% for value in result %}
-						<tr>
-							<td>{{ loop.index }}</td>
-							<td>
-								<p class="text-primary mb-0">{{ value.name }}</p>
-								<p class="mb-0">{{ value.generic }}</p>
-							</td>
-							<td>{{ value.company }}</td>
-							<th>{{ value.unit }}</th>
-							<td>{{ value.unitpacking }}</td>
-							<td>{{ value.category_name }}</td>
-							<td>{{ value.storebox }}</td>
-							<td>{{ value.reorderlevel }}</td>
-							<td>{{ value.livestock }}</td>
-							<td>
-								{% if value.minlevel >= value.livestock %}
-									<span class="badge badge-sm badge-danger">Minlevel</span>
-								{% elseif value.reorderlevel >= value.livestock %}
-									<span class="badge badge-sm badge-warning">Reorderlevel</span>
-								{% else %}
-									<span class="badge badge-sm badge-primary">Normal</span>
-								{% endif %}
-							</td>
-							{% if page_view or page_edit or page_delete %}
-								<td class="table-action">
-									{% if page_view or page_edit %}
-										<div class="dropdown d-inline-block">
-											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-											<ul class="dropdown-menu dropdown-menu-right">
-												{% if page_view %}
-													<li><a href="{{ common.info.url_route~'medicine/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
-												{% endif %}
-												{% if page_edit %}
-													<li><a href="{{ common.info.url_route~'medicine/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
-												{% endif %}
-											</ul>
-										</div>
-									{% endif %}
-									{% if page_delete %}
-										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
-											<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
-										</a>
-									{% endif %}
-								</td>
-							{% endif %}
-						</tr>
+					{% for value in batches %}
+					<tr>
+						<td>{{ value.name }}</td>
+						<td>{{ value.batch }}</td>
+						<td>{{ value.expiry|date(common.info.date_my_format) }}</td>
+						<td>{{ value.pqty }}</td>
+						<td>{{ value.qty }}</td>
+						<td>{{ value.purchaseprice }}</td>
+						<td>{{ value.saleprice }}</td>
+						<td>{{ value.gross }}</td>
+						<td>{{ value.discountvalue }}</td>
+						<td>{{ value.taxprice }}</td>
+						<td>{{ value.price }}</td>
+					</tr>
 					{% endfor %}
+					<tr class="total">
+						<td rowspan="5" colspan="7" class="blank">
+						</td>
+						<td class="title" colspan="2">Sub Total</td>
+						<td class="value" colspan="2">{{ common.info.currency_abbr~result.total }}</td>
+					</tr>
+					<tr class="total">
+						<td class="title" colspan="2">Tax</td>
+						<td class="value" colspan="2">{{ common.info.currency_abbr~result.tax }}</td>
+					</tr>
+					<tr class="total">
+						<td class="title" colspan="2">Discount</td>
+						<td class="value" colspan="2">{{ common.info.currency_abbr~result.discount_value }}</td>
+					</tr>
+					<tr class="total">
+						<td class="title" colspan="2">Amount</td>
+						<td class="value" colspan="2">{{ common.info.currency_abbr~result.amount }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="note">
+			<table>
+				<tbody>
+					<tr>
+						<td class="block align-top">
+							<span>Note</span>
+							<p>{{ result.note }}</p>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
 </div>
+{{ include('common/footer.twig') }}
 
-{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
-	{{ include('common/footer.twig') }}
 
+
+
+/**
+* Medicine Purchase index List method
+* This method will be called on Medicine Purchase list
+**/
+public function medicinePurchaseList()
+{
+	$this->load->model('commons');
+	$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+	$this->load->controller('common');
+	/**
+	* Get all Medicine data from DB using Medicine model 
+	**/
+	$this->load->model('medicine');
+
+	/* Set confirmation message if page submitted before */
+	if (isset($this->session->data['message'])) {
+		$data['message'] = $this->session->data['message'];
+		unset($this->session->data['message']);
+	}
+
+	/* Set page title */
+	$data['page_title'] = 'Purchase';
+	$data['page_view'] = $this->user_agent->hasPermission('medicine/purchase') ? true : false;
+	$data['page_add'] = $this->user_agent->hasPermission('medicine/purchase/add') ? true : false;
+	$data['page_edit'] = $this->user_agent->hasPermission('medicine/purchase/edit') ? true : false;
+	$data['page_delete'] = $this->user_agent->hasPermission('medicine/purchase/delete') ? true : false;
 	
+	$data['action_delete'] = URL.DIR_ROUTE.'medicine/purchase/delete';
+	/*Render Medicine view*/
+	$this->response->setOutput($this->load->view('medicine/purchase_list', $data));
+}
+
+
+
+
+
+/**
+* Medicine Purchase index List method
+* This method will be called on Medicine Purchase List
+**/
+public function medicinePurchaseView()
+{
+	/**
+	* Check if id exist in url if not exist then redirect to Medicine list view 
+	**/
+	$id = (int)$this->url->get('id');
+	if (empty($id) || !is_int($id)) {
+		$this->url->redirect('medicine/purchase');
+	}
+
+	$this->load->model('medicine');
+	$data['result'] = $this->model_medicine->getPurchaseView($id);
+	if (empty($data['result'])) {
+		$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Purchase does not exist in database!');
+		$this->url->redirect('medicine/purchase');
+	}
+	$data['batches'] = $this->model_medicine->getBatches($id);
+
+	$this->load->model('commons');
+	$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+	/* Set page title */
+	$data['page_title'] = 'Purchase View';
+
+	$data['page_view'] = $this->user_agent->hasPermission('medicine/purchase') ? true : false;
+	$data['page_add'] = $this->user_agent->hasPermission('medicine/purchase/add') ? true : false;
+	$data['page_edit'] = $this->user_agent->hasPermission('medicine/purchase/edit') ? true : false;
+	$data['page_delete'] = $this->user_agent->hasPermission('medicine/purchase/delete') ? true : false;
+	$data['action'] = URL.DIR_ROUTE.'medicine/purchase/edit';
+	/*Render Medicine view*/
+	$this->response->setOutput($this->load->view('medicine/purchase_view', $data));
+}
+
+
+public function medicinePurchaseAdd()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/**
+		* Get all Medicine data from DB using Medicine model 
+		**/
+		$this->load->model('medicine');
+		$data['result'] = NULL;
+		$data['suppliers'] = $this->model_medicine->getSuppliers();
+
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+
+		/* Set page title */
+		$data['page_title'] = 'Purchase Add';
+		$data['action'] = URL.DIR_ROUTE.'medicine/purchase/add';
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/purchase_form', $data));
+	}
+	/**
+	* Medicine Purchase index Add method
+	* This method will be called on Medicine Purchase Add
+	**/
+	public function medicinePurchaseEdit()
+	{
+		/**
+		* Check if id exist in url if not exist then redirect to Medicine list view 
+		**/
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id)) {
+			$this->url->redirect('medicine/purchase');
+		}
+
+		$this->load->model('medicine');
+		$data['result'] = $this->model_medicine->getPurchase($id);
+		if (empty($data['result'])) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Purchase does not exist in database!');
+			$this->url->redirect('medicine/purchase');
+		}
+		$data['batches'] = $this->model_medicine->getBatches($id);
+		$data['suppliers'] = $this->model_medicine->getSuppliers();
+
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+		/* Set page title */
+		$data['page_title'] = 'Purchase Edit';
+		$data['action'] = URL.DIR_ROUTE.'medicine/purchase/edit';
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/purchase_form', $data));
+	}
+	/**
+	* Medicine Purchase index Edit method
+	* This method will be called on Medicine Purchase Edit
+	**/
+	public function medicinePurchaseAction()
+	{
+		$data = $this->url->post;
+
+		$this->load->controller('common');
+		$this->load->model('commons');
+		$data['info'] = $this->model_commons->getSiteInfo();
+
+		if ($validate_field = $this->validatePurchaseField($data)) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
+			if (!empty($data['purchase']['id'])) {
+				$this->url->redirect('medicine/purchase/edit&id='.$data['purchase']['id']);
+			} else {
+				$this->url->redirect('medicine/purchase/add');	
+			}
+		}
+
+		$data['purchase']['date'] = DateTime::createFromFormat($data['info']['date_format'], $data['purchase']['date'])->format('Y-m-d');
+		$data['purchase']['datetime'] =  date('Y-m-d H:i:s');
+
+		$this->load->model('medicine');
+		if (!empty($data['purchase']['id'])) {
+			$batches = $this->model_medicine->getBatches($data['purchase']['id']);
+			$this->model_medicine->updateMedicinePurchase($data['purchase']);
+			
+			$newitems = $this->array2Dto1D($data['purchase']['items']);
+			foreach ($batches as $key => $value) {
+				if (!in_array($value['id'], $newitems)) {
+					$this->model_medicine->deleteBatche($value['id']);
+				}
+			}
+			if (!empty($data['purchase']['items'])) {
+				foreach ($data['purchase']['items'] as $key => $value) {
+					$batch = array();
+					$batch = $value;
+					$batch['expiry'] = DateTime::createFromFormat($data['info']['date_my_format'], $value['expiry'])->format('Y-m');
+					
+					$batch['purchase_id'] = $data['purchase']['id'];
+					$batch['datetime'] =  date('Y-m-d H:i:s');
+
+					if (empty($value['id'])) {
+						$this->model_medicine->createMedicinebatch($batch);
+					} else {
+						$this->model_medicine->updateMedicinebatch($batch);
+					}
+				}
+			}
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine Purchase updated successfully.');
+		} else {
+			if (!empty($data['purchase']['items'])) {
+				$data['purchase']['items'] = json_encode($data['purchase']['items']);
+				$data['purchase']['id'] = $this->model_medicine->createMedicinePurchase($data['purchase']);
+				$data['purchase']['items'] = json_decode($data['purchase']['items'], true);
+
+				foreach ($data['purchase']['items'] as $key => $value) {
+					$batch = array();
+					$batch = $value;
+					
+					$batch['expiry'] = DateTime::createFromFormat($data['info']['date_my_format'], $value['expiry'])->format('Y-m');
+					$batch['purchase_id'] = $data['purchase']['id'];
+					$batch['datetime'] =  date('Y-m-d H:i:s');
+					$this->model_medicine->createMedicinebatch($batch);
+				}
+			}
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine Purchase created successfully.');
+		}
+		
+		$this->url->redirect('medicine/purchase/view&id='.$data['purchase']['id']);
+	}
+	/**
+	* Medicine Purchase index Action method
+	* This method will be called on Medicine Purchase Action
+	**/
+	public function medicinePurchaseDelete()
+	{
+		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
+			$this->url->redirect('medicine/purchase');
+		}
+
+		$this->load->model('medicine');
+		$this->model_medicine->deletePurchaseBatche($this->url->post('id'));
+		$this->model_medicine->deleteMedicinePurchase($this->url->post('id'));
+
+		$this->session->data['message'] = array('alert' => 'success', 'value' => 'Medicine Purchase deleted successfully.');
+		$this->url->redirect('medicine/purchase');
+	}
+	/**
+	* Medicine Purchase index Delete method
+	* This method will be called on Medicine Purchase Delete
+	**/
+	public function validatePurchaseField($data)
+	{
+		$error = [];
+		$error_flag = false;
+		if ($this->controller_common->validateNumber($data['purchase']['supplier'])) {
+			$error_flag = true;
+			$error['supplier'] = 'Supplier';
+		}
+		if ($this->controller_common->validateDate( $data['purchase']['date'], $data['info']['date_format'] )) {
+			$error_flag = true;
+			$error['date'] = 'Date';
+		}
+		if ($this->controller_common->validateText($data['purchase']['amount'])) {
+			$error_flag = true;
+			$error['amount'] = 'Amount';
+		}
+		
+		if ($error_flag) {
+			return $error;
+		} else {
+			return false;
+		}
+	}
+
+
+
+	public function array2Dto1D($data, $keyvalue = 'id')
+	{
+		$result = array();
+		if (!empty($data)) {
+			foreach ($data as $key => $value) {
+				array_push($result, $value[$keyvalue]);
+			}
+		}
+		return $result;
+	}
+
+
+	public function purchaseFilter() {
+
+		$filterRoute = 'medicine/purchase/';
+		$modelName = 'medicine';
+		$modelLoad = "model_" . $modelName;
+
+		$page_view = $this->user_agent->hasPermission($filterRoute.'view') ? true : false;
+		$page_edit = $this->user_agent->hasPermission($filterRoute.'edit') ? true : false;
+		$page_delete = $this->user_agent->hasPermission($filterRoute.'delete') ? true : false;
+
+		$this->load->model($modelName);
+		$filteredData = $this->{$modelLoad}->filterPurchase($_POST);
+
+		$response = [
+			'draw' => $this->url->post('draw'),
+			'recordsFiltered' => $filteredData['recordsFiltered'],
+			'recordsTotal' => $filteredData['total'],
+			'data' => []
+		];
+		
+		foreach ($filteredData['data'] as $key => $data) {
+
+			$id = $data['id'];
+
+			$action = '';
+
+			if($page_view || $page_edit) {
+				$action .= '<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">';
+				if($page_view) {
+					$action .= '<li><a href="index.php?route='.$filterRoute.'view&id='.$id.'"><i class="las la-laptop pr-2"></i>View</a></li>';
+				}
+
+				if($page_view) {
+					$action .= '<li><a href="index.php?route='.$filterRoute.'edit&id='.$id.'"><i class="las la-edit pr-2"></i>Edit</a></li>';
+				}
+
+				$action .= '</ul></div>';
+
+			}
+
+			if($page_delete) {
+				$action .= '<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="'.$id.'"></a>';
+			}
+
+			$response['data'][] = [
+				"id" => $id,
+				"name" => $data['name'],
+				"total" => 'Rs '.$data['total'],
+				"tax" => 'Rs '.$data['tax'],
+				"discount_value" => 'Rs '.$data['discount_value'],
+				"amount" => 'Rs '.$data['amount'],
+				"date" => $data['date'],
+				"action" => trim($action)
+			];
+		}
+		
+		// Convert the data array to JSON
+		$jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+		echo $jsonData;
+	}
+
+
+
+model
+
+
+public function getPurchaseView($id)
+	{
+		$query = $this->database->query("SELECT mp.*, s.name, s.email, s.phone FROM `medicine_purchase` AS mp LEFT JOIN `suppliers` AS s ON s.id = mp.supplier WHERE mp.id = ?", array((int)$id));
+		return $query->row;
+	}
+
+public function getBatches($id)
+{
+	$query = $this->database->query("SELECT * FROM `medicine_batch_view` WHERE purchase_id = ?", array((int)$id));
+
+	return $query->rows;
+}
+
+public function getPurchases($period)
+{
+	$query = $this->database->query("SELECT mp.*, s.name AS supplier FROM `medicine_purchase` AS mp LEFT JOIN `suppliers` AS s ON s.id = mp.supplier WHERE mp.date between '".$period['start']."' AND '".$period['end']."' ORDER BY created_date DESC");
+	return $query->rows;
+}
+
+
+public function getPurchase($id)
+{
+	$query = $this->database->query("SELECT * FROM `medicine_purchase` WHERE id = ?", array((int)$id));
+	return $query->row;
+}
+
+
+public function updateMedicinePurchase($data)
+{
+	$this->database->query("UPDATE `medicine_purchase` SET `supplier` = ?, `date` = ?, `total` = ?, `tax` = ?, `discount_value` = ?, `amount` = ?, `note` = ? WHERE `id` = ? ", array($this->database->escape($data['supplier']), $data['date'], $data['total'], $data['tax'], $data['discount_value'], $data['amount'], $data['note'], (int)$data['id']));
+	return true;
+}
+
+
+public function deleteBatche($id)
+	{
+		$this->database->query("DELETE FROM `medicine_batch` WHERE `id` = ?", array((int)$id));
+		return true;
+	}
+
+
+
+public function createMedicinebatch($data)
+	{
+
+		$query = $this->database->query("INSERT INTO `medicine_batch` (`batch`, `expiry`, `pqty`, `qty`, `saleprice`, `purchaseprice`, `gross`, `discounttype`, `discount`, `discountvalue`, `tax`, `taxprice`, `price`, `medicine_id`, `purchase_id`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array($data['batch'], $data['expiry'], $data['pqty'], (int)$data['qty'], $data['saleprice'], $data['purchaseprice'], $data['gross'], $data['discounttype'], $data['discount'], $data['discountvalue'], $data['tax'], $data['taxprice'], $data['price'], $data['medicine_id'], $data['purchase_id'], $data['datetime']));
+		
+		if ($query->num_rows > 0) {
+			return $this->database->last_id();
+		} else {
+			return false;
+		}
+	}
+
+
+
+	public function updateMedicinebatch($data)
+	{
+		$this->database->query("UPDATE `medicine_batch` SET `batch` = ?, `expiry` = ?, `pqty` = ?, `qty` = ?, `saleprice` = ?, `purchaseprice` = ?, `gross` = ?, `discounttype` = ?, `discount` = ?, `discountvalue` = ?, `tax` = ?, `taxprice` = ?, `price` = ?, `medicine_id` = ? WHERE `id` = ? AND `purchase_id` = ?", array($data['batch'], $data['expiry'], $data['pqty'], (int)$data['qty'], $data['saleprice'], $data['purchaseprice'], $data['gross'], $data['discounttype'], $data['discount'], $data['discountvalue'], $data['tax'], $data['taxprice'], $data['price'], $data['medicine_id'], (int)$data['id'], (int)$data['purchase_id']));
+		
+		return true;
+	}
+
+
+public function createMedicinePurchase($data)
+{
+	$query = $this->database->query("INSERT INTO `medicine_purchase` (`supplier`, `date`, `total`, `tax`, `discount_value`, `amount`, `note`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['supplier']), $data['date'], $data['total'], $data['tax'], $data['discount_value'], $data['amount'], $data['note'], $data['datetime']));
+	if ($query->num_rows > 0) {
+		return $this->database->last_id();
+	} else {
+		return false;
+	}
+}
+
+public function deletePurchaseBatche($id)
+{
+	$this->database->query("DELETE FROM `medicine_batch` WHERE `purchase_id` = ?", array((int)$id));
+	return true;
+}
+
+
+public function deleteMedicinePurchase($id)
+{
+	$this->database->query("DELETE FROM `medicine_purchase` WHERE `id` = ?", array((int)$id));
+	return true;
+}
+
