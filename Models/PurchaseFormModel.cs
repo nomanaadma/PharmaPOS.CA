@@ -1,0 +1,35 @@
+using System;
+using System.Collections.Generic;
+
+namespace PharmaPOS_MVC.Models;
+
+public class PurchaseFormModel
+{
+	public int Supplier { get; set; }
+	public string Date { get; set; } = null!;
+	public string? Note { get; set; }
+	public decimal Total { get; set; }
+	public decimal Tax { get; set; }
+	public decimal Discount { get; set; }
+	public decimal Amount { get; set; }
+	public List<PurchaseItemFormModel> Items { get; set; } = new();
+}
+
+public class PurchaseItemFormModel
+{
+	public int? Id { get; set; }
+	public int Medicine_Id { get; set; }
+	public string Batch { get; set; } = null!;
+	public string Expiry { get; set; } = null!;
+	public string? Pqty { get; set; }
+	public decimal Qty { get; set; }
+	public decimal Purchaseprice { get; set; }
+	public decimal Saleprice { get; set; }
+	public decimal Gross { get; set; }
+	public int Discounttype { get; set; }
+	public decimal Discount { get; set; }
+	public decimal Discountvalue { get; set; }
+	public decimal Tax { get; set; }
+	public decimal Taxprice { get; set; }
+	public decimal Price { get; set; }
+}

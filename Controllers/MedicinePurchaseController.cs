@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using System.Text.Json;
+using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -299,5 +301,224 @@ public class MedicinePurchaseController(
 		}
 
 		return View(purchase);
+	}
+
+	[HttpGet]
+	public async Task<IActionResult> Add()
+	{
+		ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+		return View("PurchaseForm", null);
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Add([FromForm] PurchaseFormModel purchase)
+	{
+		if (purchase == null || purchase.Supplier <= 0 || purchase.Items == null || !purchase.Items.Any())
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Invalid purchase details." });
+			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+			return View("PurchaseForm", purchase);
+		}
+
+		try
+		{
+			DateTime purchaseDate = DateTime.TryParse(purchase.Date, out var dt) ? dt : DateTime.UtcNow;
+
+			var medicinePurchase = new MedicinePurchase(
+				purchase.Supplier,
+				purchaseDate,
+				purchase.Total,
+				purchase.Tax,
+				purchase.Discount,
+				purchase.Amount,
+				purchase.Note
+			);
+
+			context.MedicinePurchases.Add(medicinePurchase);
+			await context.SaveChangesAsync();
+
+			foreach (var item in purchase.Items)
+			{
+				var batch = new MedicineBatch(
+					item.Batch,
+					item.Expiry,
+					item.Pqty,
+					item.Qty,
+					item.Saleprice,
+					item.Purchaseprice,
+					item.Gross,
+					item.Discounttype,
+					item.Discount,
+					item.Discountvalue,
+					item.Tax,
+					item.Taxprice,
+					item.Price,
+					item.Medicine_Id,
+					medicinePurchase.Id
+				);
+				medicinePurchase.AddBatch(batch);
+			}
+
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase created successfully." });
+			return RedirectToAction(nameof(Index));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving purchase: " + ex.Message });
+			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+			return View("PurchaseForm", purchase);
+		}
+	}
+
+	[HttpGet("{id:int}")]
+	public async Task<IActionResult> Edit(int id)
+	{
+		var purchase = await context.MedicinePurchases
+			.Include(mp => mp.Supplier)
+			.Include(mp => mp.Batches)
+				.ThenInclude(b => b.Medicine)
+			.FirstOrDefaultAsync(mp => mp.Id == id);
+
+		if (purchase == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
+			return RedirectToAction(nameof(Index));
+		}
+
+		ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+		return View("PurchaseForm", purchase);
+	}
+
+	[HttpPost("{id:int}")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Edit(int id, [FromForm] PurchaseFormModel purchase)
+	{
+		if (purchase == null || purchase.Supplier <= 0 || purchase.Items == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Invalid purchase details." });
+			return RedirectToAction(nameof(Index));
+		}
+
+		try
+		{
+			var existingPurchase = await context.MedicinePurchases
+				.Include(mp => mp.Batches)
+				.AsTracking()
+				.FirstOrDefaultAsync(mp => mp.Id == id);
+
+			if (existingPurchase == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase not found." });
+				return RedirectToAction(nameof(Index));
+			}
+
+			DateTime purchaseDate = DateTime.TryParse(purchase.Date, out var dt) ? dt : DateTime.UtcNow;
+			existingPurchase.Update(
+				purchase.Supplier,
+				purchaseDate,
+				purchase.Total,
+				purchase.Tax,
+				purchase.Discount,
+				purchase.Amount,
+				purchase.Note
+			);
+
+			var submittedBatchIds = purchase.Items.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToList();
+
+			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
+			foreach (var bToRemove in batchesToRemove)
+			{
+				context.MedicineBatches.Remove(bToRemove);
+			}
+
+			foreach (var item in purchase.Items)
+			{
+				if (item.Id.HasValue)
+				{
+					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id.Value);
+					if (existingBatch != null)
+					{
+						existingBatch.Update(
+							item.Batch,
+							item.Expiry,
+							item.Pqty,
+							item.Qty,
+							item.Saleprice,
+							item.Purchaseprice,
+							item.Gross,
+							item.Discounttype,
+							item.Discount,
+							item.Discountvalue,
+							item.Tax,
+							item.Taxprice,
+							item.Price,
+							item.Medicine_Id,
+							existingPurchase.Id
+						);
+					}
+				}
+				else
+				{
+					var newBatch = new MedicineBatch(
+						item.Batch,
+						item.Expiry,
+						item.Pqty,
+						item.Qty,
+						item.Saleprice,
+						item.Purchaseprice,
+						item.Gross,
+						item.Discounttype,
+						item.Discount,
+						item.Discountvalue,
+						item.Tax,
+						item.Taxprice,
+						item.Price,
+						item.Medicine_Id,
+						existingPurchase.Id
+					);
+					existingPurchase.AddBatch(newBatch);
+				}
+			}
+
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase updated successfully." });
+			return RedirectToAction(nameof(Index));
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating purchase: " + ex.Message });
+			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+			return View("PurchaseForm", purchase);
+		}
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Delete(int id)
+	{
+		try
+		{
+			var purchase = await context.MedicinePurchases.AsTracking().FirstOrDefaultAsync(mp => mp.Id == id);
+			if (purchase == null)
+			{
+				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase record not found." });
+				return RedirectToAction(nameof(Index));
+			}
+
+			context.MedicinePurchases.Remove(purchase);
+			await context.SaveChangesAsync();
+
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase deleted successfully." });
+		}
+		catch (Exception ex)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting purchase: " + ex.Message });
+		}
+
+		return RedirectToAction(nameof(Index));
 	}
 }

@@ -1,0 +1,276 @@
+@model PharmaPOS_MVC.Domain.Entities.MedicinePurchase
+@{
+	var isEdit = Model != null;
+	var pageType = isEdit ? "Edit" : "Add";
+	ViewData["Title"] = pageType + " Purchase";
+}
+
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="/">Dashboard</a></li>
+					<li><a asp-controller="MedicinePurchase" asp-action="Index">Purchase</a></li>
+					<li>@ViewData["Title"]</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<form class="purchase_form" asp-controller="MedicinePurchase" asp-action="@(isEdit ? "Edit" : "Add")" asp-route-id="@(isEdit ? Model!.Id.ToString() : "")" method="post">
+	@Html.AntiForgeryToken()
+	
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row pb-3">
+				<!-- Supplier selection -->
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Supplier <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-user"></i></span>
+							</div>
+							<select name="purchase[supplier]" class="custom-select" required>
+								<option value="">Select Supplier</option>
+								@foreach (var supplier in (List<PharmaPOS_MVC.Domain.Entities.Supplier>)ViewBag.Suppliers)
+								{
+									if (isEdit && Model!.SupplierId == supplier.Id)
+									{
+										<option value="@supplier.Id" selected>@supplier.Name</option>
+									}
+									else
+									{
+										<option value="@supplier.Id">@supplier.Name</option>
+									}
+								}
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<!-- Purchase Date -->
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Purchase Date <span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="las la-calendar"></i></span>
+							</div>
+							<input type="text" name="purchase[date]" class="form-control purchase-date" 
+								   value="@(isEdit ? Model!.Date.ToString("yyyy-MM-dd") : DateTime.Today.ToString("yyyy-MM-dd"))" required readonly style="background-color: #fff;" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Items Table -->
+			<div class="purchase-items table-responsive">
+				<table class="table table-bordered table-striped table-middle">
+					<thead>
+						<tr>
+							<th style="width: 20%;">Medicine Name <span class="form-required">*</span></th>
+							<th style="width: 10%;">Batch No <span class="form-required">*</span></th>
+							<th style="width: 12%;">Expiry Date <span class="form-required">*</span></th>
+							<th style="width: 8%;">Packing Qty</th>
+							<th style="width: 8%;">Quantity <span class="form-required">*</span></th>
+							<th style="width: 8%;">Purchase Price <span class="form-required">*</span></th>
+							<th style="width: 8%;">Sale Price <span class="form-required">*</span></th>
+							<th style="width: 8%;">Gross</th>
+							<th style="width: 12%;">Discount</th>
+							<th style="width: 8%;">Tax</th>
+							<th style="width: 8%;">Price</th>
+							<th style="width: 5%;"></th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (isEdit && Model!.Batches != null)
+						{
+							var count = 0;
+							foreach (var batch in Model.Batches)
+							{
+								<tr class="item-row">
+									<td>
+										<textarea class="item-name" name="purchase[items][@count][name]" required>@batch.Medicine.Name</textarea>
+										<input type="hidden" class="item-id" name="purchase[items][@count][medicine_id]" value="@batch.MedicineId" required>
+										<input type="hidden" name="purchase[items][@count][id]" value="@batch.Id" required>
+									</td>
+									<td>
+										<textarea class="item-batch" name="purchase[items][@count][batch]" required>@batch.Batch</textarea>
+									</td>
+									<td>
+										<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="purchase[items][@count][expiry]" value="@batch.Expiry" required>
+									</td>
+									<td>
+										<textarea class="item-pqty" name="purchase[items][@count][pqty]">@batch.Pqty</textarea>
+									</td>
+									<td>
+										<textarea class="item-qty" name="purchase[items][@count][qty]" required>@batch.Qty.ToString("G29")</textarea>
+									</td>
+									<td>
+										<textarea class="item-purchaseprice" name="purchase[items][@count][purchaseprice]" required>@batch.PurchasePrice.ToString("F2")</textarea>
+									</td>
+									<td>
+										<textarea class="item-saleprice" name="purchase[items][@count][saleprice]" required>@batch.SalePrice.ToString("F2")</textarea>
+									</td>
+									<td>
+										<input class="item-gross" readonly name="purchase[items][@count][gross]" value="@batch.Gross.ToString("F2")" />
+									</td>
+									<td>
+										<div class="row no-gutters">
+											<div class="col">
+												<select name="purchase[items][@count][discounttype]" class="custom-select border-light item-discounttype">
+													@if (batch.DiscountType == 1)
+													{
+														<option value="1" selected>%</option>
+														<option value="2">Flat</option>
+													}
+													else
+													{
+														<option value="1">%</option>
+														<option value="2" selected>Flat</option>
+													}
+												</select>
+											</div>
+											<div class="col">
+												<textarea type="text" name="purchase[items][@count][discount]" class="item-discount">@batch.Discount.ToString("F2")</textarea>
+												<input type="text" readonly name="purchase[items][@count][discountvalue]" class="item-discountvalue" value="@batch.DiscountValue.ToString("F2")">
+											</div>
+										</div>
+									</td>
+									<td class="invoice-tax">
+										<input type="text" name="purchase[items][@count][tax]" class="item-tax" value="@batch.Tax.ToString("F2")">
+										<input type="text" readonly name="purchase[items][@count][taxprice]" class="item-taxprice" value="@batch.TaxPrice.ToString("F2")">
+									</td>
+									<td>
+										<textarea class="bg-white item-price" name="purchase[items][@count][price]" required readonly>@batch.Price.ToString("F2")</textarea>
+									</td>
+									<td>
+										<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+									</td>
+								</tr>
+								count++;
+							}
+						}
+						else
+						{
+							<tr class="item-row">
+								<td>
+									<textarea class="item-name" name="purchase[items][0][name]" required></textarea>
+									<input type="hidden" class="item-id" name="purchase[items][0][medicine_id]" required>
+									<input type="hidden" name="purchase[items][0][id]">
+								</td>
+								<td>
+									<textarea class="item-batch" name="purchase[items][0][batch]" required></textarea>
+								</td>
+								<td>
+									<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="purchase[items][0][expiry]" required>
+								</td>
+								<td>
+									<textarea class="item-pqty" name="purchase[items][0][pqty]"></textarea>
+								</td>
+								<td>
+									<textarea class="item-qty" name="purchase[items][0][qty]" required></textarea>
+								</td>
+								<td>
+									<textarea class="item-purchaseprice" name="purchase[items][0][purchaseprice]" required></textarea>
+								</td>
+								<td>
+									<textarea class="item-saleprice" name="purchase[items][0][saleprice]" required></textarea>
+								</td>
+								<td>
+									<input class="item-gross" readonly name="purchase[items][0][gross]" />
+								</td>
+								<td>
+									<div class="row no-gutters">
+										<div class="col">
+											<select name="purchase[items][0][discounttype]" class="custom-select border-light item-discounttype">
+												<option value="1">%</option>
+												<option value="2">Flat</option>
+											</select>
+										</div>
+										<div class="col">
+											<textarea type="text" name="purchase[items][0][discount]" class="item-discount">0.00</textarea>
+											<input type="text" readonly name="purchase[items][0][discountvalue]" class="item-discountvalue" value="0.00">
+										</div>
+									</div>
+								</td>
+								<td class="invoice-tax">
+									<input type="text" name="purchase[items][0][tax]" class="item-tax" value="0.00">
+									<input type="text" readonly name="purchase[items][0][taxprice]" class="item-taxprice" value="0.00">
+								</td>
+								<td>
+									<textarea class="bg-white item-price" name="purchase[items][0][price]" required readonly></textarea>
+								</td>
+								<td>
+									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+								</td>
+							</tr>
+						}
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="12" class="text-left">
+								<button type="button" class="btn btn-info btn-sm add-items"><i class="las la-plus pr-2"></i> Add Item</button>
+							</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+
+			<!-- Note and Totals Section -->
+			<div class="row mt-4">
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Purchase Note</label>
+						<textarea name="purchase[note]" class="form-control" rows="4" placeholder="Enter purchase note...">@(isEdit ? Model!.Note : "")</textarea>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group row align-items-center">
+						<label class="col-sm-4 col-form-label text-right">Sub Total</label>
+						<div class="col-sm-8">
+							<input type="text" readonly class="form-control total-price" name="purchase[total]" value="@(isEdit ? Model!.Total.ToString("F2") : "0.00")" />
+						</div>
+					</div>
+					<div class="form-group row align-items-center">
+						<label class="col-sm-4 col-form-label text-right">Tax</label>
+						<div class="col-sm-8">
+							<input type="text" readonly class="form-control total-tax" name="purchase[tax]" value="@(isEdit ? Model!.Tax.ToString("F2") : "0.00")" />
+						</div>
+					</div>
+					<div class="form-group row align-items-center">
+						<label class="col-sm-4 col-form-label text-right">Discount</label>
+						<div class="col-sm-8">
+							<input type="text" readonly class="form-control total-discount" name="purchase[discount]" value="@(isEdit ? Model!.DiscountValue.ToString("F2") : "0.00")" />
+						</div>
+					</div>
+					<div class="form-group row align-items-center">
+						<label class="col-sm-4 col-form-label text-right">Grand Total</label>
+						<div class="col-sm-8">
+							<input type="text" readonly class="form-control total-amount" name="purchase[amount]" value="@(isEdit ? Model!.Amount.ToString("F2") : "0.00")" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer text-center">
+			<button type="submit" class="btn btn-primary"><i class="las la-save pr-2"></i> Save</button>
+			<a asp-controller="MedicinePurchase" asp-action="Index" class="btn btn-secondary"><i class="las la-times pr-2"></i> Cancel</a>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	<script type="text/javascript" src="~/js/purchase.js"></script>
+	<script>
+		$(document).ready(function() {
+			$(".purchase-date").flatpickr({
+				dateFormat: "Y-m-d"
+			});
+		});
+	</script>
+}

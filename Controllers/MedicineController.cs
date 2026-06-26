@@ -219,5 +219,27 @@ public class MedicineController(
 			.ToListAsync();
 		
 	}
-	
+
+	[HttpGet]
+	[Route("/getmedicine")]
+	public async Task<IActionResult> GetMedicine(string term)
+	{
+		if (string.IsNullOrWhiteSpace(term))
+		{
+			return Json(Array.Empty<object>());
+		}
+
+		var results = await context.Medicines
+			.Where(m => EF.Functions.ILike(m.Name, $"%{term}%"))
+			.Take(10)
+			.Select(m => new
+			{
+				id = m.Id,
+				label = m.Name,
+				Generic = m.Generic
+			})
+			.ToListAsync();
+
+		return Json(results);
+	}
 }
