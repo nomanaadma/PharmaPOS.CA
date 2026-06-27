@@ -1,4 +1,5 @@
 using System;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Domain.Entities;
 
@@ -27,7 +28,7 @@ public class MedicineBatch
 		Update(batch, expiry, pqty, qty, salePrice, purchasePrice, gross, discountType, discount, discountValue, tax, taxPrice, price, medicineId, purchaseId);
 		CreatedDate = DateTime.UtcNow;
 		Sold = 0;
-		Status = 1;
+		Status = Status.Active;
 	}
 
 	public int Id { get; private set; }
@@ -49,7 +50,7 @@ public class MedicineBatch
 	public Medicine Medicine { get; private set; } = null!;
 	public int PurchaseId { get; private set; }
 	public MedicinePurchase Purchase { get; private set; } = null!;
-	public int Status { get; private set; }
+	public Status Status { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 
 	public void Update(
@@ -106,7 +107,7 @@ public class MedicineBatch
 		Sold = sold;
 	}
 
-	public void UpdateStatus(int status)
+	public void UpdateStatus(Status status)
 	{
 		Status = status;
 	}

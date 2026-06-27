@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-
 namespace PharmaPOS_MVC.Domain.Entities;
 
 public class MedicinePurchase
 {
-	private readonly List<MedicineBatch> _batches = new();
+	private readonly List<MedicineBatch> _batches = [];
 
 	// EF Core parameterless constructor
 	private MedicinePurchase() { }

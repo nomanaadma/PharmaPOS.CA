@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using NuGet.Protocol;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Models;
 
@@ -261,7 +263,7 @@ public class MedicinePurchaseController(
 			tax = "Rs " + mp.Tax.ToString("F2"),
 			discount_value = "Rs " + mp.DiscountValue.ToString("F2"),
 			amount = "Rs " + mp.Amount.ToString("F2"),
-			date = mp.Date.ToString("dd/MM/yyyy"),
+			date = mp.Date.ToString("yyyy-MM-dd"),
 			action = $@"
 				<div class=""dropdown d-inline-block"">
 					<a class=""text-primary edit dropdown-toggle"" data-toggle=""dropdown""><i class=""las la-ellipsis-h""></i></a>
@@ -306,39 +308,54 @@ public class MedicinePurchaseController(
 	[HttpGet]
 	public async Task<IActionResult> Add()
 	{
-		ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
-		return View("PurchaseForm", null);
+		var suppliers = await GetSuppliersAsync();
+
+		var medicineViewModel = new PurchaseFormModel
+		{
+			Suppliers = suppliers
+		};
+		
+		return View("PurchaseForm", medicineViewModel);
 	}
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Add([FromForm] PurchaseFormModel purchase)
+	public async Task<IActionResult> Add([FromForm] PurchaseFormModel model)
 	{
-		if (purchase == null || purchase.Supplier <= 0 || purchase.Items == null || !purchase.Items.Any())
+		
+		var suppliers = await GetSuppliersAsync();
+		model.Suppliers = suppliers;
+		
+		if (!ModelState.IsValid)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Invalid purchase details." });
-			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
-			return View("PurchaseForm", purchase);
+			return View("PurchaseForm", model);	
+		}
+		
+		if (model.Items.Count == 0)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			return View("PurchaseForm", model);
 		}
 
 		try
 		{
-			DateTime purchaseDate = DateTime.TryParse(purchase.Date, out var dt) ? dt : DateTime.UtcNow;
+			var purchaseDate = DateTime.TryParse(model.Date, out var dt) ? dt : DateTime.UtcNow;
 
 			var medicinePurchase = new MedicinePurchase(
-				purchase.Supplier,
+				model.Supplier,
 				purchaseDate,
-				purchase.Total,
-				purchase.Tax,
-				purchase.Discount,
-				purchase.Amount,
-				purchase.Note
+				model.Total,
+				model.Tax,
+				model.Discount,
+				model.Amount,
+				model.Note
 			);
 
 			context.MedicinePurchases.Add(medicinePurchase);
 			await context.SaveChangesAsync();
 
-			foreach (var item in purchase.Items)
+			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+			foreach (var item in model.Items)
 			{
 				var batch = new MedicineBatch(
 					item.Batch,
@@ -369,7 +386,7 @@ public class MedicinePurchaseController(
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving purchase: " + ex.Message });
 			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
-			return View("PurchaseForm", purchase);
+			return View("PurchaseForm", model);
 		}
 	}
 
@@ -388,18 +405,65 @@ public class MedicinePurchaseController(
 			return RedirectToAction(nameof(Index));
 		}
 
-		ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
-		return View("PurchaseForm", purchase);
+		var suppliers = await GetSuppliersAsync();
+
+		var model = new PurchaseFormModel
+		{
+			Id = purchase.Id,
+			Supplier = purchase.SupplierId,
+			Date = purchase.Date.ToString("yyyy-MM-dd"),
+			Note = purchase.Note,
+			Total = purchase.Total,
+			Tax = purchase.Tax,
+			Discount = purchase.DiscountValue,
+			Amount = purchase.Amount,
+			Suppliers = suppliers,
+			Items = purchase.Batches.Select(b => new PurchaseItemFormModel
+			{
+				Id = b.Id,
+				Medicine_Id = b.MedicineId,
+				Name = b.Medicine.Name,
+				Batch = b.Batch,
+				Expiry = b.Expiry,
+				Pqty = b.Pqty,
+				Qty = b.Qty,
+				Purchaseprice = b.PurchasePrice,
+				Saleprice = b.SalePrice,
+				Gross = b.Gross,
+				Discounttype = b.DiscountType,
+				Discount = b.Discount,
+				Discountvalue = b.DiscountValue,
+				Tax = b.Tax,
+				Taxprice = b.TaxPrice,
+				Price = b.Price
+			}).ToList()
+		};
+
+		return View("PurchaseForm", model);
 	}
 
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Edit(int id, [FromForm] PurchaseFormModel purchase)
 	{
+		var suppliers = await GetSuppliersAsync();
+		purchase.Suppliers = suppliers;
+
 		if (purchase == null || purchase.Supplier <= 0 || purchase.Items == null)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Invalid purchase details." });
 			return RedirectToAction(nameof(Index));
+		}
+
+		if (!ModelState.IsValid)
+		{
+			return View("PurchaseForm", purchase);
+		}
+
+		if (purchase.Items.Count == 0)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			return View("PurchaseForm", purchase);
 		}
 
 		try
@@ -491,7 +555,6 @@ public class MedicinePurchaseController(
 		catch (Exception ex)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating purchase: " + ex.Message });
-			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
 			return View("PurchaseForm", purchase);
 		}
 	}
@@ -520,5 +583,16 @@ public class MedicinePurchaseController(
 		}
 
 		return RedirectToAction(nameof(Index));
+	}
+	
+	private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync()
+	{
+		return await context.Suppliers.OrderBy(s => s.Name)
+			.Select(s => new SelectListItem
+			{
+				Value = s.Id.ToString(),
+				Text = s.Name
+			})
+			.ToListAsync();
 	}
 }

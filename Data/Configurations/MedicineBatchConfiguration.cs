@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Data.Configurations;
 
@@ -94,7 +95,10 @@ public class MedicineBatchConfiguration : IEntityTypeConfiguration<MedicineBatch
 
 		builder.Property(mb => mb.Status)
 			.HasColumnName("status")
-			.HasDefaultValue(1)
+			.HasColumnType("boolean")
+			.HasConversion(
+				v => v == Status.Active,
+				v => v ? Status.Active : Status.InActive)
 			.IsRequired();
 
 		builder.Property(mb => mb.CreatedDate)

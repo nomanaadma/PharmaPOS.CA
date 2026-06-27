@@ -457,10 +457,8 @@ namespace PharmaPOS_MVC.Migrations
                         .HasDefaultValue(0m)
                         .HasColumnName("sold");
 
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1)
+                    b.Property<bool>("Status")
+                        .HasColumnType("boolean")
                         .HasColumnName("status");
 
                     b.Property<decimal>("Tax")
