@@ -5,40 +5,43 @@ namespace PharmaPOS_MVC.Models;
 
 public class PurchaseFormModel
 {
-	public int? Id { get; set; }
+	public int? Id { get; init; }
 
 	[Required(ErrorMessage = "Supplier is required.")]
 	[Range(1, int.MaxValue, ErrorMessage = "Please select a valid supplier.")]
-	public int Supplier { get; set; }
-	
+	public int Supplier { get; init; }
+
 	[Required(ErrorMessage = "Date is required.")]
-	public string Date { get; set; } = null!;
-	public string? Note { get; set; }
-	public decimal Total { get; set; }
-	public decimal Tax { get; set; }
-	public decimal Discount { get; set; }
-	public decimal Amount { get; set; }
-	public List<PurchaseItemFormModel> Items { get; set; } = [];
+	// Set this to match EXACTLY what your bootstrap-datetimepicker outputs
+	[DataType(DataType.Date)]
+	[DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
+	public DateTime Date { get; init; } = DateTime.Now;
+	public string? Note { get; init; }
+	public decimal Total { get; init; }
+	public decimal Tax { get; init; }
+	public decimal Discount { get; init; }
+	public decimal Amount { get; init; }
+	public List<PurchaseItemFormModel> Items { get; init; } = [];
 	
 	public IEnumerable<SelectListItem> Suppliers { get; set; } = [];
 }
 
 public class PurchaseItemFormModel
 {
-	public int? Id { get; set; }
-	public int Medicine_Id { get; set; }
-	public string Name { get; set; } = null!;
-	public string Batch { get; set; } = null!;
-	public string Expiry { get; set; } = null!;
-	public string? Pqty { get; set; }
-	public decimal Qty { get; set; }
-	public decimal Purchaseprice { get; set; }
-	public decimal Saleprice { get; set; }
-	public decimal Gross { get; set; }
-	public int Discounttype { get; set; }
-	public decimal Discount { get; set; }
-	public decimal Discountvalue { get; set; }
-	public decimal Tax { get; set; }
-	public decimal Taxprice { get; set; }
-	public decimal Price { get; set; }
+	public int? Id { get; init; }
+	public int MedicineId { get; init; }
+	public string Name { get; init; } = null!;
+	public string Batch { get; init; } = null!;
+	public string Expiry { get; init; } = null!;
+	public string? Pqty { get; init; }
+	public decimal Qty { get; init; }
+	public decimal Purchaseprice { get; init; }
+	public decimal Saleprice { get; init; }
+	public decimal Gross { get; init; }
+	public int Discounttype { get; init; }
+	public decimal Discount { get; init; }
+	public decimal Discountvalue { get; init; }
+	public decimal Tax { get; init; }
+	public decimal Taxprice { get; init; }
+	public decimal Price { get; init; }
 }

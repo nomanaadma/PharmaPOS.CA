@@ -1,4 +1,6 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Middlewares;
@@ -69,5 +71,14 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
 	.WithStaticAssets();
+
+var defaultCulture = new CultureInfo("en-GB"); // en-GB uses dd/MM/yyyy naturally
+var localizationOptions = new RequestLocalizationOptions
+{
+	DefaultRequestCulture = new RequestCulture(defaultCulture),
+	SupportedCultures = new List<CultureInfo> { defaultCulture },
+	SupportedUICultures = new List<CultureInfo> { defaultCulture }
+};
+app.UseRequestLocalization(localizationOptions);
 
 app.Run();

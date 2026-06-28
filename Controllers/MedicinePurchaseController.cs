@@ -320,7 +320,7 @@ public class MedicinePurchaseController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Add([FromForm] PurchaseFormModel model)
+	public async Task<IActionResult> Add(PurchaseFormModel model)
 	{
 		
 		var suppliers = await GetSuppliersAsync();
@@ -339,11 +339,10 @@ public class MedicinePurchaseController(
 
 		try
 		{
-			var purchaseDate = DateTime.TryParse(model.Date, out var dt) ? dt : DateTime.UtcNow;
 
 			var medicinePurchase = new MedicinePurchase(
 				model.Supplier,
-				purchaseDate,
+				model.Date,
 				model.Total,
 				model.Tax,
 				model.Discount,
@@ -371,7 +370,7 @@ public class MedicinePurchaseController(
 					item.Tax,
 					item.Taxprice,
 					item.Price,
-					item.Medicine_Id,
+					item.MedicineId,
 					medicinePurchase.Id
 				);
 				medicinePurchase.AddBatch(batch);
@@ -411,7 +410,7 @@ public class MedicinePurchaseController(
 		{
 			Id = purchase.Id,
 			Supplier = purchase.SupplierId,
-			Date = purchase.Date.ToString("yyyy-MM-dd"),
+			Date = purchase.Date,
 			Note = purchase.Note,
 			Total = purchase.Total,
 			Tax = purchase.Tax,
@@ -421,7 +420,7 @@ public class MedicinePurchaseController(
 			Items = purchase.Batches.Select(b => new PurchaseItemFormModel
 			{
 				Id = b.Id,
-				Medicine_Id = b.MedicineId,
+				MedicineId = b.MedicineId,
 				Name = b.Medicine.Name,
 				Batch = b.Batch,
 				Expiry = b.Expiry,
@@ -444,16 +443,11 @@ public class MedicinePurchaseController(
 
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Edit(int id, [FromForm] PurchaseFormModel purchase)
+	public async Task<IActionResult> Edit(int id, PurchaseFormModel purchase)
 	{
 		var suppliers = await GetSuppliersAsync();
+		
 		purchase.Suppliers = suppliers;
-
-		if (purchase == null || purchase.Supplier <= 0 || purchase.Items == null)
-		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Invalid purchase details." });
-			return RedirectToAction(nameof(Index));
-		}
 
 		if (!ModelState.IsValid)
 		{
@@ -479,10 +473,9 @@ public class MedicinePurchaseController(
 				return RedirectToAction(nameof(Index));
 			}
 
-			DateTime purchaseDate = DateTime.TryParse(purchase.Date, out var dt) ? dt : DateTime.UtcNow;
 			existingPurchase.Update(
 				purchase.Supplier,
-				purchaseDate,
+				purchase.Date,
 				purchase.Total,
 				purchase.Tax,
 				purchase.Discount,
@@ -503,6 +496,8 @@ public class MedicinePurchaseController(
 				if (item.Id.HasValue)
 				{
 					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id.Value);
+					
+					// ReSharper disable once UseNullPropagation
 					if (existingBatch != null)
 					{
 						existingBatch.Update(
@@ -519,10 +514,11 @@ public class MedicinePurchaseController(
 							item.Tax,
 							item.Taxprice,
 							item.Price,
-							item.Medicine_Id,
+							item.MedicineId,
 							existingPurchase.Id
 						);
 					}
+					
 				}
 				else
 				{
@@ -540,7 +536,7 @@ public class MedicinePurchaseController(
 						item.Tax,
 						item.Taxprice,
 						item.Price,
-						item.Medicine_Id,
+						item.MedicineId,
 						existingPurchase.Id
 					);
 					existingPurchase.AddBatch(newBatch);

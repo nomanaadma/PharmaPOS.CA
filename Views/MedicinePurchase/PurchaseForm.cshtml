@@ -20,242 +20,220 @@
 	</div>
 </div>
 
-<form class="purchase_form" asp-controller="MedicinePurchase" asp-action="@pageType" method="post">
-	@Html.AntiForgeryToken()
-	@if (isEdit)
-	{
-		<input type="hidden" asp-for="Id" />
-	}
+<form method="post" class="purchase_form">
+	
+	<div asp-validation-summary="All" class="text-danger"></div>
+
+	<input type="hidden" asp-for="Id"/>
+
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">
-				<!-- Supplier selection -->
 				<div class="col-md-6">
-					
 					<div class="form-group">
-						<label>Supplier <span class="form-required">*</span></label>
+						<label>Suppliers <span class="form-required">*</span></label>
 						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-id-card"></i></span>
-							</div>
-							<select asp-for="Supplier" class="custom-select" asp-items="Model!.Suppliers">
-								<option value="">Select Supplier</option>
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-id-card"></i></span></div>
+							<select asp-for="Supplier" asp-items="Model!.Suppliers" class="custom-select">
+								<option value="">Select Suppliers</option>
 							</select>
 						</div>
 						<span asp-validation-for="Supplier" class="text-danger"></span>
 					</div>
-					
 					<div class="form-group">
 						<label>Purchase Date <span class="form-required">*</span></label>
 						<div class="input-group">
-							<div class="input-group-prepend">
-								<span class="input-group-text"><i class="las la-calendar"></i></span>
-							</div>
-							<input type="text" asp-for="Date" class="form-control bg-white date" placeholder="Purchase Date" required readonly />
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-calendar-alt"></i></span></div>
+							<input asp-for="Date" type="text" class="form-control bg-white date" placeholder="Purchase Date" readonly/>
 						</div>
 						<span asp-validation-for="Date" class="text-danger"></span>
 					</div>
-					
 				</div>
-
 				<div class="col-md-6">
 					<div class="form-group">
 						<label>Note</label>
 						<div class="input-group">
 							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-paragraph"></i></span></div>
-							<textarea asp-for="Note" class="form-control" placeholder="Enter Note or Comment . . .">@Model.Note</textarea>
+							<textarea asp-for="Note" class="form-control" placeholder="Enter Note or Comment . . ."></textarea>
 						</div>
 					</div>
 				</div>
-				
 			</div>
-
-			<!-- Items Table -->
 			<div class="purchase-items">
 				<table class="table table-input">
 					<thead>
-						<tr>
-							<th>Name <span class="form-required">*</span></th>
-							<th>Batch No <span class="form-required">*</span></th>
-							<th>Expiry Date <span class="form-required">*</span></th>
-							<th>Packing Qty</th>
-							<th>Quantity <span class="form-required">*</span></th>
-							<th>Purchase Price <span class="form-required">*</span></th>
-							<th>Sale Price <span class="form-required">*</span></th>
-							<th>Gross</th>
-							<th>Discount</th>
-							<th>Tax</th>
-							<th>Price<span class="form-required">*</span></th>
-							<th></th>
-						</tr>
+					<tr>
+						<th>Name<span class="form-required">*</span></th>
+						<th>Batch No<span class="form-required">*</span></th>
+						<th>Expiry Date<span class="form-required">*</span></th>
+						<th>Packing Qty</th>
+						<th>Quantity<span class="form-required">*</span></th>
+						<th>Purchase Price<span class="form-required">*</span></th>
+						<th>Sale Price<span class="form-required">*</span></th>
+						<th>Gross</th>
+						<th>Discount</th>
+						<th>Tax</th>
+						<th>Price<span class="form-required">*</span></th>
+						<th></th>
+					</tr>
 					</thead>
 					<tbody>
-						@{
-							var count = 0;
-							foreach (var item in Model.Items)
-							{
-								<tr class="item-row">
-									<td>
-										<textarea class="item-name" name="purchase[items][@count][name]" required>@item.Name</textarea>
-										<input type="hidden" class="item-id" name="purchase[items][@count][medicine_id]" value="@item.Medicine_Id" required>
-										<input type="hidden" name="purchase[items][@count][id]" value="@item.Id" required>
-									</td>
-									<td>
-										<textarea class="item-batch" name="purchase[items][@count][batch]" required>@item.Batch</textarea>
-									</td>
-									<td>
-										<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="purchase[items][@count][expiry]" value="@item.Expiry" required>
-									</td>
-									<td>
-										<textarea class="item-pqty" name="purchase[items][@count][pqty]">@item.Pqty</textarea>
-									</td>
-									<td>
-										<textarea class="item-qty" name="purchase[items][@count][qty]" required>@item.Qty.ToString("G29")</textarea>
-									</td>
-									<td>
-										<textarea class="item-purchaseprice" name="purchase[items][@count][purchaseprice]" required>@item.Purchaseprice.ToString("F2")</textarea>
-									</td>
-									<td>
-										<textarea class="item-saleprice" name="purchase[items][@count][saleprice]" required>@item.Saleprice.ToString("F2")</textarea>
-									</td>
-									<td>
-										<input class="item-gross" readonly name="purchase[items][@count][gross]" value="@item.Gross.ToString("F2")" />
-									</td>
-									<td>
-										<div class="row no-gutters">
-											<div class="col">
-												<select name="purchase[items][@count][discounttype]" class="custom-select border-light item-discounttype">
-													@if (item.Discounttype == 1)
-													{
-														<option value="1" selected>%</option>
-														<option value="2">Flat</option>
-													}
-													else
-													{
-														<option value="1">%</option>
-														<option value="2" selected>Flat</option>
-													}
-												</select>
-											</div>
-											<div class="col">
-												<textarea type="text" name="purchase[items][@count][discount]" class="item-discount">@item.Discount.ToString("F2")</textarea>
-												<input type="text" readonly name="purchase[items][@count][discountvalue]" class="item-discountvalue" value="@item.Discountvalue.ToString("F2")">
-											</div>
-										</div>
-									</td>
-									<td class="invoice-tax">
-										<input type="text" name="purchase[items][@count][tax]" class="item-tax" value="@item.Tax.ToString("F2")">
-										<input type="text" readonly name="purchase[items][@count][taxprice]" class="item-taxprice" value="@item.Taxprice.ToString("F2")">
-									</td>
-									<td>
-										<textarea class="bg-white item-price" name="purchase[items][@count][price]" required readonly>@item.Price.ToString("F2")</textarea>
-									</td>
-									<td>
-										<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
-									</td>
-								</tr>
-								count++;
-							}
-						}
-						else
+					@if (Model.Items.Any())
+					{
+						for (var i = 0; i < Model.Items.Count; i++)
 						{
 							<tr class="item-row">
 								<td>
-									<textarea class="item-name" name="purchase[items][0][name]" required></textarea>
-									<input type="hidden" class="item-id" name="purchase[items][0][medicine_id]" required>
-									<input type="hidden" name="purchase[items][0][id]">
+									<textarea asp-for="Items[i].Name" class="item-name" required></textarea>
+									<input type="hidden" asp-for="Items[i].MedicineId" class="item-id"/>
+									<input type="hidden" asp-for="Items[i].Id"/>
 								</td>
 								<td>
-									<textarea class="item-batch" name="purchase[items][0][batch]" required></textarea>
+									<textarea asp-for="Items[i].Batch" class="item-batch" required></textarea>
 								</td>
 								<td>
-									<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="purchase[items][0][expiry]" required>
+									<input asp-for="Items[i].Expiry" type="text" class="item-expiry exp-date p-2 datetimepicker-input" required/>
 								</td>
 								<td>
-									<textarea class="item-pqty" name="purchase[items][0][pqty]"></textarea>
+									<textarea asp-for="Items[i].Pqty" class="item-pqty"></textarea>
 								</td>
 								<td>
-									<textarea class="item-qty" name="purchase[items][0][qty]" required></textarea>
+									<textarea asp-for="Items[i].Qty" class="item-qty" required></textarea>
 								</td>
 								<td>
-									<textarea class="item-purchaseprice" name="purchase[items][0][purchaseprice]" required></textarea>
+									<textarea asp-for="Items[i].Purchaseprice" class="item-purchaseprice" required></textarea>
 								</td>
 								<td>
-									<textarea class="item-saleprice" name="purchase[items][0][saleprice]" required></textarea>
+									<textarea asp-for="Items[i].Saleprice" class="item-saleprice" required></textarea>
 								</td>
 								<td>
-									<input class="item-gross" readonly name="purchase[items][0][gross]" />
+									<input asp-for="Items[i].Gross" type="text" class="item-gross" readonly/>
 								</td>
 								<td>
 									<div class="row no-gutters">
 										<div class="col">
-											<select name="purchase[items][0][discounttype]" class="custom-select border-light item-discounttype">
+											<select asp-for="Items[i].Discounttype" class="custom-select border-light item-discounttype">
 												<option value="1">%</option>
 												<option value="2">Flat</option>
 											</select>
 										</div>
 										<div class="col">
-											<textarea type="text" name="purchase[items][0][discount]" class="item-discount">0.00</textarea>
-											<input type="text" readonly name="purchase[items][0][discountvalue]" class="item-discountvalue" value="0.00">
+											<textarea asp-for="Items[i].Discount" class="item-discount"></textarea>
+											<input asp-for="Items[i].Discountvalue" type="text" class="item-discountvalue" readonly/>
 										</div>
 									</div>
 								</td>
 								<td class="invoice-tax">
-									<input type="text" name="purchase[items][0][tax]" class="item-tax" value="0.00">
-									<input type="text" readonly name="purchase[items][0][taxprice]" class="item-taxprice" value="0.00">
+									<input asp-for="Items[i].Tax" type="text" class="item-tax"/>
+									<input asp-for="Items[i].Taxprice" type="text" class="item-taxprice" readonly/>
 								</td>
 								<td>
-									<textarea class="bg-white item-price" name="purchase[items][0][price]" required readonly></textarea>
+									<textarea asp-for="Items[i].Price" class="bg-white item-price" required readonly></textarea>
 								</td>
 								<td>
 									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
 								</td>
 							</tr>
 						}
-					</tbody>
-					<tfoot>
-						<tr>
-							<td colspan="12" class="text-left">
-								<button type="button" class="btn btn-info btn-sm add-items"><i class="las la-plus pr-2"></i> Add Item</button>
+					}
+					else
+					{
+						<tr class="item-row">
+							<td>
+								<textarea name="Items[0].Name" class="item-name" required></textarea>
+								<input type="hidden" name="Items[0].MedicineId" class="item-id"/>
+								<input type="hidden" name="Items[0].Id"/>
+							</td>
+							<td>
+								<textarea name="Items[0].Batch" class="item-batch" required></textarea>
+							</td>
+							<td>
+								<input type="text" name="Items[0].Expiry" class="item-expiry exp-date p-2 datetimepicker-input" required/>
+							</td>
+							<td>
+								<textarea name="Items[0].Pqty" class="item-pqty"></textarea>
+							</td>
+							<td>
+								<textarea name="Items[0].Qty" class="item-qty" required></textarea>
+							</td>
+							<td>
+								<textarea name="Items[0].Purchaseprice" class="item-purchaseprice" required></textarea>
+							</td>
+							<td>
+								<textarea name="Items[0].Saleprice" class="item-saleprice" required></textarea>
+							</td>
+							<td>
+								<input type="text" name="Items[0].Gross" class="item-gross" value="0" readonly/>
+							</td>
+							<td>
+								<div class="row no-gutters">
+									<div class="col">
+										<select name="Items[0].Discounttype" class="custom-select border-light item-discounttype">
+											<option value="1">%</option>
+											<option value="2">Flat</option>
+										</select>
+									</div>
+									<div class="col">
+										<textarea name="Items[0].Discount" class="item-discount">0.00</textarea>
+										<input type="text" name="Items[0].Discountvalue" class="item-discountvalue" value="0.00" readonly/>
+									</div>
+								</div>
+							</td>
+							<td class="invoice-tax">
+								<input type="text" name="Items[0].Tax" class="item-tax" value="0"/>
+								<input type="text" name="Items[0].Taxprice" class="item-taxprice" value="0" readonly/>
+							</td>
+							<td>
+								<textarea name="Items[0].Price" class="bg-white item-price" required readonly></textarea>
+							</td>
+							<td>
+								<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
 							</td>
 						</tr>
-					</tfoot>
+					}
+
+					<tr>
+						<td colspan="12">
+							<div class="add-items d-inline-block">
+								<a class="btn btn-success btn-sm m-1"><i class="icon-plus mr-1"></i> Add Item</a>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="5" class="blank"></td>
+						<td colspan="3" class="total-line"><label class="p-2">Sub Total</label></td>
+						<td colspan="4" class="total-value">
+							<input asp-for="Total" type="text" class="form-transparent p-2 total-price" readonly/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="5" class="blank"></td>
+						<td colspan="3" class="total-line"><label class="p-2">Discount</label></td>
+						<td colspan="4" class="total-value">
+							<input asp-for="Discount" type="text" class="form-transparent p-2 total-discount" readonly/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="5" class="blank"></td>
+						<td colspan="3" class="total-line"><label class="p-2">Tax</label></td>
+						<td colspan="4" class="total-value">
+							<input asp-for="Tax" type="text" class="form-transparent p-2 total-tax" readonly/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="5" class="blank"></td>
+						<td colspan="3" class="total-line"><label class="p-2">Amount</label></td>
+						<td colspan="4" class="total-value">
+							<input asp-for="Amount" type="text" class="form-transparent p-2 total-amount" readonly/>
+						</td>
+					</tr>
+					</tbody>
 				</table>
 			</div>
-
-			<!-- Note and Totals Section -->
-			<div class="row mt-4">
-				<div class="col-md-6">
-					<div class="form-group row align-items-center">
-						<label class="col-sm-4 col-form-label text-right">Sub Total</label>
-						<div class="col-sm-8">
-							<input type="text" readonly class="form-control total-price" name="purchase[total]" value="@(isEdit ? Model!.Total.ToString("F2") : "0.00")" />
-						</div>
-					</div>
-					<div class="form-group row align-items-center">
-						<label class="col-sm-4 col-form-label text-right">Tax</label>
-						<div class="col-sm-8">
-							<input type="text" readonly class="form-control total-tax" name="purchase[tax]" value="@(isEdit ? Model!.Tax.ToString("F2") : "0.00")" />
-						</div>
-					</div>
-					<div class="form-group row align-items-center">
-						<label class="col-sm-4 col-form-label text-right">Discount</label>
-						<div class="col-sm-8">
-							<input type="text" readonly class="form-control total-discount" name="purchase[discount]" value="@(isEdit ? Model!.Discount.ToString("F2") : "0.00")" />
-						</div>
-					</div>
-					<div class="form-group row align-items-center">
-						<label class="col-sm-4 col-form-label text-right">Grand Total</label>
-						<div class="col-sm-8">
-							<input type="text" readonly class="form-control total-amount" name="purchase[amount]" value="@(isEdit ? Model!.Amount.ToString("F2") : "0.00")" />
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
+
 		<div class="panel-footer text-center">
-			<button type="submit" class="btn btn-primary"><i class="las la-save pr-2"></i> Save</button>
-			<a asp-controller="MedicinePurchase" asp-action="Index" class="btn btn-secondary"><i class="las la-times pr-2"></i> Cancel</a>
+			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
 		</div>
 	</div>
 </form>
