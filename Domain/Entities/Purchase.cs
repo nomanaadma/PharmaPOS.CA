@@ -1,13 +1,13 @@
 namespace PharmaPOS_MVC.Domain.Entities;
 
-public class MedicinePurchase
+public class Purchase
 {
 	private readonly List<MedicineBatch> _batches = [];
 
 	// EF Core parameterless constructor
-	private MedicinePurchase() { }
+	private Purchase() { }
 
-	public MedicinePurchase(int supplierId, DateTime date, decimal total, decimal tax, decimal discountValue, decimal amount, string? note)
+	public Purchase(int supplierId, DateTime date, decimal total, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
 		Update(supplierId, date, total, tax, discountValue, amount, note);
 		CreatedDate = DateTime.UtcNow;

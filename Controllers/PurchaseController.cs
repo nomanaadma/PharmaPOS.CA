@@ -12,7 +12,7 @@ namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
 [Route("Medicines/Purchase/[action]")]
-public class MedicinePurchaseController(
+public class PurchaseController(
 	ApplicationDbContext context
 ) : Controller
 {
@@ -34,7 +34,7 @@ public class MedicinePurchaseController(
 		var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
 		var sortDirection = Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc";
 
-		var query = context.MedicinePurchases
+		var query = context.Purchases
 			.Include(mp => mp.Supplier)
 			.AsQueryable();
 
@@ -290,7 +290,7 @@ public class MedicinePurchaseController(
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> View(int id)
 	{
-		var purchase = await context.MedicinePurchases
+		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
 			.Include(mp => mp.Batches)
 				.ThenInclude(b => b.Medicine)
@@ -340,7 +340,7 @@ public class MedicinePurchaseController(
 		try
 		{
 
-			var medicinePurchase = new MedicinePurchase(
+			var purchase = new Purchase(
 				model.Supplier,
 				model.Date,
 				model.Total,
@@ -350,7 +350,7 @@ public class MedicinePurchaseController(
 				model.Note
 			);
 
-			context.MedicinePurchases.Add(medicinePurchase);
+			context.Purchases.Add(purchase);
 			await context.SaveChangesAsync();
 
 			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
@@ -371,9 +371,9 @@ public class MedicinePurchaseController(
 					item.Taxprice,
 					item.Price,
 					item.MedicineId,
-					medicinePurchase.Id
+					purchase.Id
 				);
-				medicinePurchase.AddBatch(batch);
+				purchase.AddBatch(batch);
 			}
 
 			await context.SaveChangesAsync();
@@ -392,7 +392,7 @@ public class MedicinePurchaseController(
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
-		var purchase = await context.MedicinePurchases
+		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
 			.Include(mp => mp.Batches)
 				.ThenInclude(b => b.Medicine)
@@ -462,7 +462,7 @@ public class MedicinePurchaseController(
 
 		try
 		{
-			var existingPurchase = await context.MedicinePurchases
+			var existingPurchase = await context.Purchases
 				.Include(mp => mp.Batches)
 				.AsTracking()
 				.FirstOrDefaultAsync(mp => mp.Id == id);
@@ -561,14 +561,14 @@ public class MedicinePurchaseController(
 	{
 		try
 		{
-			var purchase = await context.MedicinePurchases.AsTracking().FirstOrDefaultAsync(mp => mp.Id == id);
+			var purchase = await context.Purchases.AsTracking().FirstOrDefaultAsync(mp => mp.Id == id);
 			if (purchase == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase record not found." });
 				return RedirectToAction(nameof(Index));
 			}
 
-			context.MedicinePurchases.Remove(purchase);
+			context.Purchases.Remove(purchase);
 			await context.SaveChangesAsync();
 
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase deleted successfully." });

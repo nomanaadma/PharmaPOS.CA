@@ -49,7 +49,7 @@ public class MedicineBatch
 	public int MedicineId { get; private set; }
 	public Medicine Medicine { get; private set; } = null!;
 	public int PurchaseId { get; private set; }
-	public MedicinePurchase Purchase { get; private set; } = null!;
+	public Purchase Purchase { get; private set; } = null!;
 	public Status Status { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 

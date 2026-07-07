@@ -504,7 +504,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("medicine_categories", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicinePurchase", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Purchase", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -785,7 +785,7 @@ namespace PharmaPOS_MVC.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaPOS_MVC.Domain.Entities.MedicinePurchase", "Purchase")
+                    b.HasOne("PharmaPOS_MVC.Domain.Entities.Purchase", "Purchase")
                         .WithMany("Batches")
                         .HasForeignKey("PurchaseId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -796,7 +796,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.Navigation("Purchase");
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicinePurchase", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Purchase", b =>
                 {
                     b.HasOne("PharmaPOS_MVC.Domain.Entities.Supplier", "Supplier")
                         .WithMany()
@@ -807,7 +807,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicinePurchase", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Purchase", b =>
                 {
                     b.Navigation("Batches");
                 });

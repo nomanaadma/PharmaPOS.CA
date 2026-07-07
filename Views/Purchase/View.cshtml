@@ -1,4 +1,4 @@
-@model PharmaPOS_MVC.Domain.Entities.MedicinePurchase
+@model PharmaPOS_MVC.Domain.Entities.Purchase
 @{
 	ViewData["Title"] = "Purchase View";
 }
@@ -10,14 +10,14 @@
 			<div class="breadcrumbs d-inline-block">
 				<ul>
 					<li><a href="/">Dashboard</a></li>
-					<li><a asp-controller="MedicinePurchase" asp-action="Index">Purchase</a></li>
+					<li><a asp-controller="Purchase" asp-action="Index">Purchase</a></li>
 					<li>@ViewData["Title"]</li>
 				</ul>
 			</div>
 		</div>
 		<div class="col-sm-5 text-right">
 			<a
-				asp-controller="MedicinePurchase"
+				asp-controller="Purchase"
 				asp-action="Edit"
 				asp-route-id="@Model.Id"
 				class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>

@@ -4,9 +4,9 @@ using PharmaPOS_MVC.Domain.Entities;
 
 namespace PharmaPOS_MVC.Data.Configurations;
 
-public class MedicinePurchaseConfiguration : IEntityTypeConfiguration<MedicinePurchase>
+public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 {
-	public void Configure(EntityTypeBuilder<MedicinePurchase> builder)
+	public void Configure(EntityTypeBuilder<Purchase> builder)
 	{
 		builder.ToTable("medicine_purchase");
 
