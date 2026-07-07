@@ -4,6 +4,7 @@ namespace PharmaPOS_MVC.Domain.Entities;
 
 public class Medicine
 {
+	
 	// EF Core parameterless constructor
 	private Medicine() { }
 
@@ -38,7 +39,9 @@ public class Medicine
 	public string? UnitPacking { get; private set; }
 	public string? Note { get; private set; }
 	public DateTime CreatedDate { get; private set; }
-
+	
+	public ICollection<MedicineBatch> Batches { get; init; } = [];
+	
 	public void Update(
 		string name,
 		string company,

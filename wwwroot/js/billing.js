@@ -139,21 +139,6 @@ function bind() {
 }
 
 function initAutocomplete() {
-	$(".customer-name").autocomplete({
-		minLength: 0,
-		source: ('/getcustomer'),
-		focus: function( event, ui ) {
-			$(".customer-name").val( ui.item.label );
-			return false;
-		},
-		select: function( event, ui ) {
-			$(".customer-name").val( ui.item.label );
-			$(".customer-id").val( ui.item.id );
-			$(".customer-email").val( ui.item.email );
-			$(".customer-mobile").val( ui.item.mobile );
-			return false;
-		}
-	});
 
 	$(".billing-items .item-name").autocomplete({
 		minLength: 0,
@@ -179,7 +164,6 @@ function initAutocomplete() {
 					toastr.error('No data Found', 'Server Error');
 				},
 				success: function(response) {
-					response = JSON.parse(response);
 					if (response.error == false) {
 						ele_parent.find('.item-batch').append(response.result);	
 					} else {
@@ -286,7 +270,6 @@ $(document).ready(function () {
 					toastr.error('No data Found', 'Server Error');
 				},
 				success: function(response) {
-					response = JSON.parse(response);
 					if (response.error == false) {
 						ele_parent.find('.item-expiry').val(response.result.expiry);
 						ele_parent.find('.item-qty').val('');

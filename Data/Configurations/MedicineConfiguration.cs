@@ -67,5 +67,11 @@ public class MedicineConfiguration : IEntityTypeConfiguration<Medicine>
 			.WithMany()
 			.HasForeignKey(m => m.CategoryId)
 			.OnDelete(DeleteBehavior.Cascade);
+		
+		builder.HasMany(m => m.Batches)
+			.WithOne(mb => mb.Medicine)
+			.HasForeignKey(m => m.MedicineId)
+			.OnDelete(DeleteBehavior.Cascade);
+		
 	}
 }

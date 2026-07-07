@@ -168,6 +168,7 @@ public class CustomerController(
 	}
 
 	[HttpGet]
+	[Route("/getcustomer")]
 	public async Task<IActionResult> SearchCustomer(string term)
 	{
 		if (string.IsNullOrWhiteSpace(term))
@@ -176,9 +177,9 @@ public class CustomerController(
 		}
 
 		var results = await context.Customers
-			.Where(c => EF.Functions.Like(c.FirstName, $"%{term}%") || 
-			            EF.Functions.Like(c.LastName, $"%{term}%") || 
-			            EF.Functions.Like(c.Mobile, $"%{term}%"))
+			.Where(c => EF.Functions.ILike(c.FirstName, $"%{term}%") || 
+			            EF.Functions.ILike(c.LastName, $"%{term}%") || 
+			            EF.Functions.ILike(c.Mobile, $"%{term}%"))
 			.Take(7)
 			.Select(c => new 
 			{
@@ -188,31 +189,8 @@ public class CustomerController(
 				mobile = c.Mobile
 			})
 			.ToListAsync();
-
+		
 		return Json(results);
 	}
-
-	[HttpGet]
-	[Route("/getcustomer")]
-	public async Task<IActionResult> GetCustomer(string term)
-	{
-		if (string.IsNullOrWhiteSpace(term))
-		{
-			return Json(Array.Empty<object>());
-		}
-
-		var results = await context.Customers
-			.Where(c => EF.Functions.ILike(c.FirstName + " " + c.LastName, $"%{term}%") || EF.Functions.ILike(c.Mobile, $"%{term}%"))
-			.Take(10)
-			.Select(c => new
-			{
-				id = c.Id,
-				label = c.FirstName + " " + c.LastName,
-				email = c.Email,
-				mobile = c.Mobile
-			})
-			.ToListAsync();
-
-		return Json(results);
-	}
+	
 }

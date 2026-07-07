@@ -382,12 +382,13 @@ public class BillingController(ApplicationDbContext context) : Controller
 	}
 
 	[HttpGet]
-	[Route("{id}")]
+	[Route("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var bill = await context.MedicineBills
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
+					.ThenInclude(m => m.Batches)
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
 			.FirstOrDefaultAsync(mb => mb.Id == id);
@@ -428,7 +429,14 @@ public class BillingController(ApplicationDbContext context) : Controller
 				Discountvalue = bi.DiscountValue,
 				Tax = bi.Tax,
 				Taxprice = bi.TaxPrice,
-				Price = bi.Price
+				Price = bi.Price,
+				Batches = bi.Medicine.Batches.Select(mb => new BillingItemBatchesFormModel
+					{
+						Id = mb.Id,
+						Qty = mb.Qty,
+						Batch = mb.Batch,
+						Sold = mb.Sold
+					}).ToList()
 			}).ToList()
 		};
 
@@ -558,8 +566,14 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 	private async Task<IEnumerable<SelectListItem>> GetPaymentMethodsAsync()
 	{
-		return await context.PaymentMethods.Where(pm => pm.Status == Status.Active).OrderBy(pm => pm.Name)
-			.Select(pm => new SelectListItem { Value = pm.Id.ToString(), Text = pm.Name })
+		return await context.PaymentMethods
+			.Where(pm => pm.Status == Status.Active)
+			.Select(pm => 
+				new SelectListItem
+				{
+					Value = pm.Id.ToString(), 
+					Text = pm.Name
+				})
 			.ToListAsync();
 	}
 }

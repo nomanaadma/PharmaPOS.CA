@@ -21,6 +21,8 @@ public class Purchase
 	public decimal Tax { get; private set; }
 	public decimal DiscountValue { get; private set; }
 	public decimal Amount { get; private set; }
+	
+	// ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
 	public string? Note { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 

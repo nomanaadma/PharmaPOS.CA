@@ -52,4 +52,19 @@ public class BillingItemFormModel
 	public decimal Tax { get; init; }
 	public decimal Taxprice { get; init; }
 	public decimal Price { get; init; }
+	
+	public List<BillingItemBatchesFormModel> Batches { get; init; } = [];
+	
+}
+
+public class BillingItemBatchesFormModel
+{
+	public int? Id { get; init; }
+	
+	public decimal Qty { get; init; }
+
+	public decimal Sold { get; init; }
+	
+	public string Batch { get; init; } = null!;
+	
 }

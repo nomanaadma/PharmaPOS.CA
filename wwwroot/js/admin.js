@@ -59,7 +59,7 @@
         });
 
         $(".customer-name").autocomplete({
-            source: ('/customer/search'),
+            source: ('/getcustomer'),
             minLength: 2,
             focus: function() {return false;},
             select: function( event, ui ) {
