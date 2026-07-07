@@ -20,7 +20,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	{
 		return View();
 	}
-
+	
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Filter()
@@ -29,43 +29,258 @@ public class BillingController(ApplicationDbContext context) : Controller
 		var start = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
 		var length = Convert.ToInt32(Request.Form["length"].FirstOrDefault() ?? "10");
 		var searchValue = Request.Form["search[value]"].FirstOrDefault();
+		var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
+		var sortDirection = Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc";
 
 		var query = context.MedicineBills
-			.Include(mb => mb.Customer)
 			.AsQueryable();
 
+		// Total count
 		var totalRecords = await query.CountAsync();
 
+		// Apply search
 		if (!string.IsNullOrWhiteSpace(searchValue))
 		{
 			decimal.TryParse(searchValue, out var searchDecimal);
 			query = query.Where(mb => 
 				EF.Functions.ILike(mb.Name, $"%{searchValue}%") ||
+				(mb.Note != null && EF.Functions.ILike(mb.Note, $"%{searchValue}%")) ||
 				(searchDecimal != 0 && (mb.Subtotal == searchDecimal || mb.Tax == searchDecimal || mb.DiscountValue == searchDecimal || mb.Amount == searchDecimal))
 			);
 		}
 
+		// Apply SearchBuilder criteria
+		int sbIndex = 0;
+		while (Request.Form.ContainsKey($"searchBuilder[criteria][{sbIndex}][condition]"))
+		{
+			var origData = Request.Form[$"searchBuilder[criteria][{sbIndex}][origData]"].FirstOrDefault();
+			var condition = Request.Form[$"searchBuilder[criteria][{sbIndex}][condition]"].FirstOrDefault();
+			var type = Request.Form[$"searchBuilder[criteria][{sbIndex}][type]"].FirstOrDefault();
+			var value0 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value1]"].FirstOrDefault();
+			var value1 = Request.Form[$"searchBuilder[criteria][{sbIndex}][value2]"].FirstOrDefault();
+
+			if (!string.IsNullOrEmpty(origData) && !string.IsNullOrEmpty(condition))
+			{
+				if (origData == "name")
+				{
+					var val = value0 ?? "";
+					query = condition switch
+					{
+						"=" => query.Where(mb => EF.Functions.ILike(mb.Name, val)),
+						"!=" => query.Where(mb => !EF.Functions.ILike(mb.Name, val)),
+						"starts" => query.Where(mb => EF.Functions.ILike(mb.Name, $"{val}%")),
+						"!starts" => query.Where(mb => !EF.Functions.ILike(mb.Name, $"{val}%")),
+						"contains" => query.Where(mb => EF.Functions.ILike(mb.Name, $"%{val}%")),
+						"!contains" => query.Where(mb => !EF.Functions.ILike(mb.Name, $"%{val}%")),
+						"ends" => query.Where(mb => EF.Functions.ILike(mb.Name, $"%{val}")),
+						"!ends" => query.Where(mb => !EF.Functions.ILike(mb.Name, $"%{val}")),
+						"null" => query.Where(mb => string.IsNullOrEmpty(mb.Name)),
+						"!null" => query.Where(mb => !string.IsNullOrEmpty(mb.Name)),
+						_ => query
+					};
+				}
+				else if (origData == "subtotal" || origData == "tax" || origData == "discount_value" || origData == "amount")
+				{
+					decimal.TryParse(value0, out var d0);
+					decimal.TryParse(value1, out var d1);
+
+					if (origData == "subtotal")
+					{
+						query = condition switch
+						{
+							"=" => query.Where(mb => mb.Subtotal == d0),
+							"!=" => query.Where(mb => mb.Subtotal != d0),
+							"<" => query.Where(mb => mb.Subtotal < d0),
+							"<=" => query.Where(mb => mb.Subtotal <= d0),
+							">" => query.Where(mb => mb.Subtotal > d0),
+							">=" => query.Where(mb => mb.Subtotal >= d0),
+							"between" => query.Where(mb => mb.Subtotal >= d0 && mb.Subtotal <= d1),
+							"!between" => query.Where(mb => mb.Subtotal < d0 || mb.Subtotal > d1),
+							_ => query
+						};
+					}
+					else if (origData == "tax")
+					{
+						query = condition switch
+						{
+							"=" => query.Where(mb => mb.Tax == d0),
+							"!=" => query.Where(mb => mb.Tax != d0),
+							"<" => query.Where(mb => mb.Tax < d0),
+							"<=" => query.Where(mb => mb.Tax <= d0),
+							">" => query.Where(mb => mb.Tax > d0),
+							">=" => query.Where(mb => mb.Tax >= d0),
+							"between" => query.Where(mb => mb.Tax >= d0 && mb.Tax <= d1),
+							"!between" => query.Where(mb => mb.Tax < d0 || mb.Tax > d1),
+							_ => query
+						};
+					}
+					else if (origData == "discount_value")
+					{
+						query = condition switch
+						{
+							"=" => query.Where(mb => mb.DiscountValue == d0),
+							"!=" => query.Where(mb => mb.DiscountValue != d0),
+							"<" => query.Where(mb => mb.DiscountValue < d0),
+							"<=" => query.Where(mb => mb.DiscountValue <= d0),
+							">" => query.Where(mb => mb.DiscountValue > d0),
+							">=" => query.Where(mb => mb.DiscountValue >= d0),
+							"between" => query.Where(mb => mb.DiscountValue >= d0 && mb.DiscountValue <= d1),
+							"!between" => query.Where(mb => mb.DiscountValue < d0 || mb.DiscountValue > d1),
+							_ => query
+						};
+					}
+					else if (origData == "amount")
+					{
+						query = condition switch
+						{
+							"=" => query.Where(mb => mb.Amount == d0),
+							"!=" => query.Where(mb => mb.Amount != d0),
+							"<" => query.Where(mb => mb.Amount < d0),
+							"<=" => query.Where(mb => mb.Amount <= d0),
+							">" => query.Where(mb => mb.Amount > d0),
+							">=" => query.Where(mb => mb.Amount >= d0),
+							"between" => query.Where(mb => mb.Amount >= d0 && mb.Amount <= d1),
+							"!between" => query.Where(mb => mb.Amount < d0 || mb.Amount > d1),
+							_ => query
+						};
+					}
+				}
+				else if (origData == "bill_date")
+				{
+					if (DateTime.TryParse(value0, out var dt0))
+					{
+						var nextDay = dt0.Date.AddDays(1);
+						DateTime dt1;
+						
+						switch (condition)
+						{
+							case "=":
+							case "contains":
+								query = query.Where(mb => mb.BillDate >= dt0.Date && mb.BillDate < nextDay);
+								break;
+							case "!=":
+							case "!contains":
+								query = query.Where(mb => mb.BillDate < dt0.Date || mb.BillDate >= nextDay);
+								break;
+							case "<":
+								query = query.Where(mb => mb.BillDate < dt0.Date);
+								break;
+							case "<=":
+								query = query.Where(mb => mb.BillDate < nextDay);
+								break;
+							case ">":
+								query = query.Where(mb => mb.BillDate >= nextDay);
+								break;
+							case ">=":
+								query = query.Where(mb => mb.BillDate >= dt0.Date);
+								break;
+							case "between":
+								if (DateTime.TryParse(value1, out dt1))
+								{
+									var endDay = dt1.Date.AddDays(1);
+									query = query.Where(mb => mb.BillDate >= dt0.Date && mb.BillDate < endDay);
+								}
+								break;
+							case "!between":
+								if (DateTime.TryParse(value1, out dt1))
+								{
+									var endDay = dt1.Date.AddDays(1);
+									query = query.Where(mb => mb.BillDate < dt0.Date || mb.BillDate >= endDay);
+								}
+								break;
+						}
+					}
+				}
+			}
+			sbIndex++;
+		}
+
+		// Filtered count
 		var filteredRecords = await query.CountAsync();
+		
+		// Apply sorting
+		if (!string.IsNullOrEmpty(sortColumnIndex))
+		{
+			switch (sortColumnIndex)
+			{
+				case "1":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.Name) 
+						: query.OrderBy(mb => mb.Name);
+					break;
+				case "2":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.Subtotal) 
+						: query.OrderBy(mb => mb.Subtotal);
+					break;
+				case "3":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.Tax) 
+						: query.OrderBy(mb => mb.Tax);
+					break;
+				case "4":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.DiscountValue) 
+						: query.OrderBy(mb => mb.DiscountValue);
+					break;
+				case "5":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.Amount) 
+						: query.OrderBy(mb => mb.Amount);
+					break;
+				case "6":
+					query = sortDirection == "desc" 
+						? query.OrderByDescending(mb => mb.BillDate) 
+						: query.OrderBy(mb => mb.BillDate);
+					break;
+				default:
+					query = query.OrderByDescending(mb => mb.CreatedDate);
+					break;
+			}
+		}
+		else
+		{
+			query = query.OrderByDescending(mb => mb.Id);
+		}
 
-		query = query.OrderByDescending(mb => mb.Id).Skip(start).Take(length);
+		// Pagination
+		var pagedQuery = query.Skip(start);
+		if (length > 0)
+		{
+			pagedQuery = pagedQuery.Take(length);
+		}
 
-		var data = await query.Select(mb => new
+		var rawData = await pagedQuery.ToListAsync();
+
+		var formattedData = rawData.Select(mb => new
 		{
 			id = mb.Id,
 			name = mb.Name,
-			subtotal = mb.Subtotal,
-			tax = mb.Tax,
-			discount_value = mb.DiscountValue,
-			amount = mb.Amount,
-			bill_date = mb.BillDate.ToString("yyyy-MM-dd")
-		}).ToListAsync();
+			subtotal = "Rs " + mb.Subtotal.ToString("F2"),
+			tax = "Rs " + mb.Tax.ToString("F2"),
+			discount_value = "Rs " + mb.DiscountValue.ToString("F2"),
+			amount = "Rs " + mb.Amount.ToString("F2"),
+			bill_date = mb.BillDate.ToString("yyyy-MM-dd"),
+			action = $@"
+				<div class=""dropdown d-inline-block"">
+					<a class=""text-primary edit dropdown-toggle"" data-toggle=""dropdown""><i class=""las la-ellipsis-h""></i></a>
+					<ul class=""dropdown-menu dropdown-menu-right"">
+						<li><a href=""/Medicines/Billing/View/{mb.Id}""><i class=""las la-laptop pr-2""></i>View</a></li>
+						<li><a href=""/Medicines/Billing/Edit/{mb.Id}""><i class=""las la-edit pr-2""></i>Edit</a></li>
+					</ul>
+				</div>
+				<a class=""table-delete text-danger delete"" data-toggle=""tooltip"" title=""Delete"">
+					<i class=""las la-trash-alt""></i>
+					<input type=""hidden"" value=""{mb.Id}"">
+				</a>"
+		}).ToList();
 
 		return Json(new
 		{
 			draw,
 			recordsTotal = totalRecords,
 			recordsFiltered = filteredRecords,
-			data
+			data = formattedData
 		});
 	}
 

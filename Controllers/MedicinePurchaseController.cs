@@ -243,7 +243,7 @@ public class MedicinePurchaseController(
 		}
 		else
 		{
-			query = query.OrderByDescending(mp => mp.CreatedDate);
+			query = query.OrderByDescending(mb => mb.Id);
 		}
 
 		// Pagination
@@ -280,7 +280,7 @@ public class MedicinePurchaseController(
 
 		return Json(new
 		{
-			draw = draw,
+			draw,
 			recordsTotal = totalRecords,
 			recordsFiltered = filteredRecords,
 			data = formattedData

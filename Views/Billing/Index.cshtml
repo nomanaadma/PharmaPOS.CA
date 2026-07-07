@@ -28,7 +28,7 @@
 				<thead>
 					<tr>
 						<th>#</th>
-						<th>Customer Name</th>
+						<th>Name</th>
 						<th>Sub Total</th>
 						<th>Tax</th>
 						<th>Discount</th>
@@ -56,14 +56,12 @@
 </div>
 
 <!-- DELETE MODAL -->
-<div class="modal fade" id="delete-card" role="dialog">
+<div id="delete-card" class="modal fade" role="dialog">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Delete Bill</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
+				<h5 class="modal-title">Confirm Delete</h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
 			</div>
 			<form asp-controller="Billing" asp-action="Delete" method="post">
 				@Html.AntiForgeryToken()
