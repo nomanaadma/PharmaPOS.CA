@@ -191,4 +191,28 @@ public class CustomerController(
 
 		return Json(results);
 	}
+
+	[HttpGet]
+	[Route("/getcustomer")]
+	public async Task<IActionResult> GetCustomer(string term)
+	{
+		if (string.IsNullOrWhiteSpace(term))
+		{
+			return Json(Array.Empty<object>());
+		}
+
+		var results = await context.Customers
+			.Where(c => EF.Functions.ILike(c.FirstName + " " + c.LastName, $"%{term}%") || EF.Functions.ILike(c.Mobile, $"%{term}%"))
+			.Take(10)
+			.Select(c => new
+			{
+				id = c.Id,
+				label = c.FirstName + " " + c.LastName,
+				email = c.Email,
+				mobile = c.Mobile
+			})
+			.ToListAsync();
+
+		return Json(results);
+	}
 }

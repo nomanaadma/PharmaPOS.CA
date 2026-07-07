@@ -242,4 +242,55 @@ public class MedicineController(
 
 		return Json(results);
 	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	[Route("/getbatch")]
+	public async Task<IActionResult> GetBatch(int id)
+	{
+		var today = DateTime.UtcNow.ToString("yyyy-MM");
+		var batches = await context.MedicineBatches
+			.Where(b => b.MedicineId == id && string.Compare(b.Expiry, today) >= 0 && b.Status == Domain.Enums.Status.Active)
+			.OrderBy(b => b.Expiry)
+			.ToListAsync();
+
+		// Optionally filter out batches where (Qty - Sold) <= 0
+		batches = batches.Where(b => (b.Qty - b.Sold) > 0).ToList();
+
+		if (!batches.Any())
+		{
+			return Json(new { error = true, message = "No active batches found for this medicine." });
+		}
+
+		var resultHtml = "<option value=\"\">Select Batch</option>";
+		foreach (var batch in batches)
+		{
+			resultHtml += $"<option value=\"{batch.Id}\">{batch.Batch}</option>";
+		}
+
+		return Json(new { error = false, result = resultHtml });
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	[Route("/getbatchdata")]
+	public async Task<IActionResult> GetBatchData(int medicine, int batch)
+	{
+		var medicineBatch = await context.MedicineBatches
+			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch);
+
+		if (medicineBatch == null)
+		{
+			return Json(new { error = true, message = "Batch not found." });
+		}
+
+		var result = new
+		{
+			expiry = medicineBatch.Expiry,
+			available_quantity = medicineBatch.Qty - medicineBatch.Sold,
+			saleprice = medicineBatch.SalePrice
+		};
+
+		return Json(new { error = false, result = result });
+	}
 }

@@ -1,119 +1,1084 @@
-﻿{{ include('common/header.twig') }}
+﻿Previously, you implemented the Purchase module. It wasn't fully complete, so I had to modify parts of the code to make it work correctly. Please review the updated code carefully, as it will help you better understand the existing implementation and produce higher-quality code going forward.
+
+Now, I need you to implement the Sales module. Before you start, please read through the existing codebase thoroughly to understand the architecture, coding patterns, and business logic.
+
+I'll also share more details about the existing PHP and Twig implementation so you have all the context you need to implement the Sales module correctly.
+
+
+In the implementation, you will see code related to roles and permissions. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later
+
+
+since the features are large please break them into small parts so it can be implemented in parts
+not in one go and before any implementation give me the plan of implementation
+
+
+
+
+billing_list.twig
+
+{{ include('common/header.twig') }}
 <div class="page-title">
 	<div class="row align-items-center">
-		<div class="col-sm-7">
+		<div class="col-sm-4">
 			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
 			<div class="breadcrumbs d-inline-block">
 				<ul>
 					<li><a href="{{ common.info.url }}">Dashboard</a></li>
-					<li><a href="{{ common.info.url_route }}medicine/purchase">Purchase</a></li>
 					<li>{{ page_title }}</li>
 				</ul>
 			</div>
 		</div>
-		<div class="col-sm-5 text-right">
-			{% if page_edit %}
-				<a href="{{ common.info.url_route~'medicine/purchase/edit&id='~result.id }}" class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+		<div class="col-sm-8 text-right">
+			{% if page_add %}
+				<a href="{{ common.info.url_route }}medicine/billing/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New Bill</a>
 			{% endif %}
 		</div>
 	</div>
 </div>
-<div class="inv-template mb-4">
-	<div class="inv-template-bdy table-responsive p-4">
-		<div class="meta table-responsive" style="border-top: 0">
-			<table>
-				<tbody>
-					<tr>
-						<td class="bill-to v-aling-bottom">
-							<div class="heading">Supplier</div>
-							<div class="title">{{ result.name }}</div>
-							<div class="text">{{ result.email }}</div>
-							<div class="text">{{ result.phone }}</div>
-						</td>
-						<td class="info v-aling-bottom">
-							<table class="text-right">
-								<tbody>
-									<tr>
-										<td class="text">#</td>
-										<td class="text w-min-130">{{ "%05d"|format(result.id) }}</td>
-									</tr>
-									<tr>
-										<td class="text">Purchase Date</td>
-										<td class="text w-min-130">{{ result.date|date(common.info.date_format) }}</td>
-									</tr>
-								</tbody>
-							</table>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-		<div class="item table-responsive">
-			<table>
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="table-responsive">
+			<table class="table table-middle table-bordered table-striped datatable-table-custom">
 				<thead>
 					<tr>
+						<th>#</th>
 						<th>Name</th>
-						<th>BatchNo</th>
-						<th>ExpiryDate</th>
-						<th>PackingQty</th>
-						<th>Quantity</th>
-						<th>PurchasePrice</th>
-						<th>SalePrice</th>
-						<th>Gross</th>
-						<th>Discount</th>
+						<th>Subtotal</th>
 						<th>Tax</th>
-						<th>Price</th>
+						<th>Discount</th>
+						<th>Amount</th>
+						<th>Bill Date</th>
+						{% if page_view or page_edit or page_delete %}
+							<th class="action-th"></th>
+						{% endif %}
 					</tr>
 				</thead>
-				<tbody>
-					{% for value in batches %}
+				<tbody></tbody>
+				<tfoot>
 					<tr>
-						<td>{{ value.name }}</td>
-						<td>{{ value.batch }}</td>
-						<td>{{ value.expiry|date(common.info.date_my_format) }}</td>
-						<td>{{ value.pqty }}</td>
-						<td>{{ value.qty }}</td>
-						<td>{{ value.purchaseprice }}</td>
-						<td>{{ value.saleprice }}</td>
-						<td>{{ value.gross }}</td>
-						<td>{{ value.discountvalue }}</td>
-						<td>{{ value.taxprice }}</td>
-						<td>{{ value.price }}</td>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						{% if page_view or page_edit or page_delete %}
+							<th></th>
+						{% endif %}
 					</tr>
-					{% endfor %}
-					<tr class="total">
-						<td rowspan="5" colspan="7" class="blank">
-						</td>
-						<td class="title" colspan="2">Sub Total</td>
-						<td class="value" colspan="2">{{ common.info.currency_abbr~result.total }}</td>
-					</tr>
-					<tr class="total">
-						<td class="title" colspan="2">Tax</td>
-						<td class="value" colspan="2">{{ common.info.currency_abbr~result.tax }}</td>
-					</tr>
-					<tr class="total">
-						<td class="title" colspan="2">Discount</td>
-						<td class="value" colspan="2">{{ common.info.currency_abbr~result.discount_value }}</td>
-					</tr>
-					<tr class="total">
-						<td class="title" colspan="2">Amount</td>
-						<td class="value" colspan="2">{{ common.info.currency_abbr~result.amount }}</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-		<div class="note">
-			<table>
-				<tbody>
-					<tr>
-						<td class="block align-top">
-							<span>Note</span>
-							<p>{{ result.note }}</p>
-						</td>
-					</tr>
-				</tbody>
+				</tfoot>
 			</table>
 		</div>
 	</div>
 </div>
+{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+<script type="text/javascript" src="public/js/billing_list.js"></script>
 {{ include('common/footer.twig') }}
+
+
+billing_view.twig
+
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-6">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}medicine/billing">POS/Bill</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-sm-6 text-right">
+			{% if page_edit %}
+				<a href="{{ common.info.url_route~'medicine/billing/edit&id='~result.id }}" class="btn btn-primary btn-sm"><i class="far las la-edit mr-2"></i>Edit</a>
+			{% endif %}
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<div id="printableArea" class="inv-template mb-4">
+			<div class="inv-template-bdy table-responsive p-4">
+				<div class="company table-responsive">
+					<table>
+						<tbody>
+							<tr>
+								<td class="info">
+									<div class="logo"><img src="{{ common.info.logo }}" alt="logo"></div>
+									<div class="name">{{ common.info.legal_name }}</div>
+									<div class="text">{{ common.info.address|join(', ') }}</div>
+								</td>
+								<td class="text-right">
+									<div class="title">Invoice</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="meta table-responsive">
+					<table>
+						<tbody>
+							<tr>
+								<td class="bill-to v-aling-bottom">
+									<div class="heading">Bill To</div>
+									<div class="title">{{ result.name }}</div>
+									<div class="text">{{ result.email }}</div>
+									<div class="text">{{ result.mobile }}</div>
+								</td>
+								<td class="info v-aling-bottom">
+									<table class="text-right">
+										<tbody>
+											<tr>
+												<td class="text">#</td>
+												<td class="text w-min-130">{{ "%05d"|format(result.id) }}</td>
+											</tr>
+											<tr>
+												<td class="text">Date</td>
+												<td class="text w-min-130">{{ result.bill_date|date(common.info.date_format) }}</td>
+											</tr>
+											<tr>
+												<td class="text">Payment Method</td>
+												<td class="text w-min-130">{{ result.payment_method }}</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="item table-responsive">
+					<table>
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Batch No</th>
+								<th>Expiry Date</th>
+								<th>Quantity</th>
+								<th>Sale Price</th>
+								<th>Gross</th>
+								<th>Discount</th>
+								<th>Tax</th>
+								<th>Price</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for value in result.items %}
+								<tr>
+									<td>{{ value.name }}</td>
+									<td>{{ value.batch_name }}</td>
+									<td>{{ value.expiry|date(common.info.date_my_format) }}</td>
+									<td>{{ value.qty }}</td>
+									<td>{{ value.saleprice }}</td>
+									<td>{{ value.gross }}</td>
+									<td>{{ value.discountvalue }}</td>
+									<td>{{ value.taxprice }}</td>
+									<td>{{ value.price }}</td>
+								</tr>
+							{% endfor %}
+							<tr class="total">
+								<td rowspan="5" colspan="5" class="blank">
+								</td>
+								<td class="title" colspan="2">Sub Total</td>
+								<td class="value" colspan="2">{{ common.info.currency_abbr~result.subtotal }}</td>
+							</tr>
+							<tr class="total">
+								<td class="title" colspan="2">Discount</td>
+								<td class="value" colspan="2">{{ common.info.currency_abbr~result.discount_value }}</td>
+							</tr>
+							<tr class="total">
+								<td class="title" colspan="2">Tax</td>
+								<td class="value" colspan="2">{{ common.info.currency_abbr~result.tax }}</td>
+							</tr>
+							<tr class="total">
+								<td class="title" colspan="2">Amount</td>
+								<td class="value" colspan="2">{{ common.info.currency_abbr~result.amount }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="note">
+					<table>
+						<tbody>
+							<tr>
+								<td class="block align-top">
+									<span>Note</span>
+									<p>{{ result.note }}</p>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{ include('common/footer.twig') }}
+
+billing_form.twig
+
+
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}medicine/billing">POS/Bill</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<form action="{{ action }}" method="post" class="billing_form">
+	<input type="hidden" name="_token" value="{{ common.token }}">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Name<span class="form-required">*</span></label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-user"></i></span></div>
+							<input type="text" name="billing[name]" class="form-control customer-name" value="{{ result.name }}" placeholder="Name">
+							<input type="hidden" name="billing[customer_id]" class="customer-id" value="{{ result.customer_id }}">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>Email Address</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-envelope"></i></span></div>
+							<input type="text" name="billing[email]" class="form-control customer-mail" value="{{ result.email }}" placeholder="Email Address">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>Mobile Number</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-mobile"></i></span></div>
+							<input type="text" name="billing[mobile]" class="form-control customer-mobile" value="{{ result.mobile }}" placeholder="Mobile Number">
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>Date</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-calendar"></i></span></div>
+							<input type="text" name="billing[bill_date]" class="form-control bg-white date" value="{{ result.bill_date|date(common.info.date_format) }}" placeholder="BIlling Date" readonly>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="form-group">
+						<label>Payment Method</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-credit-card"></i></span></div>
+							<select name="billing[method]" class="custom-select" required>
+								{% for value in methods %}
+									<option value="{{ value.id }}" {{ result.method == value.id ? 'selected' : false }}>{{ value.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="billing-items table-responsive mb-4">
+				<table class="table table-input table-middle">
+					<thead>
+						<tr>
+							<th>Name<span class="form-required">*</span></th>
+							<th style="min-width: 100px;">Batch No<span class="form-required">*</span></th>
+							<th>ExpiryDate<span class="form-required">*</span></th>
+							<th>Qty * | Available Qty</th>
+							<th>Sale Price<span class="form-required">*</span></th>
+							<th>Gross</th>
+							<th>Discount</th>
+							<th>Tax</th>
+							<th>Price<span class="form-required">*</span></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>{% set available_quantity = 0 %}
+						{% for key, value in result.items %}
+							<tr class="item-row">
+								<td>
+									<input type="text" name="billing[items][{{ key }}][name]" class="form-control item-name" value="{{ value.name }}" required>
+									<input type="hidden" name="billing[items][{{ key }}][medicine_id]" class="form-control item-medicine-id" value="{{ value.medicine_id }}" required>
+								</td>
+								<td>
+									<select name="billing[items][{{ key }}][batch]" class="custom-select item-batch" required>
+										<option value="">Select</option>
+										{% for batch in value.batches %}
+											<option value="{{ batch.id }}" {% if batch.id == value.batch %}selected{% set available_quantity = batch.qty - batch.sold %}{% endif %}>{{ batch.batch }}</option>
+										{% endfor %}
+									</select>
+									<input type="hidden" name="billing[items][{{ key }}][batch_name]" class="item-batch-name" value="{{ value.batch_name }}">
+								</td>
+								<td>
+									<input type="text" name="billing[items][{{ key }}][expiry]" class="form-control item-expiry bg-white" value="{{ value.expiry|date(common.info.date_my_format) }}" required readonly>
+								</td>
+								<td>
+									<div class="input-group">
+										<input type="text" name="billing[items][{{ key }}][qty]" class="form-control item-qty" value="{{ value.qty }}" required>
+										<div class="input-group-prepend"><span class="item-available-qty input-group-text">{{ available_quantity }}</span></div>
+									</div>
+								</td>
+								<td>
+									<input type="text" name="billing[items][{{ key }}][saleprice]" class="form-control item-sale"  value="{{ value.saleprice }}" required>
+								</td>
+								<td>
+									<input type="text" readonly class="item-gross" name="billing[items][{{ key }}][gross]" value="{{ value.gross }}" />
+								</td>
+								<td class="">
+                                    <div class="row no-gutters">
+                                        <div class="col">
+                                            <select name="billing[items][{{ key }}][discounttype]" class="custom-select border-light item-discounttype">
+                                                <option value="1"{% if value.discounttype == '1' %} selected{% endif %}>%</option>
+                                                <option value="2"{% if value.discounttype == '2' %} selected{% endif %}>Flat</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <textarea type="text" name="billing[items][{{ key }}][discount]" class="item-discount">{{ value.discount }}</textarea>
+											<input type="text" readonly name="billing[items][{{ key }}][discountvalue]" class="item-discountvalue" value="{{ value.discountvalue }}">
+                                        </div>
+                                    </div>
+                                </td>
+								<td class="invoice-tax">
+									<input type="text" name="billing[items][{{ key }}][tax]" class="item-tax" value="{{ value.tax }}">
+									<input type="text" readonly name="billing[items][{{ key }}][taxprice]" class="item-taxprice" value="{{ value.taxprice }}">
+								</td>
+								<td>
+									<input type="text" name="billing[items][{{ key }}][price]" class="form-control bg-white item-price" value="{{ value.price }}" required readonly>
+								</td>
+								<td>
+									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+								</td>
+							</tr>
+						{% else %}
+							<tr class="item-row">
+								<td>
+									<input type="text" name="billing[items][0][name]" class="form-control item-name" required>
+									<input type="hidden" name="billing[items][0][medicine_id]" class="form-control item-medicine-id" required>
+								</td>
+								<td>
+									<select name="billing[items][0][batch]" class="custom-select item-batch" required></select>
+									<input type="hidden" name="billing[items][0][batch_name]" class="item-batch-name">
+								</td>
+								<td>
+									<input type="text" name="billing[items][0][expiry]" class="form-control item-expiry bg-white" required readonly>
+								</td>
+								<td>
+									<div class="input-group">
+										<input type="text" name="billing[items][0][qty]" class="form-control item-qty" required>
+										<div class="input-group-prepend"><span class="item-available-qty input-group-text">0</span></div>
+									</div>
+								</td>
+								<td>
+									<input type="text" name="billing[items][0][saleprice]" class="form-control item-sale" required>
+								</td>
+								<td>
+									<input type="text" readonly class="item-gross" name="billing[items][0][gross]" />
+								</td>
+								<td class="">
+                                    <div class="row no-gutters">
+                                        <div class="col">
+                                            <select name="billing[items][0][discounttype]" class="custom-select border-light item-discounttype">
+                                                <option value="1">%</option>
+                                                <option value="2">Flat</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <textarea type="text" name="billing[items][0][discount]" class="item-discount">0.00</textarea>
+											<input type="text" readonly name="billing[items][0][discountvalue]" class="item-discountvalue" value="0.00">
+                                        </div>
+                                    </div>
+                                </td>
+								<td class="invoice-tax">
+									<input type="text" name="billing[items][0][tax]" class="item-tax">
+									<input type="text" readonly name="billing[items][0][taxprice]" class="item-taxprice">
+								</td>
+								<td>
+									<input type="text" name="billing[items][0][price]" class="form-control bg-white item-price" required readonly>
+								</td>
+								<td>
+									<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>
+								</td>
+							</tr>
+						{% endfor %}
+						<tr>
+							<td colspan="10">
+								<div class="add-items d-inline-block">
+									<a class="btn btn-success btn-sm m-1"><i class="icon-plus mr-1"></i> Add Item</a>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Sub Total</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="billing[subtotal]" class="form-transparent p-2 total-price" value="{{ result.subtotal }}" readonly>
+							</td>
+						</tr>
+						<tr>
+                            <td colspan="3" class="blank"></td>
+                            <td colspan="3" class="total-line"><label class="p-2">Discount</label></td>
+                            <td colspan="4" class="total-value">
+                                <input type="text" name="billing[discount_value]" class="form-transparent p-2 total-discount" value="{{ result.discount_value }}" readonly>
+                            </td>
+                        </tr>
+						<tr>
+							<td colspan="3" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Tax</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="billing[tax]" class="form-transparent p-2 total-tax" value="{{ result.tax }}" readonly>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" class="blank"></td>
+							<td colspan="3" class="total-line"><label class="p-2">Amount</label></td>
+							<td colspan="4" class="total-value">
+								<input type="text" name="billing[amount]" class="form-transparent p-2 total-amount" value="{{ result.amount }}" readonly>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Note</label>
+						<div class="input-group">
+							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-paragraph"></i></span></div>
+							<textarea name="billing[note]" class="form-control" placeholder="Enter Note or Comment . . .">{% if result.id %}{{ result.note }}{% endif %}</textarea>
+						</div>
+					</div>	
+				</div>
+			</div>
+		</div>
+		<input type="hidden" name="billing[id]" value="{{ result.id }}">
+		<div class="panel-footer text-center">
+			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+		</div>
+	</div>
+</form>
+<script type="text/javascript" src="public/js/billing.js"></script>
+{{ include('common/footer.twig') }}
+
+
+
+
+
+
+public function billingFilter() {
+
+		$filterRoute = 'medicine/billing/';
+		$modelName = 'medicine';
+		$modelLoad = "model_" . $modelName;
+
+		$page_view = $this->user_agent->hasPermission($filterRoute.'view') ? true : false;
+		$page_edit = $this->user_agent->hasPermission($filterRoute.'edit') ? true : false;
+		$page_delete = $this->user_agent->hasPermission($filterRoute.'delete') ? true : false;
+
+		$this->load->model($modelName);
+		$filteredData = $this->{$modelLoad}->filterBilling($_POST);
+
+		$response = [
+			'draw' => $this->url->post('draw'),
+			'recordsFiltered' => $filteredData['recordsFiltered'],
+			'recordsTotal' => $filteredData['total'],
+			'data' => []
+		];
+		
+		foreach ($filteredData['data'] as $key => $data) {
+
+			$id = $data['id'];
+
+			$action = '';
+
+			if($page_view || $page_edit) {
+				$action .= '<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">';
+				if($page_view) {
+					$action .= '<li><a href="index.php?route='.$filterRoute.'view&id='.$id.'"><i class="las la-laptop pr-2"></i>View</a></li>';
+				}
+
+				if($page_view) {
+					$action .= '<li><a href="index.php?route='.$filterRoute.'edit&id='.$id.'"><i class="las la-edit pr-2"></i>Edit</a></li>';
+				}
+
+				$action .= '</ul></div>';
+
+			}
+
+			if($page_delete) {
+				$action .= '<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="'.$id.'"></a>';
+			}
+
+			$response['data'][] = [
+				"id" => $id,
+				"name" => $data['name'],
+				"subtotal" => 'Rs '.$data['subtotal'],
+				"tax" => 'Rs '.$data['tax'],
+				"discount_value" => 'Rs '.$data['discount_value'],
+				"amount" => 'Rs '.$data['amount'],
+				"bill_date" => $data['bill_date'],
+				"action" => trim($action)
+			];
+		}
+		
+		// Convert the data array to JSON
+		$jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+		echo $jsonData;
+	}
+
+	/**
+	* Medicine Purchase index List method
+	* This method will be called on Medicine Purchase list
+	**/
+	public function medicineBilling()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+		$this->load->controller('common');
+
+		/**
+		* Get all Medicine data from DB using Medicine model 
+		**/
+		$this->load->model('medicine');
+		
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'POS/Bill';
+		$data['page_view'] = $this->user_agent->hasPermission('medicine/billing/view') ? true : false;
+		$data['page_add'] = $this->user_agent->hasPermission('medicine/billing/add') ? true : false;
+		$data['page_edit'] = $this->user_agent->hasPermission('medicine/billing/edit') ? true : false;
+		$data['page_delete'] = $this->user_agent->hasPermission('medicine/billing/delete') ? true : false;
+
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action_delete'] = URL.DIR_ROUTE.'medicine/billing/delete';
+		$data['delete_msg'] = 'Inventory will be updated and those Stock will be added in Inventory.';
+		
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/billing_list', $data));
+	}
+
+
+
+
+	/**
+	* Medicine Billing index List method
+	* This method will be called on Medicine Billing list
+	**/
+	public function medicineBillingView()
+	{
+		/**
+		* Check if id exist in url if not exist then redirect to Medicine list view 
+		**/
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id)) {
+			$this->url->redirect('medicine/billing');
+		}
+
+		$this->load->model('medicine');
+		$data['result'] = $this->model_medicine->getMedicineBill($id);
+		if (empty($data['result'])) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Bill does not exist in database!');
+			$this->url->redirect('medicine/billing');
+		}
+		
+		$bill_items = $this->model_medicine->getBillItems($id);
+
+		$data['result']['items'] = $bill_items;
+		
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+		/* Set page title */
+		$data['page_title'] = 'Bill View';
+		$data['page_edit'] = $this->user_agent->hasPermission('medicine/billing/edit') ? true : false;
+		$data['page_delete'] = $this->user_agent->hasPermission('medicine/billing/delete') ? true : false;
+		//$data['action'] = URL.DIR_ROUTE.'medicine/billing/edit';
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/billing_view', $data));
+	}
+
+
+	public function medicineBillingAdd()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		
+		$this->load->model('medicine');
+		/* Set empty data to array */
+		$data['result'] =  NULL;
+		$data['methods'] = $this->model_medicine->getPaymentMethods();
+
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'New Bill';
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action'] = URL.DIR_ROUTE.'medicine/billing/add';
+		/*Render Medicine add view*/
+		$this->response->setOutput($this->load->view('medicine/billing_form', $data));
+	}
+	/**
+	* Medicine Billing index Add method
+	* This method will be called on Medicine Billing Add
+	**/
+	public function medicineBillingBatch()
+	{
+		$data = $this->url->post;
+		$data['monthyear'] = date('Y-m');
+
+		$this->load->model('medicine');
+		$batches = $this->model_medicine->getSearchedBatch($data);
+		
+		if (empty($batches)) {
+			echo json_encode(array('error' => true, 'message' => 'Medicine Stock not found.'));
+			exit();
+		}
+
+		$result = '<option value="">Select</option>';;
+		foreach ($batches as $key => $value) {
+			$result .= '<option value="'.$value['id'].'">'.$value['batch'].'</option>';
+		}
+
+		echo json_encode(array('error' => false, 'result' => $result));
+		exit();	
+	}
+	/**
+	* Medicine Batch Data
+	* This method will be called on Medicine Batch 
+	**/
+	public function medicineBillingBatchData()
+	{
+		$data = $this->url->post;
+		$this->load->model('medicine');
+		
+		$result = $this->model_medicine->getSearchedBatchWithMedicine($data);
+		
+		if (empty($result)) { 
+			echo json_encode(array('error' => true, 'message' => 'Medicine Stock not found.'));
+			exit(); 
+		}
+
+		$this->load->model('commons');
+		$data['info'] = $this->model_commons->getSiteInfo();
+		$result['expiry'] = DateTime::createFromFormat('Y-m', $result['expiry'])->format($data['info']['date_my_format']);
+		$result['available_quantity'] = $result['qty'] - $result['sold'];
+		$result['tax'] = '';
+		echo json_encode(array('error' => false, 'result' => $result));
+		exit();
+	}
+	/**
+	* Medicine Batch Edit
+	* This method will be called on Medicine Billing Edit
+	**/
+	public function medicineBillingEdit()
+	{
+		/**
+		* Check if id exist in url if not exist then redirect to Medicine list view 
+		**/
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id)) {
+			$this->url->redirect('medicine/billing');
+		}
+
+		$this->load->model('medicine');
+		$data['result'] = $this->model_medicine->getMedicineBill($id);
+		if (empty($data['result'])) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'Bill does not exist in database!');
+			$this->url->redirect('medicine/billing');
+		}
+
+		$bill_items = $this->model_medicine->getBillItems($id);
+
+		$data['result']['items'] = $bill_items;
+		
+		foreach ($data['result']['items'] as $key => $value) {
+			$value['monthyear'] = date('Y-m');
+			$value['id'] = $value['medicine_id'];
+			$batches = $this->model_medicine->getSearchedBatch($value);
+			$data['result']['items'][$key]['batches'] = $batches;
+		}
+
+		$data['methods'] = $this->model_medicine->getPaymentMethods();
+
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'Edit Bill';
+		$data['action'] = URL.DIR_ROUTE.'medicine/billing/edit';
+		/*Render Medicine view*/
+		$this->response->setOutput($this->load->view('medicine/billing_form', $data));
+	}
+	/**
+	* Medicine Billing index Action method
+	* This method will be called on Medicine Billing Action
+	**/
+	public function medicineBillingAction()
+	{	
+		$data = $this->url->post;		
+		$this->load->controller('common');
+		$this->load->model('commons');
+		$data['info'] = $this->model_commons->getSiteInfo($this->session->data['user_id']);
+		if ($validate_field = $this->validateBillingField($data)) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
+			if (!empty($data['billing']['id'])) {
+				$this->url->redirect('medicine/billing/edit&id='.$data['billing']['id']);
+			} else {
+				$this->url->redirect('medicine/billing/add');	
+			}
+		}
+
+		$data['billing']['bill_date'] = DateTime::createFromFormat($data['info']['date_format'], $data['billing']['bill_date'])->format('Y-m-d');
+		$data['billing']['datetime'] =  date('Y-m-d H:i:s');
+
+		$this->load->model('commons');
+		$data['info'] = $this->model_commons->getSiteInfo();
+
+		if(empty($data['billing']['customer_id'])) {
+
+			$this->load->model('customer');
+
+			$nameParts = explode(' ', $data['billing']['name']);
+			$lastName = array_pop($nameParts);
+			$firstName = implode(' ', $nameParts);
+
+			if($firstName == '') {
+				$firstName = $lastName;
+			}
+
+			$customer_data = [
+				'firstname' => $firstName,
+				'lastname' => $lastName,
+				'mail' => $data['billing']['email'],
+				'mobile' => $data['billing']['mobile'],
+				'datetime' => date('Y-m-d H:i:s'),
+				'gender' => null,
+			];
+
+			$existingCustomer = $this->model_customer->getCustomerByMail($customer_data['mail']);
+
+			if( isset( $existingCustomer['id'] ) ) {
+				$data['billing']['customer_id'] = $existingCustomer['id'];	
+			} else {
+				$data['billing']['customer_id'] = $this->model_customer->createCustomer($customer_data);
+			}
+		}
+
+		$this->load->model('medicine');
+		if (!empty($data['billing']['id'])) {
+			if (!empty($data['billing']['items'])) {
+				
+				$old = $this->model_medicine->getBillItems($data['billing']['id']);
+
+				$oldid = $this->array2Dto1D($old, 'batch');
+				$newid = $this->array2Dto1D($data['billing']['items'], 'batch');
+
+				foreach ($old as $key => $value) {
+					if (!in_array($value['batch'], $newid)) {
+						$this->model_medicine->updateMedicineBatchSoldOnDelete($value);
+					}
+				}
+
+				foreach ($data['billing']['items'] as $key => $value) {
+					$value['expiry'] = DateTime::createFromFormat($data['info']['date_my_format'], $value['expiry'])->format('Y-m');
+					$data['billing']['items'][$key]['expiry'] = $value['expiry'];
+
+					if (!in_array($value['batch'], $oldid)) {
+						$this->model_medicine->updateMedicineBatchSold($value);
+					}
+
+					foreach ($old as $k => $v) {
+						if ($v['batch'] == $value['batch'] && (float)$v['qty'] > (float)$value['qty']) {
+							$value['qty'] = $v['qty'] - $value['qty'];
+							$this->model_medicine->updateMedicineBatchSoldOnDelete($value);
+						} elseif ($v['batch'] == $value['batch'] && (float)$v['qty'] < (float)$value['qty']) {
+							$value['qty'] = $value['qty'] - $v['qty'];
+							$this->model_medicine->updateMedicineBatchSold($value);
+						}
+					}
+				}
+				
+				$this->model_medicine->updateMedicineBill($data['billing']);
+			}
+		} else {
+			if (!empty($data['billing']['items'])) {
+				foreach ($data['billing']['items'] as $key => $value) {
+					$value['expiry'] = DateTime::createFromFormat($data['info']['date_my_format'], $value['expiry'])->format('Y-m');
+					$data['billing']['items'][$key]['expiry'] = $value['expiry'];
+					$this->model_medicine->updateMedicineBatchSold($value);
+				}
+
+				$data['billing']['id'] = $this->model_medicine->createMedicineBill($data['billing']);
+			}
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Bill created successfully.');
+		}
+		$this->url->redirect('medicine/billing/view&id='.$data['billing']['id']);
+	}
+	/**
+	* Medicine Billing index Delete method
+	* This method will be called on Medicine Billing Delete
+	**/
+	public function medicineBillingDelete()
+	{
+		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
+			$this->url->redirect('medicine/billing');
+		}
+
+		$this->load->model('medicine');
+	
+		$items = $this->model_medicine->getBillItems($this->url->post('id'));
+		if( count($items) ) {
+			foreach ($items as $key => $value) {
+				$this->model_medicine->updateMedicineBatchSoldOnDelete($value);
+			}
+		}
+
+		$this->model_medicine->deleteMedicineBill($this->url->post('id'));
+		$this->session->data['message'] = array('alert' => 'success', 'value' => 'Bill deleted successfully.');
+		$this->url->redirect('medicine/billing');
+
+	}
+	/**
+	* Validate Medicine Field
+	* This method will be called from validateBillingField
+	* @data
+	**/
+	public function validateBillingField($data)
+	{
+		$error = [];
+		$error_flag = false;
+		if ($this->controller_common->validateText($data['billing']['name'])) {
+			$error_flag = true;
+			$error['name'] = 'Name';
+		}
+
+		if ($this->controller_common->validateDate( $data['billing']['bill_date'], $data['info']['date_format'] )) {
+			$error_flag = true;
+			$error['bill_date'] = 'Date';
+		}
+		
+		if ($error_flag) {
+			return $error;
+		} else {
+			return false;
+		}
+	}
+
+
+
+public function filterBilling($options)
+	{
+
+		$sqlQuery = "SELECT * FROM `medicine_bill` WHERE 1=?";
+		
+		$search = $options['search']['value'];
+
+		if($search != '') {
+			$sqlQuery .= " AND (name like '%".$search."%'";
+			$sqlQuery .= " OR subtotal like '%".$search."%'";
+			$sqlQuery .= " OR tax like '%".$search."%'";
+			$sqlQuery .= " OR discount_value like '%".$search."%'";
+			$sqlQuery .= " OR amount like '%".$search."%'";
+			$sqlQuery .= " OR bill_date like '%".$search."%')";
+		}
+
+        $queries = $this->queryBuilder($options, $sqlQuery);
+
+		$countQuery = $this->database->query("SELECT COUNT(*) as total FROM `medicine_bill`");
+		
+		return [
+			'data' => $queries['dataQuery']->rows,
+			'recordsFiltered' => $queries['filteredQuery']->num_rows,
+			'total' => (int)$countQuery->row['total']
+		];
+	}
+
+
+
+	public function getBillItems($id)
+	{
+		$query = $this->database->query("
+		SELECT
+			bill_items.*, 
+			medicines.`name`,
+			medicine_batch.`expiry`, 
+			medicine_batch.`batch` as batch_name
+		FROM
+			bill_items
+			INNER JOIN
+			medicines
+			ON 
+				bill_items.medicine_id = medicines.id
+			INNER JOIN
+			medicine_batch
+			ON 
+				bill_items.medicine_id = medicine_batch.medicine_id AND
+				bill_items.batch = medicine_batch.id
+		WHERE
+			bill_id = ?
+		", array((int)$id));
+
+		return $query->rows;
+	}
+
+	public function updateMedicineBill($data)
+	{
+
+		$id = (int)$data['id'];
+
+		$this->database->query("UPDATE `medicine_bill` SET `name` = ?, `email` = ?, `mobile` = ?, `method` = ?, `bill_date` = ?, `subtotal` = ?, `tax` = ?, `discount_value` = ?, `amount` = ?, `note` = ?, `customer_id` = ? WHERE `id` = ? ", array($this->database->escape($data['name']), $this->database->escape($data['email']), $this->database->escape($data['mobile']), (int)$data['method'], $data['bill_date'], $data['subtotal'], $data['tax'], $data['discount_value'], $data['amount'], $data['note'], (int)$data['customer_id'], $id));
+
+		$this->database->query("DELETE FROM `bill_items` WHERE `bill_id` = ?", array((int)$id));
+
+		$this->createBillItems($id, $data['items']);
+
+		return true;
+	}
+
+	public function createMedicineBill($data)
+	{
+
+		$query = $this->database->query("INSERT INTO `medicine_bill` (`name`, `email`, `mobile`, `method`, `bill_date`, `subtotal`, `tax`, `discount_value`, `amount`, `note`, `customer_id`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['name']), $this->database->escape($data['email']), $this->database->escape($data['mobile']), $data['method'], $data['bill_date'], $data['subtotal'], $data['tax'], $data['discount_value'], $data['amount'], $data['note'], (int)$data['customer_id'], $data['datetime']));
+
+		if ($query->num_rows > 0) {
+
+			$bill_id = $this->database->last_id();
+
+			$this->createBillItems($bill_id, $data['items']);
+
+			return $bill_id;
+
+		} else {
+			return false;
+		}
+	}
+
+	public function createBillItems($bill_id, $items) {
+		
+		foreach ($items as $key => $item) {
+	
+			$this->database->query("INSERT INTO `bill_items` (`bill_id`, `medicine_id`, `batch`, `qty`, `saleprice`, `gross`, `discounttype`, `discount`, `discountvalue`, `tax`, `taxprice`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array(
+				$bill_id, 
+				$item['medicine_id'], 
+				$this->database->escape($item['batch']),
+				$this->database->escape($item['qty']),
+				$this->database->escape($item['saleprice']),
+				$this->database->escape($item['gross']),
+				$this->database->escape($item['discounttype']),
+				$this->database->escape($item['discount']),
+				$this->database->escape($item['discountvalue']),
+				$this->database->escape($item['tax']),
+				$this->database->escape($item['taxprice']),
+				$this->database->escape($item['price']),
+			));
+
+		}
+
+	}
+
+	public function deleteMedicineBill($id)
+	{
+		$this->database->query("DELETE FROM `medicine_bill` WHERE `id` = ?", array((int)$id));
+	}
+
+
+public function getMedicineBill($id)
+	{
+		$query = $this->database->query("SELECT mb.*, pm.name AS payment_method FROM `medicine_bill` AS mb LEFT JOIN `payment_method` AS pm ON pm.id = mb.method WHERE mb.id = ?", array((int)$id));
+		return $query->row;
+	}
+
+
+
+public function getSearchedBatch($data)
+	{
+		$query = $this->database->query("SELECT * FROM `medicine_batch_view` WHERE medicine_id = ? AND expiry > ? AND status = 1", array($data['id'], $data['monthyear']));
+		return $query->rows;
+	}
+
+	public function getSearchedBatchWithMedicine($data)
+	{
+		$query = $this->database->query("SELECT * FROM `medicine_batch_view` WHERE medicine_id = ? AND id = ?", array($data['medicine'], $data['batch']));
+		return $query->row;
+	}
+
+	public function getCustomerByMail($mail)
+	{
+		$query = $this->database->query("SELECT * FROM `customers` WHERE `email` = ? ", array($this->database->escape($mail)));
+		return $query->row;
+	}
+
+	public function createCustomer($data)
+	{
+		$query = $this->database->query("INSERT INTO `customers` (`firstname`, `lastname`, `email`, `mobile`, `gender`, `status`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), 1, $data['datetime']));
+		if ($this->database->error()) {
+			return false;
+		} else {
+			return $this->database->last_id();
+		}
+	}
+
+	public function updateMedicineBatchSoldOnDelete($data)
+	{
+		$query = $this->database->query("SELECT * FROM `medicine_batch_view` WHERE `id` = ? AND `medicine_id` = ?", array($data['batch'], $data['medicine_id']));
+
+		if ($query->num_rows > 0) {
+			$count = $query->row['sold'];
+			$count = $count - (float)$data['qty'];
+			
+			$this->database->query("UPDATE `medicine_batch` SET `sold` = ? WHERE `id` = ? AND `medicine_id` = ? ", array($count, $data['batch'], $data['medicine_id']));
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function updateMedicineBatchSold($data)
+	{
+		$query = $this->database->query("SELECT * FROM `medicine_batch_view` WHERE `id` = ? AND `medicine_id` = ?", array($data['batch'], $data['medicine_id']));
+
+		if ($query->num_rows > 0) {
+			$count = $query->row['sold'];
+			$count = $count + (float)$data['qty'];
+			
+			$this->database->query("UPDATE `medicine_batch` SET sold = ? WHERE `id` = ? AND `medicine_id` = ? ", array($count, $data['batch'], $data['medicine_id']));
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	

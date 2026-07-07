@@ -139,6 +139,22 @@ function bind() {
 }
 
 function initAutocomplete() {
+	$(".customer-name").autocomplete({
+		minLength: 0,
+		source: ('/getcustomer'),
+		focus: function( event, ui ) {
+			$(".customer-name").val( ui.item.label );
+			return false;
+		},
+		select: function( event, ui ) {
+			$(".customer-name").val( ui.item.label );
+			$(".customer-id").val( ui.item.id );
+			$(".customer-email").val( ui.item.email );
+			$(".customer-mobile").val( ui.item.mobile );
+			return false;
+		}
+	});
+
 	$(".billing-items .item-name").autocomplete({
 		minLength: 0,
 		source: ('/getmedicine'),

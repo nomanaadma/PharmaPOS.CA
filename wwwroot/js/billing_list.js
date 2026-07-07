@@ -32,7 +32,7 @@ $(function () {
         },
         columns,
         ajax: {
-            url: '/index.php?route=billing/filter',
+            url: '/Medicines/Billing/Filter',
             data: {
                 __RequestVerificationToken: xsrfToken
             },

@@ -31,7 +31,7 @@
 		    <div class="page-hdr-desktop">
 			    @* {% if common.new_bill %} *@
 			    @* <div class="page-menu"> *@
-				   @*  <a href="{{ common.info.url_route }}medicine/billing/add" class="active" data-toggle="tooltip" data-placement="bottom" title="New POS/Bill"><i class="las las la-cart-plus"></i></a> *@
+				   <a asp-controller="Billing" asp-action="Add" class="active" data-toggle="tooltip" data-placement="bottom" title="New POS/Bill"><i class="las las la-cart-plus"></i></a>
 			    @* </div> *@
 			    @* {% endif %} *@
 			    @* {% if common.new_purchase %} *@
