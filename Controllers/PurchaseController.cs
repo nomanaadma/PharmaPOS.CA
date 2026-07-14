@@ -296,23 +296,19 @@ public class PurchaseController(
 				.ThenInclude(b => b.Medicine)
 			.FirstOrDefaultAsync(mp => mp.Id == id);
 
-		if (purchase == null)
-		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
-			return RedirectToAction(nameof(Index));
-		}
+		if (purchase != null) return View(purchase);
+				
+		TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
+		return RedirectToAction(nameof(Index));
 
-		return View(purchase);
 	}
 
 	[HttpGet]
 	public async Task<IActionResult> Add()
 	{
-		var suppliers = await GetSuppliersAsync();
-
 		var medicineViewModel = new PurchaseFormModel
 		{
-			Suppliers = suppliers
+			Suppliers = await GetSuppliersAsync()
 		};
 		
 		return View("PurchaseForm", medicineViewModel);
@@ -323,11 +319,11 @@ public class PurchaseController(
 	public async Task<IActionResult> Add(PurchaseFormModel model)
 	{
 		
-		var suppliers = await GetSuppliersAsync();
-		model.Suppliers = suppliers;
+		model.Suppliers = await GetSuppliersAsync();
 		
 		if (!ModelState.IsValid)
 		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
 			return View("PurchaseForm", model);	
 		}
 		
@@ -337,6 +333,7 @@ public class PurchaseController(
 			return View("PurchaseForm", model);
 		}
 
+		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
 
@@ -377,14 +374,15 @@ public class PurchaseController(
 			}
 
 			await context.SaveChangesAsync();
+			await transaction.CommitAsync();
 
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase created successfully." });
 			return RedirectToAction(nameof(Index));
-		}
+		}	
 		catch (Exception ex)
 		{
+			await transaction.RollbackAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving purchase: " + ex.Message });
-			ViewBag.Suppliers = await context.Suppliers.OrderBy(s => s.Name).ToListAsync();
 			return View("PurchaseForm", model);
 		}
 	}
@@ -403,9 +401,7 @@ public class PurchaseController(
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
 			return RedirectToAction(nameof(Index));
 		}
-
-		var suppliers = await GetSuppliersAsync();
-
+		
 		var model = new PurchaseFormModel
 		{
 			Id = purchase.Id,
@@ -416,7 +412,7 @@ public class PurchaseController(
 			Tax = purchase.Tax,
 			Discount = purchase.DiscountValue,
 			Amount = purchase.Amount,
-			Suppliers = suppliers,
+			Suppliers = await GetSuppliersAsync(),
 			Items = purchase.Batches.Select(b => new PurchaseItemFormModel
 			{
 				Id = b.Id,
@@ -443,23 +439,25 @@ public class PurchaseController(
 
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Edit(int id, PurchaseFormModel purchase)
+	public async Task<IActionResult> Edit(int id, PurchaseFormModel model)
 	{
-		var suppliers = await GetSuppliersAsync();
+		if (id != model.Id) return NotFound();
 		
-		purchase.Suppliers = suppliers;
+		model.Suppliers = await GetSuppliersAsync();
 
 		if (!ModelState.IsValid)
 		{
-			return View("PurchaseForm", purchase);
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
+			return View("PurchaseForm", model);
 		}
 
-		if (purchase.Items.Count == 0)
+		if (model.Items.Count == 0)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
-			return View("PurchaseForm", purchase);
+			return View("PurchaseForm", model);
 		}
 
+		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
 			var existingPurchase = await context.Purchases
@@ -474,16 +472,16 @@ public class PurchaseController(
 			}
 
 			existingPurchase.Update(
-				purchase.Supplier,
-				purchase.Date,
-				purchase.Total,
-				purchase.Tax,
-				purchase.Discount,
-				purchase.Amount,
-				purchase.Note
+				model.Supplier,
+				model.Date,
+				model.Total,
+				model.Tax,
+				model.Discount,
+				model.Amount,
+				model.Note
 			);
 
-			var submittedBatchIds = purchase.Items.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToList();
+			var submittedBatchIds = model.Items.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToList();
 
 			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 			foreach (var bToRemove in batchesToRemove)
@@ -491,7 +489,7 @@ public class PurchaseController(
 				context.MedicineBatches.Remove(bToRemove);
 			}
 
-			foreach (var item in purchase.Items)
+			foreach (var item in model.Items)
 			{
 				if (item.Id.HasValue)
 				{
@@ -544,14 +542,17 @@ public class PurchaseController(
 			}
 
 			await context.SaveChangesAsync();
+			await transaction.CommitAsync();
+			
 
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase updated successfully." });
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
+			await transaction.RollbackAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating purchase: " + ex.Message });
-			return View("PurchaseForm", purchase);
+			return View("PurchaseForm", model);
 		}
 	}
 

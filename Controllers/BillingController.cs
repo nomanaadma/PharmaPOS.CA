@@ -296,29 +296,46 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Add([Bind(Prefix = "billing")] BillingFormModel model)
+	public async Task<IActionResult> Add(BillingFormModel model)
 	{
+		
+		model.PaymentMethods = await GetPaymentMethodsAsync();
+		
 		if (!ModelState.IsValid)
 		{
-			model.PaymentMethods = await GetPaymentMethodsAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
 			return View("BillingForm", model);
 		}
+		
+		if (model.Items.Count == 0)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing Bill items." });
+			return View("BillingForm", model);
+		}
 
-		using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
-			int customerId = model.CustomerId ?? 0;
-			if (customerId == 0 && !string.IsNullOrWhiteSpace(model.Name))
+			var customerId = model.CustomerId ?? 0;
+			if (customerId == 0)
 			{
+				var nameParts = model.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				
+				var lastName = nameParts[^1];
+				
+				var firstName = nameParts.Length > 1 
+					? string.Join(" ", nameParts[..^1]) 
+					: lastName;
+				
 				var newCustomer = new Customer(
-					model.Name,
-					".", // Placeholder since we only get full name in Name field
+					firstName,
+					lastName,
 					model.Email ?? "no-email@example.com",
 					model.Mobile ?? "0000000000",
 					Gender.Male,
 					Status.Active
 				);
+				
 				context.Customers.Add(newCustomer);
 				await context.SaveChangesAsync();
 				customerId = newCustomer.Id;
@@ -359,11 +376,11 @@ public class BillingController(ApplicationDbContext context) : Controller
 				);
 				context.BillItems.Add(billItem);
 
-				var batch = await context.MedicineBatches.FindAsync(item.Batch);
-				if (batch != null)
-				{
-					batch.UpdateSold(batch.Sold + item.Qty);
-				}
+				var batch = await context.MedicineBatches
+					.AsTracking()
+					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId );
+			
+				batch?.UpdateSold(batch.Sold + item.Qty);
 			}
 
 			await context.SaveChangesAsync();
@@ -375,14 +392,12 @@ public class BillingController(ApplicationDbContext context) : Controller
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			model.PaymentMethods = await GetPaymentMethodsAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving bill: " + ex.Message });
 			return View("BillingForm", model);
 		}
 	}
 
-	[HttpGet]
-	[Route("{id:int}")]
+	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var bill = await context.MedicineBills
@@ -443,35 +458,57 @@ public class BillingController(ApplicationDbContext context) : Controller
 		return View("BillingForm", model);
 	}
 
-	[HttpPost]
-	[Route("{id}")]
+	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Edit(int id, [Bind(Prefix = "billing")] BillingFormModel model)
+	public async Task<IActionResult> Edit(int id, BillingFormModel model)
 	{
 		if (id != model.Id) return NotFound();
+		
+		model.PaymentMethods = await GetPaymentMethodsAsync();
 
 		if (!ModelState.IsValid)
 		{
-			model.PaymentMethods = await GetPaymentMethodsAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
 			return View("BillingForm", model);
 		}
+		
+		if (model.Items.Count == 0)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			return View("BillingForm", model);
+		}
 
-		using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
 			var bill = await context.MedicineBills
 				.Include(mb => mb.Items)
+				.AsTracking()
 				.FirstOrDefaultAsync(mb => mb.Id == id);
 
 			if (bill == null) return NotFound();
 
-			int customerId = model.CustomerId ?? bill.CustomerId;
-			if (customerId == 0 && !string.IsNullOrWhiteSpace(model.Name))
+			var customerId = model.CustomerId ?? bill.CustomerId;
+			
+			if (customerId == 0)
 			{
+				var nameParts = model.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				
+				var lastName = nameParts[^1];
+				
+				var firstName = nameParts.Length > 1 
+					? string.Join(" ", nameParts[..^1]) 
+					: lastName;
+				
 				var newCustomer = new Customer(
-					model.Name, ".", model.Email ?? "no-email@example.com", model.Mobile ?? "0000000000", Gender.Male, Status.Active
+					firstName,
+					lastName,
+					model.Email ?? "no-email@example.com",
+					model.Mobile ?? "0000000000",
+					Gender.Male,
+					Status.Active
 				);
+				
 				context.Customers.Add(newCustomer);
 				await context.SaveChangesAsync();
 				customerId = newCustomer.Id;
@@ -482,8 +519,11 @@ public class BillingController(ApplicationDbContext context) : Controller
 			// Revert sold quantities for old items
 			foreach (var oldItem in bill.Items)
 			{
-				var batch = await context.MedicineBatches.FindAsync(oldItem.BatchId);
-				if (batch != null) batch.UpdateSold(batch.Sold - oldItem.Qty);
+				var batch = await context.MedicineBatches
+					.AsTracking()
+					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId);
+				
+				batch?.UpdateSold(batch.Sold - oldItem.Qty);
 			}
 
 			context.BillItems.RemoveRange(bill.Items);
@@ -494,9 +534,12 @@ public class BillingController(ApplicationDbContext context) : Controller
 			{
 				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, item.Qty, item.Saleprice, item.Gross, item.Discounttype, item.Discount, item.Discountvalue, item.Tax, item.Taxprice, item.Price);
 				context.BillItems.Add(billItem);
+				
+				var batch = await context.MedicineBatches
+					.AsTracking()
+					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId);
 
-				var batch = await context.MedicineBatches.FindAsync(item.Batch);
-				if (batch != null) batch.UpdateSold(batch.Sold + item.Qty);
+				batch?.UpdateSold(batch.Sold + item.Qty);
 			}
 
 			await context.SaveChangesAsync();
@@ -508,7 +551,6 @@ public class BillingController(ApplicationDbContext context) : Controller
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			model.PaymentMethods = await GetPaymentMethodsAsync();
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating bill: " + ex.Message });
 			return View("BillingForm", model);
 		}
@@ -518,7 +560,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Delete(int id)
 	{
-		using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
 			var bill = await context.MedicineBills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id);
@@ -527,8 +569,11 @@ public class BillingController(ApplicationDbContext context) : Controller
 			// Revert sold quantities
 			foreach (var item in bill.Items)
 			{
-				var batch = await context.MedicineBatches.FindAsync(item.BatchId);
-				if (batch != null) batch.UpdateSold(batch.Sold - item.Qty);
+				var batch = await context.MedicineBatches
+					.AsTracking()
+					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId);
+				
+				batch?.UpdateSold(batch.Sold - item.Qty);
 			}
 
 			context.MedicineBills.Remove(bill);
@@ -546,12 +591,10 @@ public class BillingController(ApplicationDbContext context) : Controller
 		return RedirectToAction(nameof(Index));
 	}
 
-	[HttpGet]
-	[Route("{id}")]
+	[HttpGet("{id:int}")]
 	public async Task<IActionResult> View(int id)
 	{
 		var bill = await context.MedicineBills
-			.Include(mb => mb.Customer)
 			.Include(mb => mb.PaymentMethod)
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
