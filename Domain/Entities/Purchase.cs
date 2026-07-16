@@ -2,7 +2,7 @@ namespace PharmaPOS_MVC.Domain.Entities;
 
 public class Purchase
 {
-	private readonly List<MedicineBatch> _batches = [];
+	private readonly List<Batch> _batches = [];
 
 	// EF Core parameterless constructor
 	private Purchase() { }
@@ -26,7 +26,7 @@ public class Purchase
 	public string? Note { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 
-	public IReadOnlyCollection<MedicineBatch> Batches => _batches.AsReadOnly();
+	public IReadOnlyCollection<Batch> Batches => _batches.AsReadOnly();
 
 	public void Update(int supplierId, DateTime date, decimal total, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
@@ -50,12 +50,12 @@ public class Purchase
 		Note = note;
 	}
 
-	public void AddBatch(MedicineBatch batch)
+	public void AddBatch(Batch batch)
 	{
 		_batches.Add(batch);
 	}
 
-	public void RemoveBatch(MedicineBatch batch)
+	public void RemoveBatch(Batch batch)
 	{
 		_batches.Remove(batch);
 	}

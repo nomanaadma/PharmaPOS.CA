@@ -76,7 +76,7 @@
 					{
 						<tr>
 							<td>@value.Medicine.Name</td>
-							<td>@value.Batch</td>
+							<td>@value.BatchName</td>
 							<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Expiry)</td>
 							<td>@value.Pqty</td>
 							<td>@value.Qty</td>

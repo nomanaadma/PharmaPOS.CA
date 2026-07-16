@@ -3,12 +3,12 @@ using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Domain.Entities;
 
-public class MedicineBatch
+public class Batch
 {
 	// EF Core parameterless constructor
-	private MedicineBatch() { }
+	private Batch() { }
 
-	public MedicineBatch(
+	public Batch(
 		string batch,
 		string expiry,
 		string? pqty,
@@ -32,7 +32,7 @@ public class MedicineBatch
 	}
 
 	public int Id { get; private set; }
-	public string Batch { get; private set; } = null!;
+	public string BatchName { get; private set; } = null!;
 	public string Expiry { get; private set; } = null!;
 	public string? Pqty { get; private set; }
 	public decimal Qty { get; private set; }
@@ -83,7 +83,7 @@ public class MedicineBatch
 		if (medicineId <= 0)
 			throw new ArgumentException("Valid Medicine is required.", nameof(medicineId));
 
-		Batch = batch;
+		BatchName = batch;
 		Expiry = expiry;
 		Pqty = pqty;
 		Qty = qty;

@@ -40,7 +40,7 @@ public class Medicine
 	public string? Note { get; private set; }
 	public DateTime CreatedDate { get; private set; }
 	
-	public ICollection<MedicineBatch> Batches { get; init; } = [];
+	public ICollection<Batch> Batches { get; init; } = [];
 	
 	public void Update(
 		string name,

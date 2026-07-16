@@ -353,7 +353,7 @@ public class PurchaseController(
 			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 			foreach (var item in model.Items)
 			{
-				var batch = new MedicineBatch(
+				var batch = new Batch(
 					item.Batch,
 					item.Expiry,
 					item.Pqty,
@@ -418,7 +418,7 @@ public class PurchaseController(
 				Id = b.Id,
 				MedicineId = b.MedicineId,
 				Name = b.Medicine.Name,
-				Batch = b.Batch,
+				Batch = b.BatchName,
 				Expiry = b.Expiry,
 				Pqty = b.Pqty,
 				Qty = b.Qty,
@@ -486,7 +486,7 @@ public class PurchaseController(
 			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 			foreach (var bToRemove in batchesToRemove)
 			{
-				context.MedicineBatches.Remove(bToRemove);
+				context.Batches.Remove(bToRemove);
 			}
 
 			foreach (var item in model.Items)
@@ -520,7 +520,7 @@ public class PurchaseController(
 				}
 				else
 				{
-					var newBatch = new MedicineBatch(
+					var newBatch = new Batch(
 						item.Batch,
 						item.Expiry,
 						item.Pqty,

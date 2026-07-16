@@ -376,7 +376,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				);
 				context.BillItems.Add(billItem);
 
-				var batch = await context.MedicineBatches
+				var batch = await context.Batches
 					.AsTracking()
 					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId );
 			
@@ -421,7 +421,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		
 			if (batchAlreadyLoaded ) continue;
 			
-			var activeBatch = await context.MedicineBatches.FirstOrDefaultAsync(b => b.Id == item.BatchId && b.Status == Status.Active);
+			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId && b.Status == Status.Active);
 		
 			if (activeBatch != null)
 			{
@@ -451,7 +451,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				MedicineId = bi.MedicineId,
 				Name = bi.Medicine.Name,
 				Batch = bi.BatchId,
-				BatchName = bi.Batch.Batch,
+				BatchName = bi.Batch.BatchName,
 				Expiry = bi.Batch.Expiry,
 				Qty = bi.Qty,
 				Saleprice = bi.SalePrice,
@@ -466,7 +466,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 					{
 						Id = mb.Id,
 						Qty = mb.Qty,
-						Batch = mb.Batch,
+						Batch = mb.BatchName,
 						Sold = mb.Sold
 					}).ToList()
 			}).ToList()
@@ -536,7 +536,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 			// Revert sold quantities for old items
 			foreach (var oldItem in bill.Items)
 			{
-				var batch = await context.MedicineBatches
+				var batch = await context.Batches
 					.AsTracking()
 					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId);
 				
@@ -552,7 +552,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, item.Qty, item.Saleprice, item.Gross, item.Discounttype, item.Discount, item.Discountvalue, item.Tax, item.Taxprice, item.Price);
 				context.BillItems.Add(billItem);
 				
-				var batch = await context.MedicineBatches
+				var batch = await context.Batches
 					.AsTracking()
 					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId);
 
@@ -586,7 +586,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 			// Revert sold quantities
 			foreach (var item in bill.Items)
 			{
-				var batch = await context.MedicineBatches
+				var batch = await context.Batches
 					.AsTracking()
 					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId);
 				

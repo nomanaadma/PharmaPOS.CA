@@ -5,9 +5,9 @@ using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Data.Configurations;
 
-public class MedicineBatchConfiguration : IEntityTypeConfiguration<MedicineBatch>
+public class BatchConfiguration : IEntityTypeConfiguration<Batch>
 {
-	public void Configure(EntityTypeBuilder<MedicineBatch> builder)
+	public void Configure(EntityTypeBuilder<Batch> builder)
 	{
 		builder.ToTable("medicine_batch");
 
@@ -16,7 +16,7 @@ public class MedicineBatchConfiguration : IEntityTypeConfiguration<MedicineBatch
 		builder.Property(mb => mb.Id)
 			.HasColumnName("id");
 
-		builder.Property(mb => mb.Batch)
+		builder.Property(mb => mb.BatchName)
 			.HasColumnName("batch")
 			.IsRequired()
 			.HasMaxLength(255);

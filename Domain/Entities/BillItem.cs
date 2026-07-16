@@ -28,7 +28,7 @@ public class BillItem
 	public int MedicineId { get; private set; }
 	public Medicine Medicine { get; private set; } = null!;
 	public int BatchId { get; private set; }
-	public MedicineBatch Batch { get; private set; } = null!;
+	public Batch Batch { get; private set; } = null!;
 	public decimal Qty { get; private set; }
 	public decimal SalePrice { get; private set; }
 	public decimal Gross { get; private set; }

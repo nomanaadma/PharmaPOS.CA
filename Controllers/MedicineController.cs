@@ -249,7 +249,7 @@ public class MedicineController(
 	public async Task<IActionResult> GetBatch(int id)
 	{
 		var today = DateTime.UtcNow.ToString("yyyy-MM");
-		var batches = await context.MedicineBatches
+		var batches = await context.Batches
 			.Where(b => b.MedicineId == id && string.Compare(b.Expiry, today) >= 0 && b.Status == Domain.Enums.Status.Active)
 			.OrderBy(b => b.Expiry)
 			.ToListAsync();
@@ -265,7 +265,7 @@ public class MedicineController(
 		var resultHtml = "<option value=\"\">Select Batch</option>";
 		foreach (var batch in batches)
 		{
-			resultHtml += $"<option value=\"{batch.Id}\">{batch.Batch}</option>";
+			resultHtml += $"<option value=\"{batch.Id}\">{batch.BatchName}</option>";
 		}
 
 		return Json(new { error = false, result = resultHtml });
@@ -276,19 +276,19 @@ public class MedicineController(
 	[Route("/getbatchdata")]
 	public async Task<IActionResult> GetBatchData(int medicine, int batch)
 	{
-		var medicineBatch = await context.MedicineBatches
+		var mBatch = await context.Batches
 			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch);
 
-		if (medicineBatch == null)
+		if (mBatch == null)
 		{
 			return Json(new { error = true, message = "Batch not found." });
 		}
 
 		var result = new
 		{
-			expiry = medicineBatch.Expiry,
-			available_quantity = medicineBatch.Qty - medicineBatch.Sold,
-			saleprice = medicineBatch.SalePrice
+			expiry = mBatch.Expiry,
+			available_quantity = mBatch.Qty - mBatch.Sold,
+			saleprice = mBatch.SalePrice
 		};
 
 		return Json(new { error = false, result = result });

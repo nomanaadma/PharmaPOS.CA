@@ -449,7 +449,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("medicines", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineBatch", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Batch", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -903,7 +903,7 @@ namespace PharmaPOS_MVC.Migrations
 
             modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.BillItem", b =>
                 {
-                    b.HasOne("PharmaPOS_MVC.Domain.Entities.MedicineBatch", "Batch")
+                    b.HasOne("PharmaPOS_MVC.Domain.Entities.Batch", "Batch")
                         .WithMany()
                         .HasForeignKey("BatchId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -939,7 +939,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineBatch", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Batch", b =>
                 {
                     b.HasOne("PharmaPOS_MVC.Domain.Entities.Medicine", "Medicine")
                         .WithMany()
