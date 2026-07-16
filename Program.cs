@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
 	options.UseNpgsql(connectionString);
 	options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+	options.EnableSensitiveDataLogging();
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

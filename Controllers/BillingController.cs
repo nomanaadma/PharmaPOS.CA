@@ -400,14 +400,19 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
-		var currentMonthString = DateTime.Now.ToString("MM-yyyy");
+		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 		
 		var bill = await context.Bills
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
-					.ThenInclude(m => m.Batches.Where(b => b.Status == Status.Active && string.Compare(b.Expiry, currentMonthString) > 0) )
+					.ThenInclude(m => m.Batches
+						#pragma warning disable CA1845
+						.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+						#pragma warning restore CA1845
+						.Where(b => b.Status == Status.Active))
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
+			.AsSplitQuery()
 			.FirstOrDefaultAsync(mb => mb.Id == id);
 
 		if (bill == null)
@@ -419,9 +424,9 @@ public class BillingController(ApplicationDbContext context) : Controller
 		{
 			var batchAlreadyLoaded = item.Medicine.Batches.Any(b => b.Id == item.BatchId);
 		
-			if (batchAlreadyLoaded ) continue;
+			if (batchAlreadyLoaded) continue;
 			
-			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId && b.Status == Status.Active);
+			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId);
 		
 			if (activeBatch != null)
 			{
@@ -617,6 +622,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				.ThenInclude(bi => bi.Medicine)
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
+			.AsSplitQuery()
 			.FirstOrDefaultAsync(mb => mb.Id == id);
 
 		if (bill == null) return NotFound();

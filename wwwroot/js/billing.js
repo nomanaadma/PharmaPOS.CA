@@ -180,48 +180,48 @@ function initAutocomplete() {
 function itemHtml(count) {
 	var item_html = '<tr class="item-row">'+
 	'<td>'+
-	'<input type="text" name="billing[items]['+count+'][name]" class="form-control item-name" required>'+
-	'<input type="hidden" name="billing[items]['+count+'][medicine_id]" class="form-control item-medicine-id" required>'+
+	'<input type="text" name="Items['+count+'].Name" class="form-control item-name" required>'+
+	'<input type="hidden" name="Items['+count+'].MedicineId" class="form-control item-medicine-id" required>'+
 	'</td>'+
 	'<td>'+
-	'<select name="billing[items]['+count+'][batch]" class="custom-select item-batch" required></select>'+
-	'<input type="hidden" name="billing[items]['+count+'][batch_name]" class="item-batch-name">'+
+	'<select name="Items['+count+'].Batch" class="custom-select item-batch" required></select>'+
+	'<input type="hidden" name="Items['+count+'].BatchName" class="item-batch-name">'+
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="billing[items]['+count+'][expiry]" class="form-control item-expiry bg-white" required readonly>'+
+	'<input type="text" name="Items['+count+'].Expiry" class="form-control item-expiry bg-white" required readonly>'+
 	'</td>'+
 	'<td>'+
 	'<div class="input-group">'+
-	'<input type="text" name="billing[items]['+count+'][qty]" class="form-control item-qty" required>'+
+	'<input type="text" name="Items['+count+'].Qty" class="form-control item-qty" required>'+
 	'<div class="input-group-prepend"><span class="item-available-qty input-group-text">0</span></div>'+
 	'</div>'+
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="billing[items]['+count+'][saleprice]" class="form-control item-sale" required>'+
+	'<input type="text" name="Items['+count+'].Saleprice" class="form-control item-sale" required>'+
 	'</td>'+
 	'<td>'+
- 	'<input class="item-gross" readonly name="billing[items]['+count+'][gross]" />'+
+ 	'<input type="text" readonly class="item-gross" name="Items['+count+'].Gross" />'+
  	'</td>'+
 	'<td class="">'+
     '<div class="row no-gutters">'+
     '<div class="col">'+
-    '<select name="billing[items]['+count+'][discounttype]" class="custom-select border-light item-discounttype">'+
+    '<select name="Items['+count+'].Discounttype" class="custom-select border-light item-discounttype">'+
     '<option value="1">%</option>'+
     '<option value="2">Flat</option>'+
     '</select>'+
     '</div>'+
     '<div class="col">'+
-    '<textarea type="text" name="billing[items]['+count+'][discount]" class="item-discount">0.00</textarea>'+
-    '<input type="text" readonly name="billing[items]['+count+'][discountvalue]" class="item-discountvalue" value="0.00">'+
+    '<textarea type="text" name="Items['+count+'].Discount" class="item-discount">0.00</textarea>'+
+    '<input type="text" readonly name="Items['+count+'].Discountvalue" class="item-discountvalue" value="0.00">'+
     '</div>'+
     '</div>'+
     '</td>'+
 	'<td class="invoice-tax">'+
-	'<input type="text" name="billing[items]['+count+'][tax]" class="item-tax">' +
-	'<input type="text" readonly name="billing[items]['+count+'][taxprice]" class="item-taxprice">' +
+	'<input type="text" name="Items['+count+'].Tax" class="item-tax">' +
+	'<input type="text" readonly name="Items['+count+'].Taxprice" class="item-taxprice">' +
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="billing[items]['+count+'][price]" class="form-control bg-white item-price" required readonly>'+
+	'<input type="text" name="Items['+count+'].Price" class="form-control bg-white item-price" required readonly>'+
 	'</td>'+
 	'<td>'+
 	'<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>'+
@@ -295,7 +295,7 @@ $(document).ready(function () {
 		if($(".item-row").length === 0) {
 			itemHtml(0);
 		} else {
-			var count = $('.billing-items table tr.item-row:last .item-name').attr('name').split('[')[2];
+			var count = $('.billing-items table tr.item-row:last .item-name').attr('name').split('[')[1];
 			count = parseInt(count.split(']')[0]) + 1;
 			itemHtml(count);
 		}

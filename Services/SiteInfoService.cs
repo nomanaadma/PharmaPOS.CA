@@ -11,7 +11,7 @@ public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment
 	public async Task<Setting> GetSettingsAsync()
 	{
 		
-		var settings = await dbContext.Settings.FirstOrDefaultAsync();
+		var settings = await dbContext.Settings.OrderBy(s => s.Id).FirstOrDefaultAsync();
 	
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)

@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -248,15 +249,18 @@ public class MedicineController(
 	[Route("/getbatch")]
 	public async Task<IActionResult> GetBatch(int id)
 	{
-		var today = DateTime.UtcNow.ToString("yyyy-MM");
+		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+
 		var batches = await context.Batches
-			.Where(b => b.MedicineId == id && string.Compare(b.Expiry, today) >= 0 && b.Status == Domain.Enums.Status.Active)
+			.Where(b => b.MedicineId == id)
+#pragma warning disable CA1845
+			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+#pragma warning restore CA1845
+			.Where(b => (b.Qty - b.Sold) > 0)
+			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.Expiry)
 			.ToListAsync();
-
-		// Optionally filter out batches where (Qty - Sold) <= 0
-		batches = batches.Where(b => (b.Qty - b.Sold) > 0).ToList();
-
+		
 		if (!batches.Any())
 		{
 			return Json(new { error = true, message = "No active batches found for this medicine." });
