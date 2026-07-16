@@ -400,10 +400,12 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
+		var currentMonthString = DateTime.Now.ToString("MM-yyyy");
+		
 		var bill = await context.MedicineBills
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
-					.ThenInclude(m => m.Batches)
+					.ThenInclude(m => m.Batches.Where(b => b.Status == Status.Active && string.Compare(b.Expiry, currentMonthString) > 0) )
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
 			.FirstOrDefaultAsync(mb => mb.Id == id);
@@ -413,6 +415,21 @@ public class BillingController(ApplicationDbContext context) : Controller
 			return RedirectToAction(nameof(Index));
 		}
 
+		foreach (var item in bill.Items)
+		{
+			var batchAlreadyLoaded = item.Medicine.Batches.Any(b => b.Id == item.BatchId);
+		
+			if (batchAlreadyLoaded ) continue;
+			
+			var activeBatch = await context.MedicineBatches.FirstOrDefaultAsync(b => b.Id == item.BatchId && b.Status == Status.Active);
+		
+			if (activeBatch != null)
+			{
+				item.Medicine.Batches.Add(activeBatch);
+			}
+		
+		}
+		
 		var model = new BillingFormModel
 		{
 			Id = bill.Id,
