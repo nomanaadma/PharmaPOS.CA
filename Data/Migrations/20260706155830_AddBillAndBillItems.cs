@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace PharmaPOS_MVC.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMedicineBillAndBillItems : Migration
+    public partial class AddBillAndBillItems : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

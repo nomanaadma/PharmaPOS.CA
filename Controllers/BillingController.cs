@@ -32,7 +32,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
 		var sortDirection = Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc";
 
-		var query = context.MedicineBills
+		var query = context.Bills
 			.AsQueryable();
 
 		// Total count
@@ -341,7 +341,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				customerId = newCustomer.Id;
 			}
 
-			var bill = new MedicineBill(
+			var bill = new Bill(
 				customerId,
 				model.Name,
 				model.Email,
@@ -355,7 +355,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				model.Note
 			);
 
-			context.MedicineBills.Add(bill);
+			context.Bills.Add(bill);
 			await context.SaveChangesAsync();
 
 			foreach (var item in model.Items)
@@ -402,7 +402,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	{
 		var currentMonthString = DateTime.Now.ToString("MM-yyyy");
 		
-		var bill = await context.MedicineBills
+		var bill = await context.Bills
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
 					.ThenInclude(m => m.Batches.Where(b => b.Status == Status.Active && string.Compare(b.Expiry, currentMonthString) > 0) )
@@ -498,7 +498,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
-			var bill = await context.MedicineBills
+			var bill = await context.Bills
 				.Include(mb => mb.Items)
 				.AsTracking()
 				.FirstOrDefaultAsync(mb => mb.Id == id);
@@ -580,7 +580,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		await using var transaction = await context.Database.BeginTransactionAsync();
 		try
 		{
-			var bill = await context.MedicineBills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id);
+			var bill = await context.Bills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id);
 			if (bill == null) return RedirectToAction(nameof(Index));
 
 			// Revert sold quantities
@@ -593,7 +593,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				batch?.UpdateSold(batch.Sold - item.Qty);
 			}
 
-			context.MedicineBills.Remove(bill);
+			context.Bills.Remove(bill);
 			await context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
@@ -611,7 +611,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> View(int id)
 	{
-		var bill = await context.MedicineBills
+		var bill = await context.Bills
 			.Include(mb => mb.PaymentMethod)
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)

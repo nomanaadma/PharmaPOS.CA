@@ -15,7 +15,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 	public DbSet<Medicine> Medicines { get; set; } = null!;
 	public DbSet<Purchase> Purchases { get; set; } = null!;
 	public DbSet<Batch> Batches { get; set; } = null!;
-	public DbSet<MedicineBill> MedicineBills { get; set; } = null!;
+	public DbSet<Bill> Bills { get; set; } = null!;
 	public DbSet<BillItem> BillItems { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder builder)

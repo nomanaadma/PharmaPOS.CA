@@ -13,8 +13,8 @@ using PharmaPOS_MVC.Data;
 namespace PharmaPOS_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260706155830_AddMedicineBillAndBillItems")]
-    partial class AddMedicineBillAndBillItems
+    [Migration("20260706155830_AddBillAndBillItems")]
+    partial class AddBillAndBillItems
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -549,7 +549,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("medicine_batch", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineBill", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Bill", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -912,7 +912,7 @@ namespace PharmaPOS_MVC.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaPOS_MVC.Domain.Entities.MedicineBill", "Bill")
+                    b.HasOne("PharmaPOS_MVC.Domain.Entities.Bill", "Bill")
                         .WithMany("Items")
                         .HasForeignKey("BillId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -961,7 +961,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.Navigation("Purchase");
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineBill", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Bill", b =>
                 {
                     b.HasOne("PharmaPOS_MVC.Domain.Entities.Customer", "Customer")
                         .WithMany()
@@ -991,7 +991,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.MedicineBill", b =>
+            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Bill", b =>
                 {
                     b.Navigation("Items");
                 });

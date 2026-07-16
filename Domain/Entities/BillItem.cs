@@ -24,7 +24,7 @@ public class BillItem
 
 	public int Id { get; private set; }
 	public int BillId { get; private set; }
-	public MedicineBill Bill { get; private set; } = null!;
+	public Bill Bill { get; private set; } = null!;
 	public int MedicineId { get; private set; }
 	public Medicine Medicine { get; private set; } = null!;
 	public int BatchId { get; private set; }
