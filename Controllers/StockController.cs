@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
-using System.Globalization;
 using System.Text.Json;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -13,94 +12,132 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Medicine/Stock/[action]")]
 public class StockController(ApplicationDbContext context) : Controller
 {
-	[HttpGet]
-	[Route("/Medicine/Stock")]
-	public async Task<IActionResult> Index([FromQuery] string? type)
+	[HttpGet("/Medicine/Stock")]
+	public async Task<IActionResult> Index(string? type)
 	{
-		var batchesRaw = await context.Batches
+		var batchesQuery = context.Batches
 			.Include(b => b.Medicine)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.MedicineId)
-			.ToListAsync();
+			.AsQueryable();
 
 		var today = DateTime.UtcNow.Date;
 		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
+		
+		var currentMonthStr = currentMonthDate.ToString("yyyyMM");
 
 		string pageTitle;
-		string pageType = type ?? "live";
-
-		// Parse expiry strings into real DateTimes for accurate logic.
-		// Expiry is in "MM-yyyy" format.
-		var batchesWithDates = batchesRaw.Select(b =>
-		{
-			DateTime.TryParseExact(b.Expiry, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var expiryDate);
-			return new { Batch = b, ExpiryDate = expiryDate };
-		}).ToList();
-
-		var filteredBatches = batchesWithDates.AsEnumerable();
-
+		var pageType = type ?? "live";
+		
 		switch (pageType)
 		{
 			case "expired":
 				pageTitle = "Expired Stock";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate < currentMonthDate);
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0);
 				break;
+				
 			case "willexpirein1":
 				pageTitle = "Expire in 1 Month";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate > currentMonthDate && b.ExpiryDate < currentMonthDate.AddMonths(1));
+				var oneMonthStr = currentMonthDate.AddMonths(1).ToString("yyyyMM");
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), oneMonthStr) < 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
 				break;
+				
 			case "willexpirein2":
 				pageTitle = "Expire in 2 Month";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate > currentMonthDate && b.ExpiryDate < currentMonthDate.AddMonths(2));
+				var twoMonthStr = currentMonthDate.AddMonths(2).ToString("yyyyMM");
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), twoMonthStr) < 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
 				break;
+				
 			case "willexpirein3":
 				pageTitle = "Expire in 3 Month";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate > currentMonthDate && b.ExpiryDate < currentMonthDate.AddMonths(3));
+				var threeMonthStr = currentMonthDate.AddMonths(3).ToString("yyyyMM");
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), threeMonthStr) < 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
 				break;
+				
 			case "willexpirein6":
 				pageTitle = "Expire in 6 Month";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate > currentMonthDate && b.ExpiryDate < currentMonthDate.AddMonths(6));
+				var sixMonthStr = currentMonthDate.AddMonths(6).ToString("yyyyMM");
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), sixMonthStr) < 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
 				break;
-			case "live":
+				
 			default:
-				pageType = "live";
 				pageTitle = "Live Stock";
-				filteredBatches = batchesWithDates.Where(b => b.ExpiryDate > currentMonthDate);
+				batchesQuery = batchesQuery.Where(b => 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
 				break;
 		}
-
-		var result = filteredBatches.Select(b => new StockViewModel
+		
+		var batches = await batchesQuery.ToListAsync();
+		
+		var batchIds = batches.Select(b => b.Id).ToList();
+		
+		var billItems = await context.BillItems
+			.Where(bi => batchIds.Contains(bi.BatchId))
+			.ToListAsync();
+		
+		var billItemLookup = billItems.ToDictionary(
+			x => (x.BatchId, x.MedicineId),
+			x => x);
+		
+		var result = batches.Select(b =>
 		{
-			Id = b.Batch.Id,
-			MedicineId = b.Batch.MedicineId,
-			PurchaseId = b.Batch.PurchaseId,
-			Name = b.Batch.Medicine.Name,
-			Batch = b.Batch.BatchName,
-			Expiry = b.Batch.Expiry,
-			PurchasePrice = b.Batch.PurchasePrice,
-			SalePrice = b.Batch.SalePrice,
-			TotalPurchase = Math.Round(b.Batch.PurchasePrice * b.Batch.Qty, 2),
-			TotalSales = Math.Round(b.Batch.SalePrice * b.Batch.Sold, 2),
-			Profit = Math.Round((b.Batch.SalePrice * b.Batch.Sold) - (b.Batch.PurchasePrice * b.Batch.Sold), 2),
-			Qty = b.Batch.Qty,
-			Sold = b.Batch.Sold,
-			Available = b.Batch.Qty - b.Batch.Sold
+			billItemLookup.TryGetValue((b.Id, b.MedicineId), out var billItem);
+
+			var unitSalePrice = 0m;
+			var totalSales = 0m;
+			var profit = 0m;
+			
+			var unitPurchasePrice = Math.Round(b.Price / b.Qty, 2);
+			var totalPurchase = Math.Round(unitPurchasePrice * b.Sold, 2);
+			
+			if (billItem != null)
+			{
+				unitSalePrice = Math.Round(billItem.Price / billItem.Qty, 2);
+				totalSales = Math.Round(unitSalePrice * b.Sold, 2);
+				profit = Math.Round(totalSales - totalPurchase, 2);
+			}
+			
+			return new StockViewModel
+			{
+				Id = b.Id,
+				MedicineId = b.MedicineId,
+				PurchaseId = b.PurchaseId,
+				Name = b.Medicine.Name,
+				Batch = b.BatchName,
+				Expiry = b.Expiry,
+				PurchasePrice = unitPurchasePrice,
+				SalePrice = unitSalePrice,
+				TotalPurchase = totalPurchase,
+				TotalSales = totalSales,
+				Profit = profit,
+				Qty = b.Qty,
+				Sold = b.Sold,
+				Available = b.Qty - b.Sold
+			};
 		}).ToList();
-
-		ViewData["page_title"] = pageTitle;
-		ViewData["type"] = pageType;
-
+		
+		ViewData["Title"] = pageTitle;
+		
 		return View(result);
 	}
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Route("/Medicine/Stock/Update")]
-	public async Task<IActionResult> Update(int id, int medicine_id, decimal available)
+	public async Task<IActionResult> Update(int id, int medicineId, decimal available)
 	{
 		var batch = await context.Batches
 			.AsTracking()
-			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicine_id);
+			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId);
+
 
 		if (batch == null)
 		{
@@ -117,7 +154,6 @@ public class StockController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Route("/Medicine/Stock/Delete")]
 	public async Task<IActionResult> Delete(int id)
 	{
 		var batch = await context.Batches

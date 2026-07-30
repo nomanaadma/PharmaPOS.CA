@@ -211,14 +211,14 @@ function itemHtml(count) {
     '</select>'+
     '</div>'+
     '<div class="col">'+
-    '<textarea type="text" name="Items['+count+'].Discount" class="item-discount">0.00</textarea>'+
-    '<input type="text" readonly name="Items['+count+'].Discountvalue" class="item-discountvalue" value="0.00">'+
+    '<textarea type="text" name="Items['+count+'].Discount" class="item-discount">0</textarea>'+
+    '<input type="text" readonly name="Items['+count+'].Discountvalue" class="item-discountvalue" value="0">'+
     '</div>'+
     '</div>'+
     '</td>'+
 	'<td class="invoice-tax">'+
-	'<input type="text" name="Items['+count+'].Tax" class="item-tax">' +
-	'<input type="text" readonly name="Items['+count+'].Taxprice" class="item-taxprice">' +
+	'<input type="text" name="Items['+count+'].Tax" class="item-tax" value="0">' +
+	'<input type="text" readonly name="Items['+count+'].Taxprice" class="item-taxprice" value="0">' +
 	'</td>'+
 	'<td>'+
 	'<input type="text" name="Items['+count+'].Price" class="form-control bg-white item-price" required readonly>'+

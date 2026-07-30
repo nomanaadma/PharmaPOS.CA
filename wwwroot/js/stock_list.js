@@ -1,49 +1,22 @@
 $(function () {
 
-    $('.stock-table').DataTable({
-        aLengthMenu: [[10, 25, 50, 75, -1], [10, 25, 50, 75, "All"]],
-        iDisplayLength: 10,
-        pagingType: 'full_numbers',
-        order: [],
-        dom: "<'row align-items-center pb-3'<'col-sm-6 text-left'l><'col-sm-6 text-right'f>><'row'<'col-sm-12'tr>><'row align-items-center pt-3'<'col-sm-12 col-md-4'i><'col-sm-12 col-md-8 text-right dataTables_pager'p>>",
-        responsive: false,
-        language: {
-            "paginate": {
-                "first":       '<i class="las la-angle-double-left"></i>',
-                "previous":    '<i class="las la-angle-left"></i>',
-                "next":        '<i class="las la-angle-right"></i>',
-                "last":        '<i class="las la-angle-double-right"></i>'
-            },
-        },
-        footerCallback: function ( row, data, start, end, display ) {
+    //Stock table update modal
+    $('.stock-table').on('click', '.edit-stock', function () {
+        var ele = $(this), ele_parent = ele.parents('tr'),
+            data = ele.data();
+        $('#editstock-modal input[name="available"]').val(ele_parent.find('.available').text());
+        $('#editstock-modal input[name="id"]').val(data.id);
+        $('#editstock-modal input[name="medicineId"]').val(data.medicineid);
+        $('#editstock-modal .medicine').html(ele_parent.find('.medicine').text());
+        $('#editstock-modal .batch').html(ele_parent.find('.batch').text());
+        $('#editstock-modal .expiry').html(ele_parent.find('.expiry').text());
+        $('#editstock-modal .qty').html(ele_parent.find('.qty').text());
+        $('#editstock-modal .sold').html(ele_parent.find('.sold').text());
+        $('#editstock-modal').modal('show');
+    });
 
-            var api = this.api(), data, column;
-            var intVal = function ( i ) {
-                return typeof i === 'string' ?
-                i.replace(/[\Rs,]/g, '')*1 :
-                typeof i === 'number' ?
-                i : 0;
-            };
-
-            for (var i = row.childElementCount - 1; i >= 0; i--) {
-                if (i == 0 ) {
-                    $( api.column(i).footer() ).html('Total');
-                } else if (i > 0) {
-                    column = api.column(i).data().reduce( function (a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-                    column = api.column( i, { page: 'current'} ).data().reduce( function (a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-                    if (column) {
-                        $( api.column(i).footer() ).html(common_currency+column.toFixed(2));
-                    }
-                }
-
-            }
-        }
+    $('#editstock-modal').on('hidden.bs.modal', function (e) {
+        $('#editstock-modal input').not( "[name='_token']" ).val('');
     });
     
 });

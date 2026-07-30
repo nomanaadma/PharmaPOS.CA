@@ -25,7 +25,7 @@
 <form method="post" class="billing_form">
 	
 	<input type="hidden" asp-for="Id"/>
-	
+
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">
@@ -126,7 +126,7 @@
 									</select>
 									<input type="hidden" asp-for="Items[i].BatchName" class="item-batch-name">
 								</td>
-								
+
 								<td>
 									<input type="text" asp-for="Items[i].Expiry" class="form-control item-expiry bg-white" required readonly>
 								</td>
@@ -200,14 +200,14 @@
 										</select>
 									</div>
 									<div class="col">
-										<textarea type="text" name="Items[0].Discount" class="item-discount">0.00</textarea>
-										<input type="text" readonly name="Items[0].Discountvalue" class="item-discountvalue" value="0.00">
+										<textarea type="text" name="Items[0].Discount" class="item-discount">0</textarea>
+										<input type="text" readonly name="Items[0].Discountvalue" class="item-discountvalue" value="0">
 									</div>
 								</div>
 							</td>
 							<td class="invoice-tax">
-								<input type="text" name="Items[0].Tax" class="item-tax">
-								<input type="text" readonly name="Items[0].Taxprice" class="item-taxprice">
+								<input type="text" name="Items[0].Tax" class="item-tax" value="0">
+								<input type="text" readonly name="Items[0].Taxprice" class="item-taxprice" value="0">
 							</td>
 							<td>
 								<input type="text" name="Items[0].Price" class="form-control bg-white item-price" required readonly>
@@ -246,7 +246,7 @@
 							<input asp-for="Tax" type="text" class="form-transparent p-2 total-tax" readonly/>
 						</td>
 					</tr>
-					
+
 					<tr>
 						<td colspan="3" class="blank"></td>
 						<td colspan="3" class="total-line"><label class="p-2">Amount</label></td>
@@ -254,7 +254,7 @@
 							<input asp-for="Amount" type="text" class="form-transparent p-2 total-amount" readonly/>
 						</td>
 					</tr>
-					
+
 					</tbody>
 				</table>
 			</div>
