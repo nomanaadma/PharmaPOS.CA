@@ -57,7 +57,12 @@
 							<td>@value.CategoryName</td>
 							<td>@value.StoreBox</td>
 							<td>@value.ReOrderLevel</td>
-							<td>@value.LiveStock</td>
+							<td>
+								@if (value.LiveStock > 0)
+								{
+									<text>@value.LiveStock</text>
+								}
+							</td>
 							<td>
 								@if (value.MinLevel.HasValue && value.MinLevel.Value >= value.LiveStock)
 								{

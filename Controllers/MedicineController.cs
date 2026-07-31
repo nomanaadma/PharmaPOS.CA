@@ -16,10 +16,11 @@ public class MedicineController(
 	ApplicationDbContext context
 ) : Controller
 {
-	[HttpGet]
-	[Route("/Medicines")]
+	[HttpGet("/Medicines")]
 	public async Task<IActionResult> Index()
 	{
+		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+
 		var medicines = await context.Medicines
 			.OrderByDescending(m => m.CreatedDate)
 			.Select(m => new MedicineViewModel
@@ -37,7 +38,9 @@ public class MedicineController(
 				Unit = m.Unit,
 				UnitPacking = m.UnitPacking,
 				Note = m.Note,
-				LiveStock = 0, // Default to 0 until batch/purchase is implemented
+				LiveStock = m.Batches
+					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) > 0)
+					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m,
 				CreatedDate = m.CreatedDate
 			})
 			.ToListAsync();
