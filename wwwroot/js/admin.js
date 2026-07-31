@@ -343,6 +343,8 @@
         },
         footerCallback: function ( row, data, start, end, display ) {
 
+            if(row == undefined) return;
+
             var api = this.api(), data, column;
             var intVal = function ( i ) {
                 return typeof i === 'string' ?

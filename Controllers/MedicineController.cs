@@ -98,7 +98,7 @@ public class MedicineController(
 		}
 	}
 
-	[HttpGet("View/{id:int}")]
+	[HttpGet("{id:int}")]
 	public async Task<IActionResult> View(int id)
 	{
 		var medicine = await context.Medicines
@@ -110,52 +110,51 @@ public class MedicineController(
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Medicine does not exist in database!" });
 			return RedirectToAction(nameof(Index));
 		}
-
+		
 		var today = DateTime.UtcNow.Date;
 		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
+	
+		var currentMonthStr = currentMonthDate.ToString("yyyyMM");
 
-		var batchesRaw = await context.Batches
+		var batchesQuery = await context.Batches
 			.Where(b => b.MedicineId == id)
+			.Where(b => b.Status == Status.Active)
+			.OrderBy(b => b.MedicineId)
 			.ToListAsync();
-
-		var batchesWithDates = batchesRaw.Select(b =>
-		{
-			DateTime.TryParseExact(b.Expiry, "MM-yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var expiryDate);
-			return new { Batch = b, ExpiryDate = expiryDate };
-		}).ToList();
-
-		var liveBatches = batchesWithDates
-			.Where(b => b.ExpiryDate > currentMonthDate && b.Batch.Status == Status.Active)
+		
+		var liveBatches = batchesQuery.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0)
 			.Select(b => new StockViewModel
 			{
-				Id = b.Batch.Id,
-				MedicineId = b.Batch.MedicineId,
-				PurchaseId = b.Batch.PurchaseId,
+				Id = b.Id,
+				MedicineId = b.MedicineId,
+				PurchaseId = b.PurchaseId,
 				Name = medicine.Name,
-				Batch = b.Batch.BatchName,
-				Expiry = b.Batch.Expiry,
-				PurchasePrice = b.Batch.PurchasePrice,
-				SalePrice = b.Batch.SalePrice,
-				Qty = b.Batch.Qty,
-				Sold = b.Batch.Sold,
-				Available = b.Batch.Qty - b.Batch.Sold
+				Batch = b.BatchName,
+				Expiry = b.Expiry,
+				PurchasePrice = b.PurchasePrice,
+				SalePrice = b.SalePrice,
+				Qty = b.Qty,
+				Sold = b.Sold,
+				Available = b.Qty - b.Sold
 			}).ToList();
-
-		var badBatches = batchesWithDates
-			.Where(b => b.ExpiryDate < currentMonthDate && b.Batch.Status == Status.Active && (b.Batch.Qty > b.Batch.Sold))
+		
+		var badBatches = batchesQuery.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
+			.Where(b => b.Qty > b.Sold)
 			.Select(b => new StockViewModel
 			{
-				Id = b.Batch.Id,
-				MedicineId = b.Batch.MedicineId,
-				PurchaseId = b.Batch.PurchaseId,
+				Id = b.Id,
+				MedicineId = b.MedicineId,
+				PurchaseId = b.PurchaseId,
 				Name = medicine.Name,
-				Batch = b.Batch.BatchName,
-				Expiry = b.Batch.Expiry,
-				PurchasePrice = b.Batch.PurchasePrice,
-				SalePrice = b.Batch.SalePrice,
-				Qty = b.Batch.Qty,
-				Sold = b.Batch.Sold,
-				Available = b.Batch.Qty - b.Batch.Sold
+				Batch = b.BatchName,
+				Expiry = b.Expiry,
+				PurchasePrice = b.PurchasePrice,
+				SalePrice = b.SalePrice,
+				Qty = b.Qty,
+				Sold = b.Sold,
+				Available = b.Qty - b.Sold
 			}).ToList();
 
 		var model = new MedicineViewPageModel

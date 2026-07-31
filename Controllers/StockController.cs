@@ -138,18 +138,19 @@ public class StockController(ApplicationDbContext context) : Controller
 			.AsTracking()
 			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId);
 
+		var refererUrl = Request.Headers.Referer.ToString();
 
 		if (batch == null)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Stock does not exist in database!" });
-			return RedirectToAction(nameof(Index));
+			return Redirect(refererUrl);
 		}
 
 		batch.UpdateSold(batch.Qty - available);
 		await context.SaveChangesAsync();
 
 		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Stock updated successfully!" });
-		return RedirectToAction(nameof(Index));
+		return Redirect(refererUrl);
 	}
 
 	[HttpPost]
@@ -159,14 +160,20 @@ public class StockController(ApplicationDbContext context) : Controller
 		var batch = await context.Batches
 			.AsTracking()
 			.FirstOrDefaultAsync(b => b.Id == id);
-
-		if (batch != null)
+		
+		var refererUrl = Request.Headers.Referer.ToString();
+		
+		if (batch == null)
 		{
-			batch.UpdateStatus(Status.InActive);
-			await context.SaveChangesAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine Stock deleted successfully." });
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Stock does not exist in database!" });
+			return Redirect(refererUrl);
 		}
 		
-		return RedirectToAction(nameof(Index));
+		batch.UpdateStatus(Status.InActive);
+		await context.SaveChangesAsync();
+		
+		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine Stock deleted successfully." });
+		return Redirect(refererUrl);
+		
 	}
 }
