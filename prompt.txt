@@ -1,38 +1,478 @@
-﻿Now the stock moduel is completed can you update the live stock column in medicine list
+﻿Now I want to work on the reports module 
 
-in medicine controller index action
 
-in this query 
+In the implementation, you will see code related to roles and permissions. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later
 
-var medicines = await context.Medicines
-			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new MedicineViewModel
-			{
-				Id = m.Id,
-				Name = m.Name,
-				Company = m.Company,
-				Generic = m.Generic,
-				MedicineGroup = m.MedicineGroup,
-				CategoryId = m.CategoryId,
-				CategoryName = m.Category.Name,
-				StoreBox = m.StoreBox,
-				MinLevel = m.MinLevel,
-				ReOrderLevel = m.ReOrderLevel,
-				Unit = m.Unit,
-				UnitPacking = m.UnitPacking,
-				Note = m.Note,
-				LiveStock = 0, // Default to 0 until batch/purchase is implemented
-				CreatedDate = m.CreatedDate
-			})
-			.ToListAsync();
-			
-the php implementation of live stock is below so modify the .net implementation accordingly
+let me show you php implementation
+	
+
+sidebar menu after medicine
+
+<li class=""><a href="http://pharmapos.test/index.php?route=reports"><i class="las la-chalkboard-teacher"></i><span>Report</span></a></li>
 
 
 
-public function getMedicines()
+
+<?php
+
+/**
+ * ReportController
+ */
+class ReportController extends Controller
+{
+	public function index()
 	{
-		$query = $this->database->query("SELECT m.*, mc.name AS category_name, SUM(mb.qty) AS qty, SUM(mb.qty) - SUM(mb.sold) AS livestock FROM `medicines` AS m LEFT JOIN `medicine_category` AS mc ON mc.id = m.category LEFT JOIN `medicine_batch_view` AS mb ON mb.medicine_id = m.id AND mb.expiry > '".date('Y-m')."' GROUP BY m.id ORDER BY m.created_date DESC");
+		$report = $this->url->get('name');
+		
+		if ($report == "inventory") {
+			$this->reportInventory();
+		} elseif ($report == "income_expenses") {
+			$this->reportIncome();
+		} else {
+			$this->reports();
+		}
+	}
+
+	public function reports()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		$data['page_title'] = 'Reports';
+		$this->response->setOutput($this->load->view('report/reports', $data));
+	}
+
+	public function reportInventory()
+	{
+		$this->load->controller('common');
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		
+		$this->load->model('report');
+
+		$data['result'] = $this->model_report->getMedicines();
+
+		$data['page_title'] = 'Inventory Report';
+		$this->response->setOutput($this->load->view('report/report_inventory', $data));
+	}
+
+	public function reportIncome()
+	{
+		$this->load->controller('common');
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		
+		$data['period']['start'] = $this->url->get('start');
+		$data['period']['end'] = $this->url->get('end');
+
+		$data['medicine_id'] = $this->url->get('medicine_id');
+		$data['medicine_name'] = $this->url->get('medicine_name');
+
+		if (!empty($data['period']['start']) && !empty($data['period']['end']) && !$this->controller_common->validateDate($data['period']['start']) && !$this->controller_common->validateDate($data['period']['end'])) {
+			$data['period']['start'] = date_format(date_create($data['period']['start'].'00:00:00'), "Y-m-d H:i:s");
+			$data['period']['end'] = date_format(date_create($data['period']['end'].'23:59:59'), "Y-m-d H:i:s");
+		} else {
+			$data['period']['start'] = date('Y-m-d '.'00:00:00', strtotime("-1 month"));
+			$data['period']['end'] = date('Y-m-d '.'23:59:59');
+		}
+
+		$this->load->model('report');
+
+		if(isset($data['medicine_id']) && $data['medicine_id'] != '' ) {
+			$data['income'] = $this->model_report->getAllIncome($data['period'], $data['medicine_id']);
+		} else {
+			$data['income'] = $this->model_report->getAllIncome($data['period']);
+			$data['income']['purchase'] = $this->model_report->getAllExpense($data['period'])['purchase'];
+		}
+
+		$data['page_title'] = 'Stats Report';
+		$this->response->setOutput($this->load->view('report/report_income_expense', $data));
+	}
+
+	public function formatChartDataWithMonth($data)
+	{
+		$months = array();
+		$result['label'] = array();
+		$result['value'] = array();
+		for ($i = 0; $i < 12; $i++) {
+			$month = date("m", strtotime( date( 'Y-m-01' )." -$i months"));
+			$month_name = date("M", strtotime( date( 'Y-m-01' )." -$i months"));
+
+			if (!empty($data)) {
+				foreach ($data as $key => $value) {
+					if ($value['month'] == $month) {
+						$result['value'][$i] = (float)$value['amount'];
+						$result['label'][$i] = $month_name;
+					}
+				}
+			}
+
+			if (!isset($result['value'][$i])) {
+				$result['value'][$i] = 0;
+				$result['label'][$i] = $month_name;
+			}
+		}
+		
+		$result['label'] = json_encode(array_reverse($result['label']));
+		$result['value'] = json_encode(array_reverse($result['value']));
+		return $result;
+	}
+
+	public function formatChartData($data)
+	{
+		$arr = array('Paid', 'Partially Paid', 'Unpaid', 'Pending', 'In Process', 'Cancelled');
+		$result['label'] = array();
+		$result['value'] = array();
+		foreach ($arr as $key => $value) {
+			if (!empty($data)) {
+				foreach ($data as $k => $v) {
+					if ($v['label'] == $value) {
+						$result['value'][$key] = (float)$v['value'];
+						$result['label'][$key] = $v['label'];
+					}
+				}
+			}
+
+			if (!isset($result['value'][$key])) {
+				$result['value'][$key] = 0;
+				$result['label'][$key] = $value;
+			}
+		}
+		
+		$result['label'] = json_encode(array_reverse($result['label']));
+		$result['value'] = json_encode(array_reverse($result['value']));
+		return $result;
+	}
+}
+
+reports.twig
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-4">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row text-center">
+	<div class="col-md-3">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<i class="las la-cart-plus font-36 text-success"></i>
+				<h3 class="mb-4">POS/Bill Report</h3>
+				<a href="{{ common.info.url_route }}medicine/billing" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<i class="las la-file-invoice-dollar font-36 text-info"></i>
+				<h3 class="mb-4">Purchase Report</h3>
+				<a href="{{ common.info.url_route }}medicine/purchase" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<i class="las la-pills font-36 text-twitter"></i>
+				<h3 class="mb-4">Inventory Report</h3>
+				<a href="{{ common.info.url_route }}reports&name=inventory" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<i class="las la-coins font-36 text-facebook"></i>
+				<h3 class="mb-4">Stats Report</h3>
+				<a href="{{ common.info.url_route }}reports&name=income_expenses" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+			</div>
+		</div>
+	</div>
+</div>
+{{ include('common/footer.twig') }}
+
+report_income_expense.twig
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+    <div class="row align-items-center">
+        <div class="col-sm-4">
+            <h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+            <div class="breadcrumbs d-inline-block">
+                <ul>
+                    <li><a href="{{ common.info.url }}">Dashboard</a></li>
+                    <li>{{ page_title }}</li>
+                </ul>
+            </div>
+        </div>
+		<div class="col-sm-8 text-right">
+			<div style="display: inline-block;">
+				<input type="text" name="medicine_name" class="medicine_report_name form-control item-name ui-autocomplete-input" autocomplete="off" placeholder="Search Medicine" value="{{ medicine_name }}">
+				<input type="hidden" name="medicine_id" class="form-control item-medicine-id" value="{{ medicine_id }}">
+			</div>
+			<div class="btn btn-white btn-sm text-left mr-2">
+                <i class="las la-filter text-danger pr-2"></i>
+                <input type="text" class="table-date-range" data-start="{{ period.start|date(common.info.date_format) }}" data-end="{{ period.end|date(common.info.date_format) }}" data-route="reports&name=income_expenses">
+            </div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~income.amount }}</h4><span class="text-dark">Sales</span></div>
+			<div class="icon"><i class="las la-money-check-alt text-primary"></i></div>
+		</div>
+	</div>
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~income.purchase }}</h4> <span class="text-dark">Purchase</span></div>
+			<div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+		</div>
+	</div>
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			{% set profit = income.amount - income.purchase %}
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~profit }}</h4> <span class="text-dark">Profit</span></div>
+			<div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	{% if income.qty %}
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~income.qty }}</h4><span class="text-dark">Quantity</span></div>
+			<div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+		</div>
+	</div>
+	{% endif %}
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~income.tax }}</h4><span class="text-dark">Tax Amount</span></div>
+			<div class="icon"><i class="las la-percent text-warning"></i></div>
+		</div>
+	</div>
+	<div class="col-md-6 col-lg-4">
+		<div class="dashboard-stat">
+			<div class="content"><h4 class="text-dark">{{ common.info.currency_abbr~income.discount }}</h4> <span class="text-dark">Discount Amount</span></div>
+			<div class="icon"><i class="las la-money-check text-info"></i></div>
+		</div>
+	</div>
+</div>
+{{ include('common/footer.twig') }}
+
+report_inventory.twig
+
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+    <div class="row align-items-center">
+        <div class="col-sm-4">
+            <h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+            <div class="breadcrumbs d-inline-block">
+                <ul>
+                    <li><a href="{{ common.info.url }}">Dashboard</a></li>
+                    <li>{{ page_title }}</li>
+                </ul>
+            </div>
+        </div>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="table-responsive">
+			<table class="table table-middle table-bordered table-striped datatable-count-table report_inventory">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Medicine</th>
+						<th>Purchase</th>
+						<th>Sales</th>
+						<th>Profit</th>
+						<th>Reorderlevel</th>
+						<th>Live Stock</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for value in result %}
+						<tr>
+							<td>{{ loop.index }}</td>
+							<td>
+								<p class="text-primary mb-0">{{ value.NAME }}</p>
+							</td>
+							<td>{{ common.info.currency_abbr~value.total_purchase }}</td>
+							<td>
+								{% if value.total_sales is not empty %}
+									{{ common.info.currency_abbr ~ value.total_sales }}
+								{% endif %}
+							</td>
+							<td>
+								{% if value.profit is not empty %}
+									{{ common.info.currency_abbr ~ value.profit }}
+								{% endif %}
+							</td>
+							<td>{{ value.reorderlevel }}</td>
+							<td>{{ value.livestock }}</td>
+							<td>
+								{% if value.minlevel >= value.livestock %}
+									<span class="badge badge-sm badge-danger">Minlevel</span>
+								{% elseif value.reorderlevel >= value.livestock %}
+									<span class="badge badge-sm badge-warning">Reorderlevel</span>
+								{% else %}
+									<span class="badge badge-sm badge-primary">Normal</span>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+				<tfoot>
+					<tr>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</div>
+</div>
+{{ include('common/footer.twig') }}
+
+
+
+
+<?php 
+
+/**
+* Report
+*/
+class Report extends Model
+{
+
+	public function getPurchases($period)
+	{
+		$query = $this->database->query("SELECT mp.*, s.name AS supplier FROM `medicine_purchase` AS mp LEFT JOIN `suppliers` AS s ON s.id = mp.supplier WHERE mp.date between '".$period['start']."' AND '".$period['end']."' ORDER BY date DESC");
 		return $query->rows;
 	}
+	
+	public function getPurchaseStats($period)
+	{
+		$query = $this->database->query("SELECT SUM(amount) AS amount, IF(amount > 0, 100, 0) AS p_amount, SUM(discount_value) AS discount, (SUM(discount_value) / SUM(amount)) * 100 AS p_discount,  SUM(tax) AS tax, (SUM(tax) / SUM(amount)) * 100 AS p_tax FROM `medicine_purchase` WHERE date between '".$period['start']."' AND '".$period['end']."'");
+		$data = $query->row;
+
+		$data['p_discount'] = number_format((float)$query->row['p_discount'], 2, '.', '');
+		$data['p_tax'] = number_format((float)$query->row['p_tax'], 2, '.', '');
+		return $data;
+	}
+
+	public function getBills($period)
+	{
+		$query = $this->database->query("SELECT * FROM `medicine_bill` WHERE bill_date BETWEEN ? AND ? ORDER BY bill_date DESC", array($period['start'], $period['end']));
+		return $query->rows;
+	}
+
+	public function getBillsStats($period)
+	{
+		$query = $this->database->query("SELECT SUM(amount) AS amount, IF(amount > 0, 100, 0) AS p_amount, SUM(discount_value) AS discount, (SUM(discount_value) / SUM(amount)) * 100 AS p_discount,  SUM(tax) AS tax, (SUM(tax) / SUM(amount)) * 100 AS p_tax FROM `medicine_bill` WHERE bill_date between '".$period['start']."' AND '".$period['end']."'");
+		$data = $query->row;
+		$data['p_discount'] = number_format((float)$query->row['p_discount'], 2, '.', '');
+		$data['p_tax'] = number_format((float)$query->row['p_tax'], 2, '.', '');
+		return $data;
+	}
+
+	public function getMedicines()
+	{
+		$query = $this->database->query("SELECT
+			m.id,
+			m.`NAME`,
+			mc.`NAME` AS category_name, 
+			SUM(mb.qty) AS qty, 
+			SUM(mb.qty) - SUM(mb.sold) AS livestock, 
+			SUM(mb.total_sales) AS total_sales, 
+			SUM(mb.profit) AS profit, 
+			SUM(mb.total_purchase) AS total_purchase
+		FROM
+			medicines AS m
+			LEFT JOIN
+			medicine_category AS mc
+			ON 
+				mc.id = m.category
+			LEFT JOIN
+			medicine_batch_view AS mb
+			ON 
+				mb.medicine_id = m.id
+		GROUP BY
+			m.id, mc.`NAME`
+		ORDER BY
+			m.created_date DESC");
+		return $query->rows;
+	}
+
+	public function getAllIncome($period, $medicine_id = null)
+	{
+
+		if($medicine_id != null) {
+
+			$query = $this->database->query("SELECT  
+				m.id,
+				m.name,
+				SUM(bi.qty * 1) AS qty, 
+				SUM(bi.price * 1) AS amount,
+				SUM(bi.qty * mb.unit_purchase_price) AS purchase,
+				SUM(bi.discountvalue * 1) AS discount,
+				SUM(bi.taxprice * 1) AS tax
+			FROM medicines AS m
+			LEFT JOIN medicine_category AS mc ON mc.id = m.category
+			LEFT JOIN medicine_batch_view AS mb ON mb.medicine_id = m.id
+			LEFT JOIN bill_items AS bi ON bi.medicine_id = m.id AND bi.batch = mb.id
+			LEFT JOIN medicine_bill AS b ON b.id = bi.bill_id
+			WHERE m.id = ".$medicine_id." AND b.bill_date between '".$period['start']."' AND '".$period['end']."'
+			GROUP BY m.id
+			ORDER BY m.created_date DESC;");
+
+			$data = $query->row;
+
+		} else {		 
+
+			$query = $this->database->query("SELECT SUM(amount) AS amount, SUM(discount_value) AS discount, SUM(tax) AS tax FROM `medicine_bill` WHERE bill_date between '".$period['start']."' AND '".$period['end']."'");
+			$data['bill'] = $query->row;
+			
+			$data['amount'] = number_format((float)$data['bill']['amount'], 2, '.', '');
+			$data['paid'] = number_format((float)$data['bill']['amount'], 2, '.', '');
+			$data['tax'] = number_format((float)$data['bill']['tax'], 2, '.', '');
+			$data['discount'] = number_format((float)$data['bill']['discount'], 2, '.', '');
+
+		}
+
+		return $data;
+	}
+
+	public function getAllExpense($period)
+	{
+		$query = $this->database->query("SELECT SUM(amount) AS amount, SUM(discount_value) AS discount,  SUM(tax) AS tax FROM `medicine_purchase` WHERE date between '".$period['start']."' AND '".$period['end']."'");
+		$data['purchase'] = number_format((float)$query->row['amount'], 2, '.', '');
+
+		return $data;
+	}
+
+}
+
+
 

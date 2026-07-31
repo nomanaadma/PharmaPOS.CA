@@ -1,0 +1,92 @@
+@model IEnumerable<PharmaPOS_MVC.Models.InventoryReportViewModel>
+@{
+    ViewData["Title"] = ViewData["page_title"] ?? "Inventory Report";
+}
+
+<div class="page-title">
+    <div class="row align-items-center">
+        <div class="col-sm-4">
+            <h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+            <div class="breadcrumbs d-inline-block">
+                <ul>
+                    <li><a href="/">Dashboard</a></li>
+                    <li>@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-middle table-bordered table-striped datatable-count-table report_inventory">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Medicine</th>
+                        <th>Purchase</th>
+                        <th>Sales</th>
+                        <th>Profit</th>
+                        <th>Reorderlevel</th>
+                        <th>Live Stock</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var index = 1; }
+                    @foreach (var value in Model)
+                    {
+                        <tr>
+                            <td>@(index++)</td>
+                            <td>
+                                <p class="text-primary mb-0">@value.MedicineName</p>
+                            </td>
+                            <td>Rs @value.TotalPurchase.ToString("F2")</td>
+                            <td>
+                                @if (value.TotalSales > 0)
+                                {
+                                    <text>Rs @value.TotalSales.ToString("F2")</text>
+                                }
+                            </td>
+                            <td>
+                                @if (value.TotalSales > 0 || value.TotalPurchase > 0)
+                                {
+                                    <text>Rs @value.Profit.ToString("F2")</text>
+                                }
+                            </td>
+                            <td>@value.ReorderLevel</td>
+                            <td>@value.LiveStock</td>
+                            <td>
+                                @if (value.MinLevel >= value.LiveStock)
+                                {
+                                    <span class="badge badge-sm badge-danger">Minlevel</span>
+                                }
+                                else if (value.ReorderLevel >= value.LiveStock)
+                                {
+                                    <span class="badge badge-sm badge-warning">Reorderlevel</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-sm badge-primary">Normal</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

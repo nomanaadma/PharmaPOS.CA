@@ -1,0 +1,72 @@
+@model PharmaPOS_MVC.Models.IncomeExpenseReportViewModel
+@{
+    ViewData["Title"] = ViewData["page_title"] ?? "Stats Report";
+}
+
+<div class="page-title">
+    <div class="row align-items-center">
+        <div class="col-sm-4">
+            <h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+            <div class="breadcrumbs d-inline-block">
+                <ul>
+                    <li><a href="/">Dashboard</a></li>
+                    <li>@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-sm-8 text-right">
+            <div style="display: inline-block;">
+                <input type="text" name="medicine_name" class="medicine_report_name form-control item-name ui-autocomplete-input" autocomplete="off" placeholder="Search Medicine" value="@Model.MedicineName">
+                <input type="hidden" name="medicine_id" class="form-control item-medicine-id" value="@Model.MedicineId">
+            </div>
+            <div class="btn btn-white btn-sm text-left mr-2">
+                <i class="las la-filter text-danger pr-2"></i>
+                <input type="text" class="table-date-range" data-start="@Model.StartDate.ToString("dd/MM/yyyy")" data-end="@Model.EndDate.ToString("dd/MM/yyyy")" data-route="/Reports/IncomeExpense">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-stat">
+            <div class="content"><h4 class="text-dark">Rs @Model.SalesAmount.ToString("F2")</h4><span class="text-dark">Sales</span></div>
+            <div class="icon"><i class="las la-money-check-alt text-primary"></i></div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-stat">
+            <div class="content"><h4 class="text-dark">Rs @Model.PurchaseAmount.ToString("F2")</h4> <span class="text-dark">Purchase</span></div>
+            <div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-stat">
+            <div class="content"><h4 class="text-dark">Rs @Model.Profit.ToString("F2")</h4> <span class="text-dark">Profit</span></div>
+            <div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    @if (Model.Quantity.HasValue && Model.Quantity.Value > 0)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-stat">
+                <div class="content"><h4 class="text-dark">@Model.Quantity.Value</h4><span class="text-dark">Quantity</span></div>
+                <div class="icon"><i class="las la-file-invoice-dollar text-secondary"></i></div>
+            </div>
+        </div>
+    }
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-stat">
+            <div class="content"><h4 class="text-dark">Rs @Model.TaxAmount.ToString("F2")</h4><span class="text-dark">Tax Amount</span></div>
+            <div class="icon"><i class="las la-percent text-warning"></i></div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-stat">
+            <div class="content"><h4 class="text-dark">Rs @Model.DiscountAmount.ToString("F2")</h4> <span class="text-dark">Discount Amount</span></div>
+            <div class="icon"><i class="las la-money-check text-info"></i></div>
+        </div>
+    </div>
+</div>
