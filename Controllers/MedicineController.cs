@@ -98,6 +98,92 @@ public class MedicineController(
 		}
 	}
 
+	[HttpGet("View/{id:int}")]
+	public async Task<IActionResult> View(int id)
+	{
+		var medicine = await context.Medicines
+			.Include(m => m.Category)
+			.FirstOrDefaultAsync(m => m.Id == id);
+
+		if (medicine == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Medicine does not exist in database!" });
+			return RedirectToAction(nameof(Index));
+		}
+
+		var today = DateTime.UtcNow.Date;
+		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
+
+		var batchesRaw = await context.Batches
+			.Where(b => b.MedicineId == id)
+			.ToListAsync();
+
+		var batchesWithDates = batchesRaw.Select(b =>
+		{
+			DateTime.TryParseExact(b.Expiry, "MM-yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var expiryDate);
+			return new { Batch = b, ExpiryDate = expiryDate };
+		}).ToList();
+
+		var liveBatches = batchesWithDates
+			.Where(b => b.ExpiryDate > currentMonthDate && b.Batch.Status == Status.Active)
+			.Select(b => new StockViewModel
+			{
+				Id = b.Batch.Id,
+				MedicineId = b.Batch.MedicineId,
+				PurchaseId = b.Batch.PurchaseId,
+				Name = medicine.Name,
+				Batch = b.Batch.BatchName,
+				Expiry = b.Batch.Expiry,
+				PurchasePrice = b.Batch.PurchasePrice,
+				SalePrice = b.Batch.SalePrice,
+				Qty = b.Batch.Qty,
+				Sold = b.Batch.Sold,
+				Available = b.Batch.Qty - b.Batch.Sold
+			}).ToList();
+
+		var badBatches = batchesWithDates
+			.Where(b => b.ExpiryDate < currentMonthDate && b.Batch.Status == Status.Active && (b.Batch.Qty > b.Batch.Sold))
+			.Select(b => new StockViewModel
+			{
+				Id = b.Batch.Id,
+				MedicineId = b.Batch.MedicineId,
+				PurchaseId = b.Batch.PurchaseId,
+				Name = medicine.Name,
+				Batch = b.Batch.BatchName,
+				Expiry = b.Batch.Expiry,
+				PurchasePrice = b.Batch.PurchasePrice,
+				SalePrice = b.Batch.SalePrice,
+				Qty = b.Batch.Qty,
+				Sold = b.Batch.Sold,
+				Available = b.Batch.Qty - b.Batch.Sold
+			}).ToList();
+
+		var model = new MedicineViewPageModel
+		{
+			Medicine = new MedicineViewModel
+			{
+				Id = medicine.Id,
+				Name = medicine.Name,
+				Company = medicine.Company,
+				Generic = medicine.Generic,
+				MedicineGroup = medicine.MedicineGroup,
+				CategoryId = medicine.CategoryId,
+				CategoryName = medicine.Category?.Name,
+				StoreBox = medicine.StoreBox,
+				MinLevel = medicine.MinLevel,
+				ReOrderLevel = medicine.ReOrderLevel,
+				Unit = medicine.Unit,
+				UnitPacking = medicine.UnitPacking,
+				Note = medicine.Note,
+				CreatedDate = medicine.CreatedDate
+			},
+			LiveStock = liveBatches,
+			BadStock = badBatches
+		};
+
+		return View(model);
+	}
+
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{

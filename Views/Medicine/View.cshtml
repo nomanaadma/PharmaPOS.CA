@@ -1,0 +1,325 @@
+@using PharmaPOS_MVC.Extensions
+@model PharmaPOS_MVC.Models.MedicineViewPageModel
+@{
+    ViewData["Title"] = "Medicine View";
+}
+
+<div class="page-title">
+    <div class="row align-items-center">
+        <div class="col-sm-12">
+            <h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+            <div class="breadcrumbs d-inline-block">
+                <ul>
+                    <li><a href="/">Dashboard</a></li>
+                    <li><a asp-controller="Medicine" asp-action="Index">Medicine</a></li>
+                    <li>@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="user-avtar">
+                    <span>@Model.Medicine.Name.Substring(0, 1)</span>
+                </div>
+                <div class="user-details text-center pt-3">
+                    <h3>@Model.Medicine.Name</h3>
+                    <ul class="v-menu text-left pt-3 nav d-block">
+                        <li>
+                            <a href="#medicine-info" class="active" data-toggle="tab">
+                                <i class="las la-info-circle"></i> <span>Medicine Info</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#medicine-stock" data-toggle="tab">
+                                <i class="las la-pills"></i> <span>Live Stock</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#medicine-badstock" data-toggle="tab">
+                                <i class="las la-archive"></i> <span>Bad Stock</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Medicine" asp-action="Edit" asp-route-id="@Model.Medicine.Id">
+                                <i class="las la-edit"></i> <span>Edit</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="medicine-info">
+                <div class="panel panel-default">
+                    <div class="panel-head">
+                        <div class="panel-title">Medicine Info</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped patient-table">
+                                <tbody>
+                                    <tr>
+                                        <td>Medicine Name</td>
+                                        <td>@Model.Medicine.Name</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Company</td>
+                                        <td>@Model.Medicine.Company</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Generic</td>
+                                        <td>@Model.Medicine.Generic</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Unit</td>
+                                        <td>@Model.Medicine.Unit</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Unitpacking</td>
+                                        <td>@Model.Medicine.UnitPacking</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Medicine Group</td>
+                                        <td>@Model.Medicine.MedicineGroup</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Category</td>
+                                        <td>@Model.Medicine.CategoryName</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Store Box</td>
+                                        <td>@Model.Medicine.StoreBox</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Min Level</td>
+                                        <td>@Model.Medicine.MinLevel</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Reorder Level</td>
+                                        <td>@Model.Medicine.ReOrderLevel</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Note</td>
+                                        <td>@Model.Medicine.Note</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Created Date</td>
+                                        <td>@Model.Medicine.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="medicine-stock">
+                <div class="panel panel-default">
+                    <div class="panel-head">
+                        <div class="panel-title">Live Stock</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive stock-table">
+                            <table class="table table-middle table-bordered table-striped datatable-count-table stock-list">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Batch</th>
+                                        <th>Expiry</th>
+                                        <th>Purchase Price</th>
+                                        <th>Sale Price</th>
+                                        <th>Qty</th>
+                                        <th>Sold</th>
+                                        <th>Live Stock</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ var liveIndex = 1; }
+                                    @foreach (var value in Model.LiveStock)
+                                    {
+                                        <tr>
+                                            <td>@(liveIndex++)</td>
+                                            <td class="batch text-primary">@value.Batch</td>
+                                            <td class="expiry text-danger">@value.Expiry</td>
+                                            <td>Rs @value.PurchasePrice.ToString("F2")</td>
+                                            <td>Rs @value.SalePrice.ToString("F2")</td>
+                                            <td class="qty">@value.Qty</td>
+                                            <td class="sold">@value.Sold</td>
+                                            <td class="available">@value.Available</td>
+                                            <td class="table-action">
+                                                <div class="dropdown d-inline-block">
+                                                    <a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+                                                    <ul class="dropdown-menu dropdown-menu-right">
+                                                        <li><a class="edit-stock" data-id="@value.Id" data-medicineid="@value.MedicineId"><i class="las la-pen-nib pr-2"></i>Update Stock</a></li>
+                                                        <li><a href="/Medicines/Purchase/View/@value.PurchaseId"><i class="las la-laptop pr-2"></i>Purchase View</a></li>
+                                                        <li><a href="/Medicines/Purchase/Edit/@value.PurchaseId"><i class="las la-edit pr-2"></i>Purchase Edit</a></li>
+                                                    </ul>
+                                                </div>
+                                                <a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+                                                    <i class="las la-trash-alt"></i><input type="hidden" value="@value.Id">
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="medicine-badstock">
+                <div class="panel panel-default">
+                    <div class="panel-head">
+                        <div class="panel-title">Bad Stock</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive stock-table">
+                            <table class="table table-middle table-bordered table-striped datatable-count-table stock-list">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Batch</th>
+                                        <th>Expiry</th>
+                                        <th>Purchase Price</th>
+                                        <th>Sale Price</th>
+                                        <th>Qty</th>
+                                        <th>Sold</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ var badIndex = 1; }
+                                    @foreach (var value in Model.BadStock)
+                                    {
+                                        <tr>
+                                            <td>@(badIndex++)</td>
+                                            <td class="batch text-primary">@value.Batch</td>
+                                            <td class="expiry text-danger">@value.Expiry</td>
+                                            <td>Rs @value.PurchasePrice.ToString("F2")</td>
+                                            <td>Rs @value.SalePrice.ToString("F2")</td>
+                                            <td class="qty">@value.Qty</td>
+                                            <td class="sold">@value.Sold</td>
+                                            <td class="table-action">
+                                                <a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="@value.Id"></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editstock-modal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Stock Adjustment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="/Medicine/Stock/Update" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="" id="modal_id">
+                <input type="hidden" name="medicine_id" value="" id="modal_medicine_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Available in Store<span class="form-required">*</span></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="ti-tag"></i></span></div>
+                            <input type="number" step="0.01" name="available" id="modal_available" class="form-control" required>
+                        </div>
+                        <span class="form-text">Sold quantity will be updated => Sold = Total - Available in store. <br>If you want to change quantity or other info please click on edit link.</span>
+                    </div>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Batch</th>
+                                <th>Expiry</th>
+                                <th>Qty</th>
+                                <th>Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="batch" id="modal_batch"></td>
+                                <td class="expiry" id="modal_expiry"></td>
+                                <td class="qty" id="modal_qty"></td>
+                                <td class="sold" id="modal_sold"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="submit" class="btn btn-primary">Update Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<partial name="Partials/_DeleteModal" model='new { Action = "/Medicine/Stock/Delete", Message = "Stock will be removed from Inventory." }' />
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/stock_list.js"></script>
+    <script>
+        $(document).on('click', '.edit-stock', function () {
+            var id = $(this).data('id');
+            var medicineid = $(this).data('medicineid');
+            var tr = $(this).closest('tr');
+            
+            var batch = tr.find('.batch').text();
+            var expiry = tr.find('.expiry').text();
+            var qty = tr.find('.qty').text();
+            var sold = tr.find('.sold').text();
+            var available = tr.find('.available').text();
+
+            $('#modal_id').val(id);
+            $('#modal_medicine_id').val(medicineid);
+            $('#modal_batch').text(batch);
+            $('#modal_expiry').text(expiry);
+            $('#modal_qty').text(qty);
+            $('#modal_sold').text(sold);
+            $('#modal_available').val(available);
+
+            $('#editstock-modal').modal('show');
+        });
+    </script>
+}
