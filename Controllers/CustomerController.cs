@@ -75,6 +75,47 @@ public class CustomerController(
 	}
 
 	[HttpGet("{id:int}")]
+	public async Task<IActionResult> View(int id)
+	{
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+		if (customer == null)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Customer does not exist in database!" });
+			return RedirectToAction(nameof(Index));
+		}
+
+		var recentBills = await context.Bills
+			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
+			.OrderByDescending(b => b.BillDate)
+			.Take(20)
+			.Select(b => new CustomerBillViewModel
+			{
+				Id = b.Id,
+				Amount = b.Amount,
+				BillDate = b.BillDate
+			})
+			.ToListAsync();
+
+		var model = new CustomerViewPageModel
+		{
+			Customer = new CustomerViewModel
+			{
+				Id = customer.Id,
+				FirstName = customer.FirstName,
+				LastName = customer.LastName,
+				Email = customer.Email,
+				Mobile = customer.Mobile,
+				Gender = customer.Gender,
+				Status = customer.Status,
+				CreatedDate = customer.CreatedDate
+			},
+			RecentBills = recentBills
+		};
+
+		return View(model);
+	}
+
+	[HttpGet("{id:int}")]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
