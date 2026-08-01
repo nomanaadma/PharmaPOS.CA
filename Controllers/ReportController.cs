@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -86,7 +87,25 @@ public class ReportController(ApplicationDbContext context) : Controller
 	        end = DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59); 
         }
         
-        IncomeExpenseReportViewModel stats;
+        
+        // 2. Get Sales Stats
+        var medicineStats = await context.BillItems
+	        .IdOrNullWhere(medicineId ?? 0)
+	        .Where(bi => 
+		        bi.Bill.BillDate >= start.Value && 
+		        bi.Bill.BillDate <= end.Value)
+	        .GroupBy(bi => 1)
+	        .Select(g => new
+	        {
+		        SalesAmount = g.Sum(bi => (decimal?)bi.Price) ?? 0m,
+		        Quantity = g.Sum(bi => (decimal?)bi.Qty) ?? 0m,
+		        TaxAmount = g.Sum(bi => (decimal?)bi.TaxPrice) ?? 0m,
+		        DiscountAmount = g.Sum(bi => (decimal?)bi.DiscountValue) ?? 0m
+	        })
+	        .FirstOrDefaultAsync();
+
+        decimal purchaseAmount;
+        var salesQty = 0m; 
 
         if (medicineId is > 0)
         {
@@ -108,54 +127,13 @@ public class ReportController(ApplicationDbContext context) : Controller
 	        var totalPrice = batchTotals?.TotalPrice ?? 0m;
 	        var totalSold = batchTotals?.TotalSold ?? 0m;
 	        
-	        var purchaseAmount = totalQty > 0 ? (totalPrice / totalQty) * totalSold : 0m;
+	        purchaseAmount = totalQty > 0 ? (totalPrice / totalQty) * totalSold : 0m;
 	        
-	        // 2. Get Sales Stats
-	        var medicineStats = await context.BillItems
-		        .Where(bi => 
-			        bi.MedicineId == medicineId.Value && 
-			        bi.Bill.BillDate >= start.Value && 
-			        bi.Bill.BillDate <= end.Value)
-		        .GroupBy(bi => 1)
-		        .Select(g => new
-		        {
-			        SalesAmount = g.Sum(bi => (decimal?)bi.Price) ?? 0m,
-			        Quantity = g.Sum(bi => (decimal?)bi.Qty) ?? 0m,
-			        TaxAmount = g.Sum(bi => (decimal?)bi.TaxPrice) ?? 0m,
-			        DiscountAmount = g.Sum(bi => (decimal?)bi.DiscountValue) ?? 0m
-		        })
-		        .FirstOrDefaultAsync();
-
-	        // Safely extract values (default to 0 if null)
-	        var salesAmount = medicineStats?.SalesAmount ?? 0m;
-	        var salesQty = medicineStats?.Quantity ?? 0m;
-	        var taxAmount = medicineStats?.TaxAmount ?? 0m;
-	        var discountAmount = medicineStats?.DiscountAmount ?? 0m;
-
-
-	        stats = new IncomeExpenseReportViewModel
-	        {
-		        SalesAmount = salesAmount,
-		        PurchaseAmount = purchaseAmount,
-		        Profit = salesAmount - purchaseAmount,
-		        Quantity = salesQty,
-		        TaxAmount = taxAmount,
-		        DiscountAmount = discountAmount
-	        };
+	        salesQty = medicineStats?.Quantity ?? 0m;
+	        
         }
         else
         {
-            var salesStats = await context.Bills
-                .Where(b => b.BillDate >= start.Value && b.BillDate <= end.Value)
-                .GroupBy(b => 1)
-                .Select(g => new
-                {
-                    SalesAmount = g.Sum(b => b.Amount),
-                    TaxAmount = g.Sum(b => b.Tax),
-                    DiscountAmount = g.Sum(b => b.DiscountValue)
-                })
-                .FirstOrDefaultAsync();
-
             var purchaseStats = await context.Purchases
                 .Where(p => p.Date >= start.Value && p.Date <= end.Value)
                 .GroupBy(p => 1)
@@ -165,21 +143,28 @@ public class ReportController(ApplicationDbContext context) : Controller
                 })
                 .FirstOrDefaultAsync();
 
-            stats = new IncomeExpenseReportViewModel
-            {
-                SalesAmount = salesStats?.SalesAmount ?? 0,
-                PurchaseAmount = purchaseStats?.PurchaseAmount ?? 0,
-                Profit = (salesStats?.SalesAmount ?? 0) - (purchaseStats?.PurchaseAmount ?? 0),
-                TaxAmount = salesStats?.TaxAmount ?? 0,
-                DiscountAmount = salesStats?.DiscountAmount ?? 0,
-                Quantity = null
-            };
-        }
+            purchaseAmount = purchaseStats?.PurchaseAmount ?? 0;
 
-        stats.StartDate = start.Value;
-        stats.EndDate = end.Value;
-        stats.MedicineId = medicineId;
-        stats.MedicineName = medicineName;
+        }
+        
+        // Safely extract values (default to 0 if null)
+        var salesAmount = medicineStats?.SalesAmount ?? 0m;
+        var taxAmount = medicineStats?.TaxAmount ?? 0m;
+        var discountAmount = medicineStats?.DiscountAmount ?? 0m;
+
+        var stats = new IncomeExpenseReportViewModel
+        {
+	        SalesAmount = salesAmount,
+	        PurchaseAmount = purchaseAmount,
+	        Profit = salesAmount - purchaseAmount,
+	        Quantity = salesQty,
+	        TaxAmount = taxAmount,
+	        DiscountAmount = discountAmount,
+	        StartDate = start.Value,
+	        EndDate = end.Value,
+	        MedicineId = medicineId,
+	        MedicineName = medicineName
+        };
 
         return View(stats);
     }
