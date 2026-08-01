@@ -22,24 +22,6 @@ public class ReportController(ApplicationDbContext context) : Controller
     {
         var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
         
-        // var inventory = await context.Medicines
-        //     .Select(m => new InventoryReportViewModel
-        //     {
-        //         MedicineId = m.Id,
-        //         MedicineName = m.Name,
-        //         TotalPurchase = m.Batches.Sum(b => b.Price / b.Qty * b.Sold),
-        //         TotalSales = context.BillItems.Where(bi => bi.MedicineId == m.Id).Sum(bi => bi.Price),
-        //         Profit = context.BillItems.Where(bi => bi.MedicineId == m.Id).Sum(bi => bi.Price) - 
-        //                  m.Batches.Sum(b => b.Price / b.Qty * b.Sold),
-        //         ReorderLevel = m.ReOrderLevel,
-        //         MinLevel = m.MinLevel,
-        //         LiveStock = m.Batches
-        //             .Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) > 0)
-        //             .Sum(b => b.Qty - b.Sold)
-        //     })
-        //     .OrderByDescending(m => m.MedicineId)
-        //     .ToListAsync();
-        
         var inventory = await context.Medicines
 	        // 1. Order the base query first
 	        .OrderByDescending(m => m.Id)
@@ -79,43 +61,6 @@ public class ReportController(ApplicationDbContext context) : Controller
 		        LiveStock = x.LiveStock
 	        })
 	        .ToListAsync();
-        
-        // var inventory = await (from m in context.Medicines
-        //                
-		      //   // 1. Calculate and store aggregates ONCE per row
-		      //   // Added Qty > 0 check to prevent Divide by Zero exceptions
-		      //   let totalPurchase = m.Batches
-			     //    .Where(b => b.Qty > 0)
-			     //    .Sum(b => (decimal?)((b.Price / b.Qty) * b.Sold)) ?? 0
-        //                    
-		      //   // Cast to nullable (decimal?) to prevent errors if BillItems is empty
-		      //   let totalSales = context.BillItems
-			     //    .Where(bi => bi.MedicineId == m.Id)
-			     //    .Sum(bi => (decimal?)bi.Price) ?? 0
-        //                    
-		      //   let liveStock = m.Batches
-			     //    .Where(b => b.Status == Status.Active && 
-			     //                string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) > 0)
-			     //    .Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0
-        //                    
-		      //   orderby m.Id descending
-        //                
-		      //   // 2. Project into ViewModel reusing the calculated variables
-		      //   select new InventoryReportViewModel
-		      //   {
-			     //    MedicineId = m.Id,
-			     //    MedicineName = m.Name,
-			     //    TotalPurchase = totalPurchase,
-			     //    TotalSales = totalSales,
-        //                    
-			     //    // No redundant SQL queries! Just basic math.
-			     //    Profit = totalSales - totalPurchase, 
-        //                    
-			     //    ReorderLevel = m.ReOrderLevel,
-			     //    MinLevel = m.MinLevel,
-			     //    LiveStock = liveStock
-		      //   })
-	       //  .ToListAsync();
 
         return View(inventory);
     }

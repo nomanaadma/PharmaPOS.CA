@@ -39,7 +39,7 @@ public class MedicineController(
 				UnitPacking = m.UnitPacking,
 				Note = m.Note,
 				LiveStock = m.Batches
-					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) > 0)
+					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m,
 				CreatedDate = m.CreatedDate
 			})
@@ -126,7 +126,7 @@ public class MedicineController(
 			.ToListAsync();
 		
 		var liveBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0)
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0)
 			.Select(b => new StockViewModel
 			{
 				Id = b.Id,
@@ -341,9 +341,7 @@ public class MedicineController(
 
 		var batches = await context.Batches
 			.Where(b => b.MedicineId == id)
-#pragma warning disable CA1845
 			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-#pragma warning restore CA1845
 			.Where(b => (b.Qty - b.Sold) > 0)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.Expiry)

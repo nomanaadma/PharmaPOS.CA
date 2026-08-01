@@ -406,9 +406,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Medicine)
 					.ThenInclude(m => m.Batches
-						#pragma warning disable CA1845
 						.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-						#pragma warning restore CA1845
 						.Where(b => b.Status == Status.Active))
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)

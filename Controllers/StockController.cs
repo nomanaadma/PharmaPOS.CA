@@ -41,16 +41,16 @@ public class StockController(ApplicationDbContext context) : Controller
 				pageTitle = "Expire in 1 Month";
 				var oneMonthStr = currentMonthDate.AddMonths(1).ToString("yyyyMM");
 				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), oneMonthStr) < 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), oneMonthStr) <= 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
 				break;
 				
 			case "willexpirein2":
 				pageTitle = "Expire in 2 Month";
 				var twoMonthStr = currentMonthDate.AddMonths(2).ToString("yyyyMM");
 				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), twoMonthStr) < 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), twoMonthStr) <= 0 && 
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
 				break;
 				
 			case "willexpirein3":
@@ -72,7 +72,7 @@ public class StockController(ApplicationDbContext context) : Controller
 			default:
 				pageTitle = "Live Stock";
 				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
+					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
 				break;
 		}
 		
@@ -84,13 +84,9 @@ public class StockController(ApplicationDbContext context) : Controller
 			.Where(bi => batchIds.Contains(bi.BatchId))
 			.ToListAsync();
 		
-		var billItemLookup = billItems.ToDictionary(
-			x => (x.BatchId, x.MedicineId),
-			x => x);
-		
 		var result = batches.Select(b =>
 		{
-			billItemLookup.TryGetValue((b.Id, b.MedicineId), out var billItem);
+			// billItemLookup.TryGetValue((b.Id, b.MedicineId), out var billItem);
 
 			var unitSalePrice = 0m;
 			var totalSales = 0m;
@@ -98,12 +94,23 @@ public class StockController(ApplicationDbContext context) : Controller
 			
 			var unitPurchasePrice = Math.Round(b.Price / b.Qty, 2);
 			var totalPurchase = Math.Round(unitPurchasePrice * b.Sold, 2);
+
+			var batchBillItesm = billItems.Where(bi => bi.BatchId == b.Id).Where(bi => bi.MedicineId == b.MedicineId).ToList();
+
+			var medicineSalePrice = 0m;
+			var medicineSaleQty = 0m;
 			
-			if (billItem != null)
+			foreach (var billItem in batchBillItesm)
 			{
-				unitSalePrice = Math.Round(billItem.Price / billItem.Qty, 2);
-				totalSales = Math.Round(unitSalePrice * b.Sold, 2);
-				profit = Math.Round(totalSales - totalPurchase, 2);
+				medicineSalePrice += billItem.Price;
+				medicineSaleQty += billItem.Qty;
+			}
+
+			if (medicineSalePrice != 0 && medicineSaleQty != 0)
+			{
+				unitSalePrice += Math.Round(medicineSalePrice / medicineSaleQty, 2);
+				totalSales += Math.Round(unitSalePrice * b.Sold, 2);
+				profit += Math.Round(totalSales - totalPurchase, 2);
 			}
 			
 			return new StockViewModel
