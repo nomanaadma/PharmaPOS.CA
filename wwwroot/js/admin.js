@@ -298,7 +298,7 @@
         });
 
         $('.table-date-range').on('apply.daterangepicker', function(ev, picker) {
-            window.location.replace('/'+tabledate_data.route+'&start='+picker.startDate.format('YYYY-MM-DD')+'&end='+picker.endDate.format('YYYY-MM-DD')+'&medicine_id='+$('.item-medicine-id').val()+'&medicine_name='+$('.medicine_report_name').val());
+            window.location.replace(tabledate_data.route+'start='+picker.startDate.format('YYYY-MM-DD')+'&end='+picker.endDate.format('YYYY-MM-DD')+'&medicineId='+$('.item-medicine-id').val()+'&medicineName='+$('.medicine_report_name').val());
         });
     }
 

@@ -65,42 +65,83 @@ public class ReportController(ApplicationDbContext context) : Controller
         return View(inventory);
     }
 
-    [HttpGet]
-    [Route("/Reports/IncomeExpense")]
-    public async Task<IActionResult> IncomeExpense(DateTime? start, DateTime? end, int? medicine_id, string? medicine_name)
+    [HttpGet("/Reports/IncomeExpense")]
+    public async Task<IActionResult> IncomeExpense(DateTime? start, DateTime? end, int? medicineId, string? medicineName)
     {
-        if (!start.HasValue || !end.HasValue)
+        
+        if (start.HasValue && end.HasValue)
         {
-            start = DateTime.UtcNow.Date.AddMonths(-1);
-            end = DateTime.UtcNow.Date.AddDays(1).AddTicks(-1);
+	        // .Date strips any existing time and sets it to 00:00:00
+	        start = start.Value.Date; 
+    
+	        // Set to 23:59:59 of the selected end date
+	        end = end.Value.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
         }
-
+        else
+        {
+	        // Default: 1 month ago at 00:00:00
+	        start = DateTime.Today.AddMonths(-1); 
+    
+	        // Default: Today at 23:59:59
+	        end = DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59); 
+        }
+        
         IncomeExpenseReportViewModel stats;
 
-        if (medicine_id.HasValue && medicine_id.Value > 0)
+        if (medicineId is > 0)
         {
-            var medicineStats = await context.BillItems
-                .Where(bi => bi.MedicineId == medicine_id.Value && bi.Bill.BillDate >= start.Value && bi.Bill.BillDate <= end.Value)
-                .GroupBy(bi => 1)
-                .Select(g => new
-                {
-                    SalesAmount = g.Sum(bi => bi.Price),
-                    PurchaseAmount = g.Sum(bi => bi.Qty * bi.Batch.PurchasePrice),
-                    Quantity = g.Sum(bi => (decimal?)bi.Qty),
-                    TaxAmount = g.Sum(bi => bi.TaxPrice),
-                    DiscountAmount = g.Sum(bi => bi.DiscountValue)
-                })
-                .FirstOrDefaultAsync();
+	        
+	        // 1. Get Batch Totals
+	        var batchTotals = await context.Batches
+		        .Where(b => b.Status == Status.Active && b.MedicineId == medicineId)
+		        .GroupBy(b => 1) 
+		        .Select(g => new 
+		        {
+			        TotalQty = g.Sum(b => (decimal?)b.Qty) ?? 0m,
+			        TotalPrice = g.Sum(b => (decimal?)b.Price) ?? 0m,
+			        TotalSold = g.Sum(b => (decimal?)b.Sold) ?? 0m
+		        })
+		        .FirstOrDefaultAsync();
+	        
+	        // Safely extract values (default to 0 if null)
+	        var totalQty = batchTotals?.TotalQty ?? 0m;
+	        var totalPrice = batchTotals?.TotalPrice ?? 0m;
+	        var totalSold = batchTotals?.TotalSold ?? 0m;
+	        
+	        var purchaseAmount = totalQty > 0 ? (totalPrice / totalQty) * totalSold : 0m;
+	        
+	        // 2. Get Sales Stats
+	        var medicineStats = await context.BillItems
+		        .Where(bi => 
+			        bi.MedicineId == medicineId.Value && 
+			        bi.Bill.BillDate >= start.Value && 
+			        bi.Bill.BillDate <= end.Value)
+		        .GroupBy(bi => 1)
+		        .Select(g => new
+		        {
+			        SalesAmount = g.Sum(bi => (decimal?)bi.Price) ?? 0m,
+			        Quantity = g.Sum(bi => (decimal?)bi.Qty) ?? 0m,
+			        TaxAmount = g.Sum(bi => (decimal?)bi.TaxPrice) ?? 0m,
+			        DiscountAmount = g.Sum(bi => (decimal?)bi.DiscountValue) ?? 0m
+		        })
+		        .FirstOrDefaultAsync();
 
-            stats = new IncomeExpenseReportViewModel
-            {
-                SalesAmount = medicineStats?.SalesAmount ?? 0,
-                PurchaseAmount = medicineStats?.PurchaseAmount ?? 0,
-                Profit = (medicineStats?.SalesAmount ?? 0) - (medicineStats?.PurchaseAmount ?? 0),
-                Quantity = medicineStats?.Quantity ?? 0,
-                TaxAmount = medicineStats?.TaxAmount ?? 0,
-                DiscountAmount = medicineStats?.DiscountAmount ?? 0
-            };
+	        // Safely extract values (default to 0 if null)
+	        var salesAmount = medicineStats?.SalesAmount ?? 0m;
+	        var salesQty = medicineStats?.Quantity ?? 0m;
+	        var taxAmount = medicineStats?.TaxAmount ?? 0m;
+	        var discountAmount = medicineStats?.DiscountAmount ?? 0m;
+
+
+	        stats = new IncomeExpenseReportViewModel
+	        {
+		        SalesAmount = salesAmount,
+		        PurchaseAmount = purchaseAmount,
+		        Profit = salesAmount - purchaseAmount,
+		        Quantity = salesQty,
+		        TaxAmount = taxAmount,
+		        DiscountAmount = discountAmount
+	        };
         }
         else
         {
@@ -137,10 +178,9 @@ public class ReportController(ApplicationDbContext context) : Controller
 
         stats.StartDate = start.Value;
         stats.EndDate = end.Value;
-        stats.MedicineId = medicine_id;
-        stats.MedicineName = medicine_name;
+        stats.MedicineId = medicineId;
+        stats.MedicineName = medicineName;
 
-        ViewData["page_title"] = "Stats Report";
         return View(stats);
     }
 }

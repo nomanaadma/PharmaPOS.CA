@@ -86,8 +86,6 @@ public class StockController(ApplicationDbContext context) : Controller
 		
 		var result = batches.Select(b =>
 		{
-			// billItemLookup.TryGetValue((b.Id, b.MedicineId), out var billItem);
-
 			var unitSalePrice = 0m;
 			var totalSales = 0m;
 			var profit = 0m;
