@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = ViewData["page_title"] ?? "Reports";
+	ViewData["Title"] = "Reports";
 }
 
 <div class="page-title">
@@ -22,7 +22,7 @@
             <div class="panel-body">
                 <i class="las la-cart-plus font-36 text-success"></i>
                 <h3 class="mb-4">POS/Bill Report</h3>
-                <a asp-controller="Medicine" asp-action="Billing" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+                <a asp-controller="Billing" asp-action="Index" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
             </div>
         </div>
     </div>
@@ -31,7 +31,7 @@
             <div class="panel-body">
                 <i class="las la-file-invoice-dollar font-36 text-info"></i>
                 <h3 class="mb-4">Purchase Report</h3>
-                <a asp-controller="Medicine" asp-action="Purchase" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
+                <a asp-controller="Purchase" asp-action="Index" class="btn btn-white btn-sm"><i class="las la-laptop"></i> View</a>
             </div>
         </div>
     </div>
