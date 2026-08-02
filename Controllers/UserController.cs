@@ -6,22 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Models;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-[Route("User/[action]")]
+[Route("Users/[action]")]
 public class UserController(
     UserManager<IdentityUser> userManager,
     RoleManager<IdentityRole> roleManager
 ) : Controller
 {
-    private const string PrimaryAdminEmail = "nomanaadma@gmail.com";
 
-    [HttpGet]
-    [Route("/Users")]
-    [Route("/User")]
-    [Route("/User/Index")]
+    [HttpGet("/Users")]
     public async Task<IActionResult> Index()
     {
         var users = await userManager.Users.ToListAsync();
@@ -30,29 +27,32 @@ public class UserController(
         foreach (var user in users)
         {
             var claims = await userManager.GetClaimsAsync(user);
-            var roles = await userManager.GetRolesAsync(user);
+            var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
 
             var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
             var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
-            var roleName = roles.FirstOrDefault() ?? "No Role";
 
+            var createdDate = claims.FirstOrDefault(c => c.Type == "CreatedDate")?.Value ?? "";
+            
             var isLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
+            
+            var status = (isLockedOut) ? Status.InActive : Status.Active;
 
             userList.Add(new UserListViewModel
             {
                 Id = user.Id,
-                FirstName = firstName,
-                LastName = lastName,
+                FullName = firstName + " " + lastName, 
                 Email = user.Email ?? "",
                 Mobile = user.PhoneNumber ?? "",
                 UserName = user.UserName ?? "",
                 Role = roleName,
-                IsActive = !isLockedOut,
-                IsPrimaryAdmin = string.Equals(user.Email, PrimaryAdminEmail, StringComparison.OrdinalIgnoreCase)
+                CreatedDate = createdDate,
+                Status = status
             });
         }
+        
+        userList = userList.OrderByDescending(u => u.CreatedDate).ToList();
 
-        ViewData["page_title"] = "Users";
         return View(userList);
     }
 
@@ -64,7 +64,7 @@ public class UserController(
             Roles = await GetRolesSelectListAsync()
         };
 
-        ViewData["page_title"] = "Add User";
+        ViewData["Title"] = "Add User";
         return View("UserForm", model);
     }
 
@@ -72,8 +72,10 @@ public class UserController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(UserFormViewModel model)
     {
+        ViewData["Title"] = "Add User";
+	    
         model.Roles = await GetRolesSelectListAsync();
-
+        
         if (string.IsNullOrWhiteSpace(model.Password))
         {
             ModelState.AddModelError(nameof(model.Password), "Password is required.");
@@ -81,7 +83,6 @@ public class UserController(
 
         if (!ModelState.IsValid)
         {
-            ViewData["page_title"] = "Add User";
             return View("UserForm", model);
         }
 
@@ -89,7 +90,6 @@ public class UserController(
         if (existingByUsername != null)
         {
             ModelState.AddModelError(nameof(model.UserName), $"User Name {model.UserName} already exists in database.");
-            ViewData["page_title"] = "Add User";
             return View("UserForm", model);
         }
 
@@ -97,7 +97,6 @@ public class UserController(
         if (existingByEmail != null)
         {
             ModelState.AddModelError(nameof(model.Email), $"Email {model.Email} already exists in database.");
-            ViewData["page_title"] = "Add User";
             return View("UserForm", model);
         }
 
@@ -116,7 +115,6 @@ public class UserController(
             {
                 ModelState.AddModelError("", error.Description);
             }
-            ViewData["page_title"] = "Add User";
             return View("UserForm", model);
         }
 
@@ -125,7 +123,8 @@ public class UserController(
         {
             new(ClaimTypes.GivenName, model.FirstName),
             new(ClaimTypes.Surname, model.LastName),
-            new("Gender", model.Gender ?? "Male")
+            new("Gender", model.Gender),
+            new("CreatedDate", model.CreatedDate.ToString("dd/MM/yyyy")),
         };
         await userManager.AddClaimsAsync(user, claims);
 
@@ -155,32 +154,38 @@ public class UserController(
         }
 
         var claims = await userManager.GetClaimsAsync(user);
-        var roles = await userManager.GetRolesAsync(user);
-
+        var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "";
+        
         var isLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
+        var status = (isLockedOut) ? Status.InActive : Status.Active;
+        
+        var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
+        var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
+        var gender = claims.FirstOrDefault(c => c.Type == "Gender")?.Value ?? "Male";
 
         var model = new UserFormViewModel
         {
             UserId = user.Id,
-            FirstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "",
-            LastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "",
+            FirstName = firstName,
+            LastName = lastName,
             Mobile = user.PhoneNumber ?? "",
             Email = user.Email ?? "",
-            Gender = claims.FirstOrDefault(c => c.Type == "Gender")?.Value ?? "Male",
-            Status = isLockedOut ? 0 : 1,
-            UserRole = roles.FirstOrDefault() ?? "",
+            Gender = gender,
+            Status = status,
+            UserRole = roleName,
             UserName = user.UserName ?? "",
             Roles = await GetRolesSelectListAsync()
         };
 
-        ViewData["page_title"] = "Edit User";
+        ViewData["Title"] = "Edit User";
         return View("UserForm", model);
     }
 
-    [HttpPost]
+    [HttpPost("{id}")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UserFormViewModel model)
     {
+        ViewData["Title"] = "Edit User";
         model.Roles = await GetRolesSelectListAsync();
 
         if (string.IsNullOrWhiteSpace(model.UserId))
@@ -197,7 +202,6 @@ public class UserController(
 
         if (!ModelState.IsValid)
         {
-            ViewData["page_title"] = "Edit User";
             return View("UserForm", model);
         }
 
@@ -206,7 +210,6 @@ public class UserController(
         if (existingByUsername != null && existingByUsername.Id != user.Id)
         {
             ModelState.AddModelError(nameof(model.UserName), $"User Name {model.UserName} already exists in database.");
-            ViewData["page_title"] = "Edit User";
             return View("UserForm", model);
         }
 
@@ -215,7 +218,6 @@ public class UserController(
         if (existingByEmail != null && existingByEmail.Id != user.Id)
         {
             ModelState.AddModelError(nameof(model.Email), $"Email {model.Email} already exists in database.");
-            ViewData["page_title"] = "Edit User";
             return View("UserForm", model);
         }
 
@@ -224,7 +226,7 @@ public class UserController(
         user.PhoneNumber = model.Mobile;
 
         // Update Lockout status
-        if (model.Status == 0)
+        if (model.Status == Status.InActive)
         {
             await userManager.SetLockoutEnabledAsync(user, true);
             await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
@@ -241,29 +243,15 @@ public class UserController(
             {
                 ModelState.AddModelError("", error.Description);
             }
-            ViewData["page_title"] = "Edit User";
             return View("UserForm", model);
         }
 
         // Sync Claims
         var claims = await userManager.GetClaimsAsync(user);
-        var givenNameClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName);
-        if (givenNameClaim != null)
-            await userManager.ReplaceClaimAsync(user, givenNameClaim, new Claim(ClaimTypes.GivenName, model.FirstName));
-        else
-            await userManager.AddClaimAsync(user, new Claim(ClaimTypes.GivenName, model.FirstName));
-
-        var surnameClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname);
-        if (surnameClaim != null)
-            await userManager.ReplaceClaimAsync(user, surnameClaim, new Claim(ClaimTypes.Surname, model.LastName));
-        else
-            await userManager.AddClaimAsync(user, new Claim(ClaimTypes.Surname, model.LastName));
-
-        var genderClaim = claims.FirstOrDefault(c => c.Type == "Gender");
-        if (genderClaim != null)
-            await userManager.ReplaceClaimAsync(user, genderClaim, new Claim("Gender", model.Gender ?? "Male"));
-        else
-            await userManager.AddClaimAsync(user, new Claim("Gender", model.Gender ?? "Male"));
+        
+        await EnsureClaimUpdatedAsync(user, claims, ClaimTypes.GivenName, model.FirstName);
+        await EnsureClaimUpdatedAsync(user, claims, ClaimTypes.Surname, model.LastName);
+        await EnsureClaimUpdatedAsync(user, claims, "Gender", model.Gender);
 
         // Sync Role
         if (!string.IsNullOrWhiteSpace(model.UserRole) && await roleManager.RoleExistsAsync(model.UserRole))
@@ -304,10 +292,12 @@ public class UserController(
             TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "You cannot delete your own account!" });
             return RedirectToAction(nameof(Index));
         }
+        
+        var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
 
-        if (string.Equals(user.Email, PrimaryAdminEmail, StringComparison.OrdinalIgnoreCase))
+        if (roleName == "Admin")
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Primary administrator account cannot be deleted!" });
+            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Administrator account cannot be deleted!" });
             return RedirectToAction(nameof(Index));
         }
 
@@ -333,4 +323,26 @@ public class UserController(
             Text = r.Name
         });
     }
+    
+    private async Task EnsureClaimUpdatedAsync(IdentityUser user, IList<Claim> existingClaims, string claimType, string newValue)
+    {
+	    
+	    
+	    
+	    var existingClaim = existingClaims.FirstOrDefault(c => c.Type == claimType);
+
+	    if (existingClaim != null)
+	    {
+		    // Only hit the database if the value actually changed
+		    if (existingClaim.Value != newValue)
+		    {
+			    await userManager.ReplaceClaimAsync(user, existingClaim, new Claim(claimType, newValue));
+		    }
+	    }
+	    else
+	    {
+		    await userManager.AddClaimAsync(user, new Claim(claimType, newValue));
+	    }
+    }
+    
 }
