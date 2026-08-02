@@ -1,88 +1,615 @@
-﻿The Inventory query is not producing the correct result 
+﻿Now I want to work on User list and form
 
-so let me show you the full query again 
-
-
-medicine_batch_view 
-
-SELECT
-  `medicines`.`name` AS `name`,
-  `medicine_batch`.`id` AS `id`,
-  `medicine_batch`.`batch` AS `batch`,
-  `medicine_batch`.`expiry` AS `expiry`,
-  `medicine_batch`.`pqty` AS `pqty`,
-  `medicine_batch`.`qty` AS `qty`,
-  `medicine_batch`.`saleprice` AS `saleprice`,
-  `medicine_batch`.`purchaseprice` AS `purchaseprice`,
-  `medicine_batch`.`gross` AS `gross`,
-  `medicine_batch`.`discounttype` AS `discounttype`,
-  `medicine_batch`.`discount` AS `discount`,
-  `medicine_batch`.`discountvalue` AS `discountvalue`,
-  `medicine_batch`.`tax` AS `tax`,
-  `medicine_batch`.`taxprice` AS `taxprice`,
-  `medicine_batch`.`price` AS `price`,
-  round((`medicine_batch`.`price` / nullif(`medicine_batch`.`qty`, 0)), 2) AS `unit_purchase_price`,
-  `medicine_batch`.`sold` AS `sold`,
-  `medicine_batch`.`medicine_id` AS `medicine_id`,
-  `medicine_batch`.`purchase_id` AS `purchase_id`,
-  `medicine_batch`.`status` AS `status`,
-  `medicine_batch`.`created_date` AS `created_date`,
-  round((`medicine_bill`.`price` / nullif(`medicine_bill`.`qty`, 0)), 2) AS `unit_sale_price`,
-  round(((`medicine_batch`.`price` / nullif(`medicine_batch`.`qty`, 0)) * `medicine_batch`.`sold`), 2) AS `total_purchase`,
-  round(
-    (round((`medicine_bill`.`price` / nullif(`medicine_bill`.`qty`, 0)), 2) * `medicine_batch`.`sold`),
-    2
-  ) AS `total_sales`,
-  round(
-    (
-      round(
-        (round((`medicine_bill`.`price` / nullif(`medicine_bill`.`qty`, 0)), 2) * `medicine_batch`.`sold`),
-        2
-      ) - round(((`medicine_batch`.`price` / nullif(`medicine_batch`.`qty`, 0)) * `medicine_batch`.`sold`), 2)
-    ),
-    2
-  ) AS `profit`
-FROM
-  (
-    (`medicine_batch` JOIN `medicines` ON ((`medicine_batch`.`medicine_id` = `medicines`.`id`)))
-    LEFT JOIN `bill_items_view` `medicine_bill` ON (((`medicine_batch`.`medicine_id` = `medicine_bill`.`medicine_id`) AND (`medicine_batch`.`id` = `medicine_bill`.`batch`)))
-  )
+sidebar menu
+<li class="has-sub active"><a><i class="las la-users"></i><span>Users</span><i class="arrow"></i></a><ul class="sub-menu"><li><a href="http://pharmapos.test/index.php?route=users"><span>Users List</span></a></li></ul></li>
 
 
-  bill_items_view
+In the implementation, you will see code related to roles and permissions grant. For our .NET application, please do not implement those parts for now. I will provide separate instructions for roles and permissions later. There a column or user role pleaes add that column and also in the form of user allow to change user role as well don't skip these two.
 
 
-  select `bill_items`.`medicine_id` AS `medicine_id`,`bill_items`.`batch` AS `batch`,sum(`bill_items`.`qty`) AS `qty`,sum(`bill_items`.`price`) AS `price` from `bill_items` group by `bill_items`.`medicine_id`,`bill_items`.`batch`
 
-  and then get medicine 
+let me show you php implementation
 
 
-  public function getMedicines()
+
+user_list.twig 
+
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-4">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-sm-8 text-right">
+			{% if page_add %}
+				<a href="{{ common.info.url_route }}user/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New User</a>
+			{% endif %}
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="table-responsive">
+			<table class="table table-middle table-bordered table-striped datatable-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Person Info</th>
+						<th>User Name</th>
+						<th>User Role</th>
+						<th>Status</th>
+						<th>Created Date</th>
+						{% if page_edit or page_delete %}
+							<th></th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for value in result %}
+						<tr>
+							<td>{{ loop.index }}</td>
+							<td>
+								<p class="text-primary m-0">{{ value.firstname~' '~value.lastname }}</p>
+								<p class="m-0">{{ value.email }}</p>
+								<p class="m-0">{{ value.mobile }}</p>
+							</td>
+							<td>{{ value.user_name }}</td>
+							<td>{{ value.role }}</td>
+							<td class="user-status">
+								{% if value.status == '1' %}
+									<span class="label label-success">Active</span>
+								{% elseif value.status == '0' %}
+									<span class="label label-danger">InActive</span>
+								{% endif %}
+							</td>
+							<td>{{ value.created_date|date(common.info.date_format) }}</td>
+							{% if page_edit or page_delete %}
+								<td class="table-action">
+									{% if value.user_role != '1' %}
+										{% if page_edit %}
+											<a href="{{ common.info.url_route~'user/edit&id='~value.user_id }}" class="text-primary edit" data-toggle="tooltip" title="Edit"><i class="las la-edit"></i></a>
+										{% endif %}
+										{% if page_delete %}
+											<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+												<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
+											</a>
+										{% endif %}
+									{% endif %}
+								</td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% if page_delete %}{{ include('common/delete_modal.twig') }}{% endif %}
+{{ include('common/footer.twig') }}
+
+
+user_form.twig 
+
+{{ include('common/header.twig') }}
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="{{ common.info.url }}">Dashboard</a></li>
+					<li><a href="{{ common.info.url_route }}users">Users</a></li>
+					<li>{{ page_title }}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<form action="{{ action }}" method="post">
+	<input type="hidden" name="_token" value="{{ common.token }}">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="tab-content pt-4">
+				<div class="tab-pane active" id="user-info">
+					<div class="row">
+						<div class="col-lg-6">
+							<div class="row">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>First Name <span class="form-required">*</span></label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="las la-user"></i></span>
+											</div>
+											<input type="text" name="user[firstname]" class="form-control" value="{{ result.firstname }}" placeholder="Enter First Name . . ." required>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Last Name <span class="form-required">*</span></label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="las la-user"></i></span>
+											</div>
+											<input type="text" name="user[lastname]" class="form-control" value="{{ result.lastname }}" placeholder="Enter Last Name . . ." required>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label>Mobile Number <span class="form-required">*</span></label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-mobile"></i></span>
+									</div>
+									<input type="text" name="user[mobile]" class="form-control" value="{{ result.mobile }}" placeholder="Enter Mobile Number . . ." required>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<div class="form-group">
+								<label>Email Address <span class="form-required">*</span></label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-envelope"></i></span>
+									</div>
+									<input type="text" name="user[mail]" class="form-control" value="{{ result.email }}" placeholder="Enter Email Address . . ." required >
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="form-group">
+										<label>Gender</label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="las la-genderless"></i></span>
+											</div>
+											<select name="user[gender]" class="custom-select">
+												<option value="Male" {{ result.gender == 'Male' ? 'selected' : false }}>Male</option>
+												<option value="Female" {{ result.gender == 'Female' ? 'selected' : false }}>Female</option>
+											</select>
+										</div>
+									</div>
+								</div>
+								{% if result.user_id %}
+								<div class="col-lg-6">
+									<div class="form-group">
+										<label>Status</label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="las la-check-square"></i></span>
+											</div>
+											<select name="user[status]" class="custom-select">
+												<option value="1" {{ result.status == '1' ? 'selected' : false }}>Enabled</option>
+												<option value="0" {{ result.status == '0' ? 'selected' : false }}>Disabled</option>
+											</select>
+										</div>
+									</div>
+								</div>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+					<div class="dotted-seprator mt-4 mb-5"></div>
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label>User Role <span class="form-required">*</span></label>
+								<div class="input-group">
+									<div class="input-group-prepend"><span class="input-group-text"><i class="las la-user-tag"></i></span></div>
+									<select name="user[user_role]" class="custom-select">
+										{% for value in roles %}
+											{% if value.id != '1' %}
+												<option value="{{ value.id }}" {{ value.id == result.user_role ? 'selected' : false }}>{{ value.name }}</option>
+											{% endif %}
+										{% endfor %}
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label>User Name <span class="form-required">*</span></label>
+								<div class="input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text"><i class="las la-address-card"></i></span>
+									</div>
+									<input type="text" name="user[user_name]" class="form-control" value="{{ result.user_name }}" placeholder="Enter User Name . . ." required>
+								</div>
+							</div>
+						</div>
+						{% if result.user_id is empty %}
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>Password <span class="form-required">*</span></label>
+									<div class="input-group">
+										<div class="input-group-prepend"><span class="input-group-text"><i class="las la-key"></i></span></div>
+										<input type="password" name="user[password]" class="form-control" placeholder="Enter Password . . ." required="">
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>Confirm Password <span class="form-required">*</span></label>
+									<div class="input-group">
+										<div class="input-group-prepend"><span class="input-group-text"><i class="las la-key"></i></span></div>
+										<input type="password" name="user[cpassword]" class="form-control" placeholder="Enter Password . . ." required="">
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<input type="hidden" name="user[user_id]" value="{{ result.user_id }}">
+		<div class="panel-footer text-center">
+			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+		</div>
+	</div>
+</form>
+<script type="text/javascript" src="public/js/user_form.js?v={{ "now"|date("U") }}"></script>
+{{ include('common/footer.twig') }}
+
+
+User Controller
+
+
+
+public function index()
 	{
-		$query = $this->database->query("SELECT
-			m.id,
-			m.`NAME`,
-			mc.`NAME` AS category_name, 
-			SUM(mb.qty) AS qty, 
-			SUM(mb.qty) - SUM(mb.sold) AS livestock, 
-			SUM(mb.total_sales) AS total_sales, 
-			SUM(mb.profit) AS profit, 
-			SUM(mb.total_purchase) AS total_purchase
-		FROM
-			medicines AS m
-			LEFT JOIN
-			medicine_category AS mc
-			ON 
-				mc.id = m.category
-			LEFT JOIN
-			medicine_batch_view AS mb
-			ON 
-				mb.medicine_id = m.id
-		GROUP BY
-			m.id, mc.`NAME`
-		ORDER BY
-			m.created_date DESC");
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/**
+		* Get all User data from DB using User model 
+		**/
+		$this->load->model('user');
+		$data['result'] = $this->model_user->allUsers();
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'Users';
+		$data['page_add'] = $this->user_agent->hasPermission('user/add') ? true : false;
+		$data['page_edit'] = $this->user_agent->hasPermission('user/edit') ? true : false;
+		$data['page_delete'] = $this->user_agent->hasPermission('user/delete') ? true : false;
+		
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action_delete'] = URL.DIR_ROUTE.'user/delete';
+		/*Render User list view*/
+		$this->response->setOutput($this->load->view('user/user_list', $data));
+	}
+
+
+
+  /**
+	* User index add method
+	* This method will be called on User add
+	**/
+	public function indexAdd()
+	{
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/* Set empty data to array */
+		$data['result'] =  NULL;
+		$this->load->model('user');
+		$data['roles'] = $this->model_user->getUserRoles();
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+		/* Set page title */
+		$data['page_title'] = 'Add User';
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action'] = URL.DIR_ROUTE.'user/add';
+		/*Render User add view*/
+		$this->response->setOutput($this->load->view('user/user_form', $data));
+	}
+	/**
+	* User index edit method
+	* This method will be called on User edit view
+	**/
+	public function indexEdit()
+	{
+		/**
+		* Check if id exist in url if not exist then redirect to User list view 
+		**/
+		$id = (int)$this->url->get('id');
+		if (empty($id) || !is_int($id) || $id == 1) {
+			$this->url->redirect('users');
+		}
+		/**
+		* Call getUser method from User model to get data from DB for single User
+		* If User does not exist then redirect it to User list view
+		**/
+		$this->load->model('user');
+		$data['result'] = $this->model_user->getUser($id);
+
+		if (!$data['result']) {
+			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'User does not exist in database!');
+			$this->url->redirect('users');
+		}
+		$data['roles'] = $this->model_user->getUserRoles();
+
+		$this->load->model('commons');
+		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+		/*Create data array to pass to view*/
+		$data['page_title'] = 'Edit User';
+		/* Set confirmation message if page submitted before */
+		if (isset($this->session->data['message'])) {
+			$data['message'] = $this->session->data['message'];
+			unset($this->session->data['message']);
+		}
+
+		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
+		$data['action'] = URL.DIR_ROUTE.'user/edit';
+		/*Render User edit view*/
+		$this->response->setOutput($this->load->view('user/user_form', $data));
+	}
+	/**
+	* Info index action method
+	* This method will be called on Info submit/save view
+	**/
+	public function indexAction()
+	{
+		/**
+		* Check if from is submitted or not 
+		**/
+		if (!isset($_POST['submit'])) {
+			$this->url->redirect('users');
+		}
+		/**
+		* Validate form data
+		* If some data is missing or data does not match pattern
+		* Return to info view 
+		**/
+		$data = $this->url->post;
+		
+		$this->load->model('commons');
+		$data['info'] = $this->model_commons->getSiteInfo();
+
+		$this->load->controller('common');
+		if ($validate_field = $this->validateField($data)) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter/select valid '.implode(", ",$validate_field).'!');
+			if (!empty($data['user']['user_id'])) {
+				$this->url->redirect('user/edit&id='.$data['user']['user_id']);
+			} else {
+				$this->url->redirect('user/add');
+			}
+		}
+
+		$this->load->model('user');
+		/**
+		* Check if @user_name already exist or not in database
+		**/
+		$check_user = $this->model_user->checkUserName($data['user']['user_name'], $data['user']['user_id']);
+		if ($check_user >= 1) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'User Name '.$data['user']['user_name'].' already exist in database.');
+			if (!empty($data['user']['user_id'])) {
+				$this->url->redirect('user/edit&id='.$data['user']['user_id']);
+			} else {
+				$this->url->redirect('user/add');
+			}
+		}
+		/**
+		* Check if @email already exist or not in database
+		**/
+		if ($this->model_user->checkUserEmail($data['user']['mail'], $data['user']['user_id']) >= 1) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Email ' . $data['user']['mail'] . ' already exist in database.');
+			if (!empty($data['user']['user_id'])) {
+				$this->url->redirect('user/edit&id='.$data['user']['user_id']);
+			} else {
+				$this->url->redirect('user/add');
+			}
+		}
+
+		if (!empty($data['user']['dob'])) {
+			$data['user']['dob'] = DateTime::createFromFormat($data['info']['date_format'], $data['user']['dob'])->format('Y-m-d');
+		} else {
+			$data['user']['dob'] = '';
+		}
+		
+		$data['user']['address'] = json_encode($data['user']['address']);
+		$data['user']['datetime'] = date('Y-m-d H:i:s');
+		if (!empty($data['user']['user_id'])) {
+			$this->model_user->updateUser($data['user']);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Account updated successfully.');
+		} else {
+			$data['user']['hash'] = md5(uniqid(mt_rand(), true));
+			$data['user']['password'] = password_hash($data['user']['password'], PASSWORD_DEFAULT);
+			$data['user']['user_id'] = $this->model_user->createUser($data['user']);
+			$this->session->data['message'] = array('alert' => 'success', 'value' => 'Account created successfully.');
+		}
+		$this->url->redirect('user/edit&id='.$data['user']['user_id']);
+	}
+	/**
+	* User index delete method
+	* This method will be called on blog delete action
+	**/
+	public function indexDelete()
+	{	
+		$this->load->controller('common');
+		if ($this->controller_common->validateToken($this->url->post('_token'))) {
+			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Security token is missing!');
+			$this->url->redirect('users');
+		}
+
+		/**
+		* Check if from is submitted or not 
+		**/
+		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
+			$this->url->redirect('users');
+		}
+
+		$this->load->model('user');
+		$result = $this->model_user->deleteUser($this->url->post('id'));
+		$this->session->data['message'] = array('alert' => 'success', 'value' => 'Account deleted successfully.');
+		$this->url->redirect('users');
+	}
+
+	/**
+	* Validate user field from server side
+	**/
+	protected function validateField($data)
+	{
+		$error = [];
+		$error_flag = false;
+		if ($this->controller_common->validateText($data['user']['user_name'])) {
+			$error_flag = true;
+			$error['username'] = 'User Name';
+		}
+		if ($this->controller_common->validateText($data['user']['firstname'])) {
+			$error_flag = true;
+			$error['firstname'] = 'First Name';
+		}
+		if ($this->controller_common->validateText($data['user']['lastname'])) {
+			$error_flag = true;
+			$error['lastname'] = 'Last Name';
+		}
+		if (!empty($data['dob'])) {
+			if ($this->controller_common->validateDate( $data['user']['dob'], $data['info']['date_format'] )) {
+				
+				$error_flag = true;
+				$error['date'] = 'Date of Birth';
+			}
+		}
+		if ($this->controller_common->validateEmail($data['user']['mail'])) {
+			$error_flag = true;
+			$error['email'] = 'Email Address';
+		}
+		if ($this->controller_common->validatePhoneNumber($data['user']['mobile'])) {
+			$error_flag = true;
+			$error['mobile'] = 'Mobile Number';
+		}
+		
+		if ($error_flag) {
+			return $error;
+		} else {
+			return false;
+		}
+	}
+
+	protected function random_str($length, $keyspace = '0123456789@#$%&*abcdefghijklmnopqrstuvwxyz@#$%&*ABCDEFGHIJKLMNOPQRSTUVWXYZ') 
+	{
+		$str = '';
+		$max = mb_strlen($keyspace, '8bit') - 1;
+		for ($i = 0; $i < $length; ++$i) { $str .= $keyspace[random_int(0, $max)];}
+			return $str;
+	}
+
+  public function allUsers()
+	{
+		$query = $this->database->query("SELECT u.*, u.user_id AS id, ur.name AS role FROM `users` As u LEFT JOIN `user_role` As ur ON u.user_role = ur.id ORDER BY `created_date` DESC");
 		return $query->rows;
 	}
 
-	
+	public function getUser($id)
+	{
+		$query = $this->database->query("SELECT * FROM `users` WHERE user_id = ? LIMIT 1", array($this->database->escape($id)));
+		if ($query->num_rows > 0) {
+			return $query->row;
+		} else {
+			return false;
+		}
+	}
+
+  public function checkUserName($username, $id)
+	{
+		if (!empty($id)) {
+			$query = $this->database->query("SELECT count(*) AS total FROM `users` WHERE `user_name` = ? AND `user_id` != ?", array($this->database->escape($username), (int)$id));
+		} else {
+			$query = $this->database->query("SELECT count(*) AS total FROM `users` WHERE `user_name` = ?", array($this->database->escape($username)));
+		}
+		if ( $query->num_rows > 0 ) {
+			return $query->row['total'];
+		} else {
+			return false;
+		}
+	}
+
+	public function checkUserEmail($email, $id)
+	{
+		if (!empty($id)) {
+			$query = $this->database->query("SELECT count(*) AS total FROM `users` WHERE `email` = ? AND `user_id` != ?", array($this->database->escape($email), (int)$id));
+		} else {
+			$query = $this->database->query("SELECT count(*) AS total FROM `users` WHERE `email` = ?", array($this->database->escape($email)));
+		}
+		if ($query->num_rows > 0) {
+			return $query->row['total'];
+		} else{
+			return false;
+		}
+	}
+
+	public function updateUser($data)
+	{
+		$query = $this->database->query("UPDATE `users` SET `user_role` = ?, `user_name` = ?, `firstname` = ?, `lastname` = ?, `email` = ?, `mobile` = ?, `gender` = ?, `status` = ? WHERE `user_id` = ? " , array((int)$data['user_role'], $this->database->escape($data['user_name']), $this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), (int)$data['status'], (int)$data['user_id']));
+
+		if ($query->num_rows > 0) {
+			return true;
+		} else { 
+			return false;
+		}
+	}
+
+	public function createUser($data)
+	{
+		$query = $this->database->query("INSERT INTO `users` (`user_role`, `user_name`, `firstname`, `lastname`, `email`, `mobile`,`gender`, `password`, `temp_hash`, `created_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array($this->database->escape($data['user_role']), $this->database->escape($data['user_name']), $this->database->escape($data['firstname']), $this->database->escape($data['lastname']), $this->database->escape($data['mail']), $this->database->escape($data['mobile']), $this->database->escape($data['gender']), $data['password'], $data['hash'], $data['datetime']));
+		if ($query->num_rows > 0) {
+			return $this->database->last_id();
+		} else {
+		    return false;	
+		}
+	}
+
+	public function deleteUser($id)
+	{
+		$query = $this->database->query("DELETE FROM `users` WHERE `user_id` = ?", array((int)$id));
+		if ($query->num_rows > 0) { 
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+  public function addUserRole($data)
+	{
+		$query = $this->database->query("INSERT INTO `user_role` (`name`, `description` ,`permission`) VALUES (?, ?, ?)", 
+			array($this->database->escape($data['name']), $data['description'], $data['role']));
+		return $this->database->last_id();
+	}
+
+	public function updateUserRole($data)
+	{
+		$query = $this->database->query("UPDATE `user_role` SET `name` = ?, `description` = ?, `permission` = ? WHERE `id` = ?", array($this->database->escape($data['name']), $data['description'], $data['role'], (int)$data['id']));
+		return true;
+	}
+
+	public function deleteRole($id)
+	{
+		$query = $this->database->query("DELETE FROM `user_role` WHERE `id` = ?", array((int)$id));
+		if ($query->num_rows > 0) { 
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+  public function getUserRoles()
+	{
+		$query = $this->database->query("SELECT `id` , `name` FROM `user_role`");
+		return $query->rows;
+	}
+
+
