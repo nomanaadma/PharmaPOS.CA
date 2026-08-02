@@ -53,7 +53,7 @@ public class SettingController(
 			return View("Info", model);
 		}
 
-		var settings = await context.Settings.AsTracking().FirstOrDefaultAsync();
+		var settings = await context.Settings.FirstOrDefaultAsync();
 		if (settings == null)
 		{
 			settings = new Setting(model.Name, model.LegalName, model.Mail, model.Phone);
@@ -173,7 +173,7 @@ public class SettingController(
 
 		try
 		{
-			var supplier = await context.Suppliers.AsTracking().FirstOrDefaultAsync(s => s.Id == model.Id.Value);
+			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id.Value);
 			if (supplier == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
@@ -199,7 +199,7 @@ public class SettingController(
 	{
 		try
 		{
-			var supplier = await context.Suppliers.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
 			if (supplier == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
@@ -313,7 +313,7 @@ public class SettingController(
 
 		try
 		{
-			var category = await context.MedicineCategories.AsTracking().FirstOrDefaultAsync(c => c.Id == model.Id.Value);
+			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id.Value);
 			if (category == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
@@ -339,7 +339,7 @@ public class SettingController(
 	{
 		try
 		{
-			var category = await context.MedicineCategories.AsTracking().FirstOrDefaultAsync(c => c.Id == id);
+			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
 			if (category == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
@@ -455,7 +455,7 @@ public class SettingController(
 
 		try
 		{
-			var method = await context.PaymentMethods.AsTracking().FirstOrDefaultAsync(pm => pm.Id == model.Id.Value);
+			var method = await context.PaymentMethods.FirstOrDefaultAsync(pm => pm.Id == model.Id.Value);
 			if (method == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method not found." });
@@ -481,7 +481,7 @@ public class SettingController(
 	{
 		try
 		{
-			var method = await context.PaymentMethods.AsTracking().FirstOrDefaultAsync(pm => pm.Id == id);
+			var method = await context.PaymentMethods.FirstOrDefaultAsync(pm => pm.Id == id);
 			if (method == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method not found." });

@@ -377,7 +377,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				context.BillItems.Add(billItem);
 
 				var batch = await context.Batches
-					.AsTracking()
+					
 					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId );
 			
 				batch?.UpdateSold(batch.Sold + item.Qty);
@@ -503,7 +503,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		{
 			var bill = await context.Bills
 				.Include(mb => mb.Items)
-				.AsTracking()
+				
 				.FirstOrDefaultAsync(mb => mb.Id == id);
 
 			if (bill == null) return NotFound();
@@ -540,7 +540,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 			foreach (var oldItem in bill.Items)
 			{
 				var batch = await context.Batches
-					.AsTracking()
+					
 					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId);
 				
 				batch?.UpdateSold(batch.Sold - oldItem.Qty);
@@ -556,7 +556,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 				context.BillItems.Add(billItem);
 				
 				var batch = await context.Batches
-					.AsTracking()
+					
 					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId);
 
 				batch?.UpdateSold(batch.Sold + item.Qty);
@@ -590,7 +590,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 			foreach (var item in bill.Items)
 			{
 				var batch = await context.Batches
-					.AsTracking()
+					
 					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId);
 				
 				batch?.UpdateSold(batch.Sold - item.Qty);

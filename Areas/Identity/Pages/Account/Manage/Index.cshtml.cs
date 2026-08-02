@@ -128,7 +128,7 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
             }
 
             // Update or add First Name Claim directly with tracking
-            var dbFirstNameClaim = await _context.UserClaims.AsTracking()
+            var dbFirstNameClaim = await _context.UserClaims
                 .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.GivenName);
 
             if (dbFirstNameClaim != null)
@@ -146,7 +146,7 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
             }
 
             // Update or add Last Name Claim directly with tracking
-            var dbLastNameClaim = await _context.UserClaims.AsTracking()
+            var dbLastNameClaim = await _context.UserClaims
                 .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.Surname);
 
             if (dbLastNameClaim != null)

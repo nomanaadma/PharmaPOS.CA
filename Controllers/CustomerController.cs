@@ -162,7 +162,7 @@ public class CustomerController(
 
 		try
 		{
-			var customer = await context.Customers.AsTracking().FirstOrDefaultAsync(c => c.Id == model.Id.Value);
+			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == model.Id.Value);
 			if (customer == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer not found." });
@@ -188,7 +188,7 @@ public class CustomerController(
 	{
 		try
 		{
-			var customer = await context.Customers.AsTracking().FirstOrDefaultAsync(c => c.Id == id);
+			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 			if (customer == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer not found." });

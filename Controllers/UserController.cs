@@ -327,8 +327,6 @@ public class UserController(
     private async Task EnsureClaimUpdatedAsync(IdentityUser user, IList<Claim> existingClaims, string claimType, string newValue)
     {
 	    
-	    
-	    
 	    var existingClaim = existingClaims.FirstOrDefault(c => c.Type == claimType);
 
 	    if (existingClaim != null)

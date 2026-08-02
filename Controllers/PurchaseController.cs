@@ -462,7 +462,7 @@ public class PurchaseController(
 		{
 			var existingPurchase = await context.Purchases
 				.Include(mp => mp.Batches)
-				.AsTracking()
+				
 				.FirstOrDefaultAsync(mp => mp.Id == id);
 
 			if (existingPurchase == null)
@@ -562,7 +562,7 @@ public class PurchaseController(
 	{
 		try
 		{
-			var purchase = await context.Purchases.AsTracking().FirstOrDefaultAsync(mp => mp.Id == id);
+			var purchase = await context.Purchases.FirstOrDefaultAsync(mp => mp.Id == id);
 			if (purchase == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase record not found." });

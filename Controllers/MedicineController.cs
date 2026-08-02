@@ -236,7 +236,7 @@ public class MedicineController(
 
 		try
 		{
-			var medicine = await context.Medicines.AsTracking().FirstOrDefaultAsync(m => m.Id == model.Id.Value);
+			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id.Value);
 			if (medicine == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine not found." });
@@ -276,7 +276,7 @@ public class MedicineController(
 	{
 		try
 		{
-			var medicine = await context.Medicines.AsTracking().FirstOrDefaultAsync(m => m.Id == id);
+			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
 			if (medicine == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine not found." });

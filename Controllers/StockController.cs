@@ -140,7 +140,7 @@ public class StockController(ApplicationDbContext context) : Controller
 	public async Task<IActionResult> Update(int id, int medicineId, decimal available)
 	{
 		var batch = await context.Batches
-			.AsTracking()
+			
 			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId);
 
 		var refererUrl = Request.Headers.Referer.ToString();
@@ -163,7 +163,7 @@ public class StockController(ApplicationDbContext context) : Controller
 	public async Task<IActionResult> Delete(int id)
 	{
 		var batch = await context.Batches
-			.AsTracking()
+			
 			.FirstOrDefaultAsync(b => b.Id == id);
 		
 		var refererUrl = Request.Headers.Referer.ToString();
