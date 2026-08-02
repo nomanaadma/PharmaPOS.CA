@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -249,9 +250,9 @@ public class UserController(
         // Sync Claims
         var claims = await userManager.GetClaimsAsync(user);
         
-        await EnsureClaimUpdatedAsync(user, claims, ClaimTypes.GivenName, model.FirstName);
-        await EnsureClaimUpdatedAsync(user, claims, ClaimTypes.Surname, model.LastName);
-        await EnsureClaimUpdatedAsync(user, claims, "Gender", model.Gender);
+        await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.GivenName, model.FirstName, claims, userManager, user);
+        await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.Surname, model.LastName, claims, userManager, user);
+        await ClaimHelper.UpdateOrCreateClaimAsync("Gender", model.Gender, claims, userManager, user);
 
         // Sync Role
         if (!string.IsNullOrWhiteSpace(model.UserRole) && await roleManager.RoleExistsAsync(model.UserRole))
@@ -322,25 +323,6 @@ public class UserController(
             Value = r.Name,
             Text = r.Name
         });
-    }
-    
-    private async Task EnsureClaimUpdatedAsync(IdentityUser user, IList<Claim> existingClaims, string claimType, string newValue)
-    {
-	    
-	    var existingClaim = existingClaims.FirstOrDefault(c => c.Type == claimType);
-
-	    if (existingClaim != null)
-	    {
-		    // Only hit the database if the value actually changed
-		    if (existingClaim.Value != newValue)
-		    {
-			    await userManager.ReplaceClaimAsync(user, existingClaim, new Claim(claimType, newValue));
-		    }
-	    }
-	    else
-	    {
-		    await userManager.AddClaimAsync(user, new Claim(claimType, newValue));
-	    }
     }
     
 }

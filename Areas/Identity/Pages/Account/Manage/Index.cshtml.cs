@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
+using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
 {
@@ -19,16 +20,13 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly ApplicationDbContext _context;
 
         public IndexModel(
             UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
-            ApplicationDbContext context)
+            SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _context = context;
         }
 
         /// <summary>
@@ -127,43 +125,14 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
                 }
             }
 
-            // Update or add First Name Claim directly with tracking
-            var dbFirstNameClaim = await _context.UserClaims
-                .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.GivenName);
-
-            if (dbFirstNameClaim != null)
-            {
-                dbFirstNameClaim.ClaimValue = Input.FirstName ?? "";
-            }
-            else
-            {
-                _context.UserClaims.Add(new IdentityUserClaim<string>
-                {
-                    UserId = user.Id,
-                    ClaimType = ClaimTypes.GivenName,
-                    ClaimValue = Input.FirstName ?? ""
-                });
-            }
-
-            // Update or add Last Name Claim directly with tracking
-            var dbLastNameClaim = await _context.UserClaims
-                .FirstOrDefaultAsync(uc => uc.UserId == user.Id && uc.ClaimType == ClaimTypes.Surname);
-
-            if (dbLastNameClaim != null)
-            {
-                dbLastNameClaim.ClaimValue = Input.LastName ?? "";
-            }
-            else
-            {
-                _context.UserClaims.Add(new IdentityUserClaim<string>
-                {
-                    UserId = user.Id,
-                    ClaimType = ClaimTypes.Surname,
-                    ClaimValue = Input.LastName ?? ""
-                });
-            }
-
-            await _context.SaveChangesAsync();
+            // Fetch current claims tracked by Identity
+            var claims = await _userManager.GetClaimsAsync(user);
+            
+            var newGivenNameValue = Input.FirstName ?? "";
+            await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.GivenName, newGivenNameValue, claims, _userManager, user);
+            
+            var newSurnameValue = Input.LastName ?? "";
+            await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.Surname, newSurnameValue, claims, _userManager, user);
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
