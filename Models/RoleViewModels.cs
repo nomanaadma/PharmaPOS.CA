@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using PharmaPOS_MVC.Authorization;
 
 namespace PharmaPOS_MVC.Models;
 
@@ -30,5 +31,5 @@ public class RoleFormViewModel
 
     public List<string> SelectedPermissions { get; set; } = [];
 
-    public Dictionary<string, List<RolePermissionItem>> PermissionsGroup { get; set; } = [];
+    public Dictionary<string, List<Permission>> PermissionsGroup { get; set; } = [];
 }

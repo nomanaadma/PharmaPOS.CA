@@ -1,7 +1,4 @@
 @model IEnumerable<PharmaPOS_MVC.Models.RoleListViewModel>
-@{
-	ViewData["Title"] = ViewData["page_title"] ?? "User Roles";
-}
 
 <div class="page-title">
 	<div class="row align-items-center">
@@ -41,7 +38,7 @@
 					{
 						<tr>
 							<td>@index</td>
-							<td class="text-primary font-weight-bold">@value.Name</td>
+							<td class="text-primary">@value.Name</td>
 							<td>@value.Description</td>
 							<td>@value.CreatedDate</td>
 							<td class="table-action">

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using PharmaPOS_MVC.Authorization;
 
 namespace PharmaPOS_MVC.Data;
 
@@ -13,7 +14,11 @@ public static class DbInitializer
 		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
 		// 1. Define and Create Roles
-		string[] roles = ["Admin", "Store Manager", "Employee"];
+		string[] roles = [
+			Roles.Admin,
+			Roles.StoreManager,
+			Roles.Employee,
+		];
 		
 		foreach (var roleName in roles)
 		{
@@ -24,40 +29,30 @@ public static class DbInitializer
 		}
 
 		// 2. Define Exact Permission Arrays
-		string[] adminPermissions =
-		[
-			"dashboard", "customers", "customer/add", "customer/edit", "customer/delete", "customer/view",
-			"medicine/billing", "medicine/billing/add", "medicine/billing/edit", "medicine/billing/delete", "medicine/billing/view",
-			"medicine/purchase", "medicine/purchase/add", "medicine/purchase/edit", "medicine/purchase/delete", "medicine/purchase/view",
-			"medicine/stock", "medicine/stock/delete", "medicines", "medicine/add", "medicine/edit", "medicine/delete", "medicine/view",
-			"medicine/category", "medicine/category/add", "medicine/category/edit", "medicine/category/delete",
-			"tax", "tax/add", "tax/edit", "tax/delete", "paymentmethod", "paymentmethod/add", "paymentmethod/edit", "paymentmethod/delete",
-			"get/media", "media/upload", "media/delete",
-			"reports", "users", "user/add", "user/edit", "user/delete", "info", 
-			"suppliers", "supplier/add", "supplier/edit", "supplier/delete",
-		];
-
-		string[] storeManagerPermissions =
-		[
-			"dashboard", "customers", "customer/add", "customer/edit", "customer/delete", "customer/view",
-			"medicine/billing", "medicine/billing/add", "medicine/billing/edit", "medicine/billing/delete", "medicine/billing/view",
-			"medicine/purchase", "medicine/purchase/add", "medicine/purchase/edit", "medicine/purchase/delete", "medicine/purchase/view",
-			"medicine/stock", "medicine/stock/delete", "medicines", "medicine/add", "medicine/edit", "medicine/delete", "medicine/view",
-			"medicine/category", "medicine/category/add", "medicine/category/edit", "medicine/category/delete",
-			"tax", "tax/add", "tax/edit", "tax/delete", "paymentmethod", "paymentmethod/add", "paymentmethod/edit", "paymentmethod/delete",
-			"get/media", "media/upload", "media/delete"
-		];
-
-		string[] employeePermissions =
-		[
-			"dashboard", "customers", "customer/add", "customer/edit", "customer/delete", "customer/view",
-			"medicine/billing", "medicine/billing/add", "medicine/billing/edit", "medicine/billing/delete", "medicine/billing/view"
-		];
+		var adminPermissions = Permissions.GetAll();
+		
+		var storeManagerPermissions = Permissions.Get(
+			typeof(Permissions.Dashboard),
+			typeof(Permissions.Customer),
+			typeof(Permissions.Billing),
+			typeof(Permissions.Purchase),
+			typeof(Permissions.Stock),
+			typeof(Permissions.Medicine),
+			typeof(Permissions.Category),
+			typeof(Permissions.PaymentMethod),
+			typeof(Permissions.Media)
+		);
+		
+		var employeePermissions = Permissions.Get(
+			typeof(Permissions.Dashboard),
+			typeof(Permissions.Customer),
+			typeof(Permissions.Billing)
+		);
 
 		// 3. Assign Permissions as Claims to Roles
-		await SyncRolePermissions(roleManager, "Admin", adminPermissions);
-		await SyncRolePermissions(roleManager, "Store Manager", storeManagerPermissions);
-		await SyncRolePermissions(roleManager, "Employee", employeePermissions);
+		await SyncRolePermissions(roleManager, Roles.Admin, adminPermissions);
+		await SyncRolePermissions(roleManager, Roles.StoreManager, storeManagerPermissions);
+		await SyncRolePermissions(roleManager, Roles.Employee, employeePermissions);
 
 		// 4. Create the Default Admin User
 		const string adminEmail = "nomanaadma@gmail.com";

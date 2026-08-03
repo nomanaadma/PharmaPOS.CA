@@ -1,7 +1,4 @@
 @model PharmaPOS_MVC.Models.RoleFormViewModel
-@{
-	ViewData["Title"] = ViewData["page_title"] ?? (string.IsNullOrEmpty(Model.Id) ? "New User Role" : "Edit User Role");
-}
 
 <div class="page-title">
 	<div class="row align-items-center">
@@ -53,26 +50,25 @@
 							@foreach (var group in Model.PermissionsGroup)
 							{
 								<tr>
-									<td class="font-weight-bold" style="width: 200px; vertical-align: middle;">@group.Key</td>
-									<td>
-										<div class="row">
-											@foreach (var perm in group.Value)
+									<td>@group.Key</td>
+									@for (var i = 0; i < 5; i++)
+									{
+										<td>
+											@if (i < group.Value.Count)
 											{
-												var elementId = "perm_" + perm.Key.Replace('/', '_');
-												<div class="col-md-3 col-sm-6 my-1">
-													<div class="custom-control custom-checkbox">
-														<input type="checkbox" 
-															   class="custom-control-input" 
-															   name="SelectedPermissions" 
-															   id="@elementId" 
-															   value="@perm.Key" 
-															   @(Model.SelectedPermissions.Contains(perm.Key) ? "checked" : "")>
-														<label class="custom-control-label" for="@elementId">@perm.Name</label>
-													</div>
+												var perm = group.Value[i];
+												<div class="custom-control custom-checkbox">
+													<input type="checkbox"
+													       class="custom-control-input"
+													       name="SelectedPermissions"
+													       id="@perm.Key"
+													       value="@perm.Key"
+													       @(Model.SelectedPermissions.Contains(perm.Key) ? "checked" : "")>
+													<label class="custom-control-label" for="@perm.Key">@perm.Name</label>
 												</div>
 											}
-										</div>
-									</td>
+										</td>
+									}
 								</tr>
 							}
 						</tbody>
@@ -81,7 +77,7 @@
 			</div>
 		</div>
 		<div class="panel-footer text-center">
-			<button type="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+			<button type="submit" class="btn btn-primary"><i class="las la-save pr-2"></i> Save</button>
 		</div>
 	</div>
 </form>

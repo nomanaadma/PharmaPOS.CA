@@ -4,21 +4,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-[Route("Role/[action]")]
+[Route("Roles/[action]")]
 public class RoleController(
     RoleManager<IdentityRole> roleManager
 ) : Controller
 {
     private const string AdminRoleName = "Admin";
 
-    [HttpGet]
-    [Route("/Role")]
-    [Route("/Role/Index")]
+    [HttpGet("/Roles")]
     public async Task<IActionResult> Index()
     {
         var roles = await roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
@@ -29,6 +28,7 @@ public class RoleController(
             var claims = await roleManager.GetClaimsAsync(role);
             var description = claims.FirstOrDefault(c => c.Type == "Description")?.Value ?? "";
             var createdDateClaim = claims.FirstOrDefault(c => c.Type == "CreatedDate")?.Value;
+            
             var createdDate = "";
             if (!string.IsNullOrWhiteSpace(createdDateClaim) && DateTime.TryParse(createdDateClaim, out var parsedDate))
             {
@@ -43,9 +43,10 @@ public class RoleController(
                 CreatedDate = createdDate,
                 IsAdminRole = string.Equals(role.Name, AdminRoleName, StringComparison.OrdinalIgnoreCase)
             });
+            
         }
 
-        ViewData["page_title"] = "User Roles";
+        ViewData["Title"] = "User Roles";
         return View(list);
     }
 
@@ -54,10 +55,10 @@ public class RoleController(
     {
         var model = new RoleFormViewModel
         {
-            PermissionsGroup = GetAvailablePermissions()
+            PermissionsGroup = Permissions.GetPermissionsTemplate()
         };
 
-        ViewData["page_title"] = "New User Role";
+        ViewData["Title"] = "New User Role";
         return View("RoleForm", model);
     }
 
@@ -65,18 +66,18 @@ public class RoleController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(RoleFormViewModel model)
     {
-        model.PermissionsGroup = GetAvailablePermissions();
+        model.PermissionsGroup = Permissions.GetPermissionsTemplate();
+        ViewData["Title"] = "New User Role";
+        
 
         if (!ModelState.IsValid)
         {
-            ViewData["page_title"] = "New User Role";
             return View("RoleForm", model);
         }
 
         if (await roleManager.RoleExistsAsync(model.Name))
         {
             ModelState.AddModelError(nameof(model.Name), $"Role '{model.Name}' already exists.");
-            ViewData["page_title"] = "New User Role";
             return View("RoleForm", model);
         }
 
@@ -89,7 +90,6 @@ public class RoleController(
             {
                 ModelState.AddModelError("", error.Description);
             }
-            ViewData["page_title"] = "New User Role";
             return View("RoleForm", model);
         }
 
@@ -144,18 +144,19 @@ public class RoleController(
             Name = role.Name ?? "",
             Description = description,
             SelectedPermissions = selectedPermissions,
-            PermissionsGroup = GetAvailablePermissions()
+            PermissionsGroup = Permissions.GetPermissionsTemplate()
         };
 
-        ViewData["page_title"] = "Edit User Role";
+        ViewData["Title"] = "Edit User Role";
         return View("RoleForm", model);
     }
 
-    [HttpPost]
+    [HttpPost("{id}")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(RoleFormViewModel model)
     {
-        model.PermissionsGroup = GetAvailablePermissions();
+        model.PermissionsGroup = Permissions.GetPermissionsTemplate();
+        ViewData["Title"] = "Edit User Role";
 
         if (string.IsNullOrWhiteSpace(model.Id))
         {
@@ -177,7 +178,6 @@ public class RoleController(
 
         if (!ModelState.IsValid)
         {
-            ViewData["page_title"] = "Edit User Role";
             return View("RoleForm", model);
         }
 
@@ -185,7 +185,6 @@ public class RoleController(
         if (existingWithSameName != null && existingWithSameName.Id != role.Id)
         {
             ModelState.AddModelError(nameof(model.Name), $"Role '{model.Name}' already exists.");
-            ViewData["page_title"] = "Edit User Role";
             return View("RoleForm", model);
         }
 
@@ -197,7 +196,6 @@ public class RoleController(
             {
                 ModelState.AddModelError("", error.Description);
             }
-            ViewData["page_title"] = "Edit User Role";
             return View("RoleForm", model);
         }
 
@@ -267,94 +265,5 @@ public class RoleController(
 
         return RedirectToAction(nameof(Index));
     }
-
-    private static Dictionary<string, List<RolePermissionItem>> GetAvailablePermissions()
-    {
-        return new Dictionary<string, List<RolePermissionItem>>
-        {
-            ["Dashboard"] =
-            [
-                new() { Key = "dashboard", Name = "Dashboard" }
-            ],
-            ["Customer"] =
-            [
-                new() { Key = "customers", Name = "Customers List" },
-                new() { Key = "customer/add", Name = "Customer Add" },
-                new() { Key = "customer/edit", Name = "Customer Edit" },
-                new() { Key = "customer/delete", Name = "Customer Delete" },
-                new() { Key = "customer/view", Name = "Customer View" }
-            ],
-            ["POS/Bill"] =
-            [
-                new() { Key = "medicine/billing", Name = "POS/Bill List" },
-                new() { Key = "medicine/billing/add", Name = "Bill Add" },
-                new() { Key = "medicine/billing/edit", Name = "Bill Edit" },
-                new() { Key = "medicine/billing/delete", Name = "Bill Delete" },
-                new() { Key = "medicine/billing/view", Name = "Bill View" }
-            ],
-            ["Purchase"] =
-            [
-                new() { Key = "medicine/purchase", Name = "Purchase List" },
-                new() { Key = "medicine/purchase/add", Name = "Purchase Add" },
-                new() { Key = "medicine/purchase/edit", Name = "Purchase Edit" },
-                new() { Key = "medicine/purchase/delete", Name = "Purchase Delete" },
-                new() { Key = "medicine/purchase/view", Name = "Purchase View" }
-            ],
-            ["Stock adjustment"] =
-            [
-                new() { Key = "medicine/stock", Name = "Stock List" },
-                new() { Key = "medicine/stock/delete", Name = "Stock Delete" }
-            ],
-            ["Medicine"] =
-            [
-                new() { Key = "medicines", Name = "Medicine List" },
-                new() { Key = "medicine/add", Name = "Medicine Add" },
-                new() { Key = "medicine/edit", Name = "Medicine Edit" },
-                new() { Key = "medicine/delete", Name = "Medicine Delete" },
-                new() { Key = "medicine/view", Name = "Medicine View" }
-            ],
-            ["Medicine Category"] =
-            [
-                new() { Key = "medicine/category", Name = "Medicine Category List" },
-                new() { Key = "medicine/category/add", Name = "Medicine Category Add" },
-                new() { Key = "medicine/category/edit", Name = "Medicine Category Edit" },
-                new() { Key = "medicine/category/delete", Name = "Medicine Category Delete" }
-            ],
-            ["Reports"] =
-            [
-                new() { Key = "reports", Name = "All Reports" }
-            ],
-            ["User"] =
-            [
-                new() { Key = "users", Name = "User List" },
-                new() { Key = "user/add", Name = "User Add" },
-                new() { Key = "user/edit", Name = "User Edit" },
-                new() { Key = "user/delete", Name = "User Delete" }
-            ],
-            ["System Info"] =
-            [
-                new() { Key = "info", Name = "System Info" }
-            ],
-            ["Payment Method"] =
-            [
-                new() { Key = "paymentmethod", Name = "Payment Methods" },
-                new() { Key = "paymentmethod/add", Name = "Payment Method Add" },
-                new() { Key = "paymentmethod/edit", Name = "Payment Method Edit" },
-                new() { Key = "paymentmethod/delete", Name = "Payment Method Delete" }
-            ],
-            ["Media"] =
-            [
-                new() { Key = "get/media", Name = "Media on Modal" },
-                new() { Key = "media/upload", Name = "Media Upload" },
-                new() { Key = "media/delete", Name = "Media Delete" }
-            ],
-            ["Suppliers"] =
-            [
-                new() { Key = "suppliers", Name = "Suppliers List" },
-                new() { Key = "supplier/add", Name = "Supplier Add" },
-                new() { Key = "supplier/edit", Name = "Supplier Edit" },
-                new() { Key = "supplier/delete", Name = "Supplier Delete" }
-            ]
-        };
-    }
+    
 }
