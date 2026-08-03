@@ -1,6 +1,11 @@
 @model IEnumerable<PharmaPOS_MVC.Models.MedicineViewModel>
 @{
 	ViewData["Title"] = "Medicines";
+	var canAdd = User.HasPermission(Permissions.Medicine.Add);
+	var canView = User.HasPermission(Permissions.Medicine.View);
+	var canEdit = User.HasPermission(Permissions.Medicine.Edit);
+	var canDelete = User.HasPermission(Permissions.Medicine.Delete);
+	var canAction = canView || canEdit || canDelete;
 }
 
 <div class="page-title">
@@ -15,9 +20,12 @@
 			</div>
 		</div>
 		<div class="col-sm-8 text-right">
-			<a class="btn btn-primary btn-sm" asp-controller="Medicine" asp-action="Add">
-				<i class="las la-plus pr-2"></i> New Medicine
-			</a>
+			@if (canAdd)
+			{
+				<a class="btn btn-primary btn-sm" asp-controller="Medicine" asp-action="Add">
+					<i class="las la-plus pr-2"></i> New Medicine
+				</a>
+			}
 		</div>
 	</div>
 </div>
@@ -38,7 +46,10 @@
 						<th>Reorderlevel</th>
 						<th>Live Stock</th>
 						<th>Status</th>
-						<th></th>
+						@if (canAction)
+						{
+							<th></th>
+						}
 					</tr>
 				</thead>
 				<tbody>
@@ -77,33 +88,38 @@
 									<span class="badge badge-sm badge-primary">Normal</span>
 								}
 							</td>
-							<td class="table-action">
+							@if (canAction)
+							{
+								<td class="table-action">
+									@if (canView || canEdit)
+									{
+										<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">
+												@if (canView)
+												{
+													<li>
+														<a asp-controller="Medicine" asp-action="View" asp-route-id="@value.Id"><i class="las la-laptop pr-2"></i>View</a>
+													</li>
+												}
+												@if (canEdit)
+												{
+													<li>
+														<a asp-controller="Medicine" asp-action="Edit" asp-route-id="@value.Id"><i class="las la-edit pr-2"></i>Edit</a>
+													</li>
+												}
+											</ul>
+										</div>
+									}
 
-								<div class="dropdown d-inline-block">
-									<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-									<ul class="dropdown-menu dropdown-menu-right">
-										<li>
-											<a
-												asp-controller="Medicine"
-												asp-action="View"
-												asp-route-id="@value.Id"
-											><i class="las la-laptop pr-2"></i>View</a>
-										</li>
-										<li>
-											<a
-												asp-controller="Medicine"
-												asp-action="Edit"
-												asp-route-id="@value.Id"
-											><i class="las la-edit pr-2"></i>Edit</a>
-										</li>	
-									</ul>
-								</div>
-
-								<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
-									<i class="las la-trash-alt"></i><input type="hidden" value="@value.Id">
-								</a>
-
-							</td>
+									@if (canDelete)
+									{
+										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+											<i class="las la-trash-alt"></i><input type="hidden" value="@value.Id">
+										</a>
+									}
+								</td>
+							}
 						</tr>
 						index++;
 					}

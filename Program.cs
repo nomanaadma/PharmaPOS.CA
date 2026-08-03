@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Middlewares;
 using PharmaPOS_MVC.Services;
@@ -27,6 +28,17 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 	.AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthorization(options =>
+{
+	foreach (var perm in Permissions.GetAll())
+	{
+		options.AddPolicy(perm, policy =>
+			policy.RequireAssertion(ctx =>
+				ctx.User.IsInRole(PharmaPOS_MVC.Authorization.Roles.Admin) ||
+				ctx.User.HasClaim(c => c.Type == "Permission" && c.Value == perm)));
+	}
+});
 
 builder.Services.AddScoped<SiteInfoService>();
 

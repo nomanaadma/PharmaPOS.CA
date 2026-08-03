@@ -1,400 +1,66 @@
-﻿Now I want to work on User Role list and form
+﻿ok as you can see I have implemented permissions read authorization directory also and role controller
 
-sidebar menu
+now my question is how to block certain actions and methods
 
-<li class="has-sub"><a><i class="las la-users"></i><span>Users</span><i class="arrow rotate"></i></a><ul class="sub-menu" style="display: block;"><li><a href="http://pharmapos.test/index.php?route=role"><span>User Role</span></a></li></ul></li>
+let me show you how my php implementation was doing it 
 
-
-let me show you php implementation
-
-user_role.twig
-
-{{ include('common/header.twig') }}
-<div class="page-title">
-	<div class="row align-items-center">
-		<div class="col-sm-4">
-			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="{{ common.info.url_route }}">Dashboard</a></li>
-					<li>{{ page_title }}</li>
-				</ul>
-			</div>
-		</div>
-		<div class="col-sm-8 text-right">
-			<a href="{{ common.info.url_route }}role/add" class="btn btn-primary btn-sm"><i class="las la-plus pr-2"></i> New User Role</a>
-		</div>
-	</div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-body">
-		<div class="table-responsive">
-			<table class="table table-bordered table-striped datatable-table" width="100%">
-				<thead>
-					<tr class="table-heading">
-						<th>#</th>
-						<th>Role Name</th>
-						<th>Description</th>
-						<th>Created Date</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for value in result %}
-						<tr>
-							<td>{{ loop.index }}</td>
-							<td class="text-primary">{{ value.name }}</td>
-							<td>{{ value.description }}</td>
-							<td>{{ value.created_date|date(common.info.date_format) }}</td>
-							<td class="table-action">
-								{% if value.id > '1' %}
-									<a href="{{ common.info.url_route~'role/edit&id='~value.id }}" class="text-primary edit" data-toggle="tooltip" title="Edit"><i class="las la-edit"></i></a>
-									<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
-										<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
-									</a>
-								{% endif %}
-							</td>
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
-</div>
-{{ include('common/delete_modal.twig') }}
-{{ include('common/footer.twig') }}
+medicine_list
 
 
-user_role_form.twig 
+public function index()
+{
+	$this->load->model('commons');
+	$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
+	/**
+	* Get all Medicine data from DB using Medicine model 
+	**/
+	$this->load->model('medicine');
+	$data['result'] = $this->model_medicine->getMedicines();
 
-
-
-{{ include('common/header.twig') }}
-<div class="page-title">
-	<div class="row align-items-center">
-		<div class="col-sm-12">
-			<h2 class="page-title-text d-inline-block">{{ page_title }}</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="{{ common.info.url }}">Dashboard</a></li>
-					<li><a href="{{ common.info.url_route }}role">User Roles</a></li>
-					<li>{{ page_title }}</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-</div>
-<form action="{{ action }}" method="post">
-	<div class="panel panel-default">
-		<div class="panel-body">
-			<input type="hidden" name="_token" value="{{ common.token }}">
-			<input type="hidden" name="id" value="{{ result.id }}">
-			<div class="form-group">
-				<label class="col-form-label">User Role Name</label>
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="las la-users-cog"></i></span>
-					</div>
-					<input type="text" name="name" class="form-control" value="{{ result.name }}" placeholder="Enter User Role Name . . .">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-form-label">Description</label>
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"><i class="las la-paragraph"></i></span>
-					</div>
-					<textarea name="description" class="form-control" rows="3">{{ result.description }}</textarea>
-				</div>
-			</div>
-			<div class="mb-2">
-				<label class="col-form-label">Permission</label>
-				<div class="table-responsive">
-					<table class="table table-bordered table-striped userrole-table table-middle">
-						<tbody>
-							{% for key, value in role %}
-								<tr>
-									<td>{{ key }}</td>
-									{% for sub_key, sub_value in value %}
-										<td>
-											{% if sub_value %}
-												<div class="custom-control custom-checkbox">
-													<input type="checkbox" class="custom-control-input" name="role[]" id="{{ sub_key }}" value="{{ sub_key }}" {% for s_role in role_selected %}
-													   {% if s_role == sub_key %}checked{% endif %}
-													{% endfor %}>
-													<label class="custom-control-label" for="{{ sub_key }}">{{ sub_value }}</label>
-												</div>
-											{% endif %}
-										</td>
-									{% endfor %}
-								</tr> 
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-		<div class="panel-footer text-center">
-			<button type="submit" name="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
-		</div>
-	</div>
-</form>
-{{ include('common/footer.twig') }}
-
-
-
-
-public function userRole()
-	{
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-
-		$this->load->model('user');
-		$data['result'] = $this->model_user->getRoles();
-
-		$data['page_title'] = 'User Roles';
-
-		if (isset($this->session->data['message'])) {
-			$data['message'] = $this->session->data['message'];
-			unset($this->session->data['message']);
-		}
-
-		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
-		$data['action_delete'] = URL.DIR_ROUTE.'role/delete';
-		/*Render User list view*/
-		$this->response->setOutput($this->load->view('user/user_role', $data));
+	/* Set confirmation message if page submitted before */
+	if (isset($this->session->data['message'])) {
+		$data['message'] = $this->session->data['message'];
+		unset($this->session->data['message']);
 	}
-
-	public function userRoleAdd()
-	{
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-
-		$data['result'] = NULL;
-		$data['role'] = $this->roleList();
-		$data['role_selected'] = array();
-
-		$data['page_title'] = 'New User Role';
-		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
-		$data['action'] = URL.DIR_ROUTE.'role/add';
-		/*Render User list view*/
-		$this->response->setOutput($this->load->view('user/user_role_form', $data));
-	}
-
-	public function userRoleEdit()
-	{
-		/**
-		* Check if id exist in url if not exist then redirect to User list view 
-		**/
-		$id = (int)$this->url->get('id');
-		if (empty($id) || !is_int($id)) {
-			$this->url->redirect('role');
-		}
-
-		if ($id == "1") {
-			$this->session->data['message'] = array('alert' => 'warning', 'value' => 'You can not change Admin role setting.');
-			$this->url->redirect('role');
-		}
-		$this->load->model('user');
-		$data['result'] = $this->model_user->getRole($id);
-		$data['role'] = $this->roleList();
-
-		$this->load->model('commons');
-		$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-		
-		$data['role_selected'] = json_decode($data['result']['permission'], true);
-		
-		$data['page_title'] = 'Edit User Role';
-		$data['token'] = hash('sha512', TOKEN . TOKEN_SALT);
-		$data['action'] = URL.DIR_ROUTE.'role/edit';
-		/*Render User list view*/
-		$this->response->setOutput($this->load->view('user/user_role_form', $data));
-	}
-
-	public function userRoleAction()
-	{
-		/**
-		* Check if from is submitted or not 
-		**/
-		if (!isset($_POST['submit'])) {
-			$this->url->redirect('role');
-			exit();
-		}
-		$data = $this->url->post;
-
-		$this->load->controller('common');
-		if ($this->controller_common->validateToken($data['_token'])) {
-			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Security token is missing!');
-			$this->url->redirect('role');
-		}
-
-		if ($validate_field = $this->validateRoleField($data)) {
-			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Please enter valid '.implode(", ",$validate_field).'!');
-			if (!empty($data['blog']['id'])) {
-				$this->url->redirect('role/edit&id='.$data['blog']['id']);
-			} else {
-				$this->url->redirect('role/add');
-			}
-		}
-		
-		$this->load->model('user');
-		
-		if (!empty($data['id'])) {
-			$data['role'] = json_encode($data['role']);
-			$result = $this->model_user->updateUserRole($data);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'User role updated successfully.');
-		} else {
-			$data['role'] = json_encode($data['role']);
-			$result = $this->model_user->addUserRole($data);
-			$this->session->data['message'] = array('alert' => 'success', 'value' => 'User role created successfully.');
-		}
-		$this->url->redirect('role');
-	}
-
-	public function userRoleDelete()
-	{
-		$this->load->controller('common');
-		if ($this->controller_common->validateToken($this->url->post('_token'))) {
-			$this->session->data['message'] = array('alert' => 'error', 'value' => 'Security token is missing!');
-			$this->url->redirect('role');
-		}
-
-		/**
-		* Check if from is submitted or not 
-		**/
-		if (!isset($_POST['delete']) || empty($this->url->post('id')) ) {
-			$this->url->redirect('role');
-		}
-		$this->load->model('user');
-		$result = $this->model_user->deleteRole($this->url->post('id'));
-		$this->session->data['message'] = array('alert' => 'success', 'value' => 'User Role deleted successfully.');
-		$this->url->redirect('role');
-	}
-
-	protected function validateRoleField($data)
-	{
-		$error = [];
-		$error_flag = false;
-		if ($this->controller_common->validateText($data['name'])) {
-			$error_flag = true;
-			$error['username'] = 'User Role Name';
-		}
-
-		if ($error_flag) {
-			return $error;
-		} else {
-			return false;
-		}
-	}
-
-	private function roleList()
-	{
-		$data = array(
-			'Dashboard' => array('dashboard' => 'Dashboard',
-				'1' => '',
-				'2' => '',
-				'3' => '',
-				'4' => ''),
-			'Customer' => array('customers' => 'Customers List',
-				'customer/add' => 'Customer Add',
-				'customer/edit' => 'Customer Edit',
-				'customer/delete' => 'Customer Delete',
-				'customer/view' => 'Customer View'),
-			'POS/Bill' => array('medicine/billing' => 'POS/Bill List',
-				'medicine/billing/add' => 'Bill Add',
-				'medicine/billing/edit' => 'Bill Edit',
-				'medicine/billing/delete' => 'Bill Delete',
-				'medicine/billing/view' => 'Bill View'),
-			'Purchase' => array('medicine/purchase' => 'Purchase List',
-				'medicine/purchase/add' => 'Purchase Add',
-				'medicine/purchase/edit' => 'Purchase Edit',
-				'medicine/purchase/delete' => 'Purchase Delete',
-				'medicine/purchase/view' => 'Purchase View'),
-			'Stock adjustment' => array('medicine/stock' => 'Stock List',
-				'medicine/stock/delete' => 'Stock Delete',
-				'1' => '',
-				'2' => '',
-				'3' => ''),
-			'Medicine' => array('medicines' => 'Medicine List',
-				'medicine/add' => 'Medicine Add',
-				'medicine/edit' => 'Medicine Edit',
-				'medicine/delete' => 'Medicine Delete',
-				'medicine/view' => 'Medicine View'),
-			'Medicine Category' => array('medicine/category' => 'Medicine Category List',
-				'medicine/category/add' => 'Medicine Category Add',
-				'medicine/category/edit' => 'Medicine Category Edit',
-				'medicine/category/delete' => 'Medicine Category Delete',
-				'1' => ''),
-			'Reports' => array('reports' => 'All Reports',
-				'1' => '',
-				'2' => '',
-				'3' => '',
-				'4' => ''),
-			'User' => array('users' => 'User List',
-				'user/add' => 'User Add',
-				'user/edit' => 'User Edit',
-				'user/delete' => 'User Delete',
-				'1' => ''),
-			'System Info' => array('info' => 'System Info',
-				'1' => '',
-				'2' => '',
-				'3' => '',
-				'4' => ''),
-			'Payment Method' => array('paymentmethod' => 'Payment Methods',
-				'paymentmethod/add' => 'Payment Method Add',
-				'paymentmethod/edit' => 'Payment Method Edit',
-				'paymentmethod/delete' => 'Payment Method Delete',
-				'1' => ''),
-			'Media' => array('get/media' => 'Media on Modal',
-				'media/upload' => 'Media Upload',
-				'media/delete' => 'Media Delete'));
-
-		return $data;
-	}
+	/* Set page title */
+	$data['page_title'] = 'Medicines';
+	$data['page_view'] = $this->user_agent->hasPermission('medicine/view') ? true : false;
+	$data['page_add'] = $this->user_agent->hasPermission('medicine/add') ? true : false;
+	$data['page_edit'] = $this->user_agent->hasPermission('medicine/edit') ? true : false;
+	$data['page_delete'] = $this->user_agent->hasPermission('medicine/delete') ? true : false;
+	
+	$data['action_delete'] = URL.DIR_ROUTE.'medicine/delete';
+	
+	/*Render Medicine view*/
+	$this->response->setOutput($this->load->view('medicine/medicine_list', $data));
+}
 
 
+{% if page_view or page_edit or page_delete %}
+							<th></th>
+						{% endif %}
 
-	public function getRoles()
-	{
-		$query = $this->database->query("SELECT `id`, `name`, `description`, `created_date` FROM `user_role`");
-		return $query->rows;
-	}
+						{% if page_view or page_edit or page_delete %}
+								<td class="table-action">
+									{% if page_view or page_edit %}
+										<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">
+												{% if page_view %}
+													<li><a href="{{ common.info.url_route~'medicine/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
+												{% endif %}
+												{% if page_edit %}
+													<li><a href="{{ common.info.url_route~'medicine/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
+												{% endif %}
+											</ul>
+										</div>
+									{% endif %}
+									{% if page_delete %}
+										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+											<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
+										</a>
+									{% endif %}
+								</td>
+							{% endif %}
 
-
-
-	public function getRole($id)
-	{
-		$query = $this->database->query("SELECT * FROM `user_role` WHERE `id` = ?", array((int)$id));
-		return $query->row;
-	}
-
-
-
-	public function addUserRole($data)
-	{
-		$query = $this->database->query("INSERT INTO `user_role` (`name`, `description` ,`permission`) VALUES (?, ?, ?)", 
-			array($this->database->escape($data['name']), $data['description'], $data['role']));
-		return $this->database->last_id();
-	}
-
-	public function updateUserRole($data)
-	{
-		$query = $this->database->query("UPDATE `user_role` SET `name` = ?, `description` = ?, `permission` = ? WHERE `id` = ?", array($this->database->escape($data['name']), $data['description'], $data['role'], (int)$data['id']));
-		return true;
-	}
-
-	public function deleteRole($id)
-	{
-		$query = $this->database->query("DELETE FROM `user_role` WHERE `id` = ?", array((int)$id));
-		if ($query->num_rows > 0) { 
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-
-Remember to use asp.net identity stuff as much as possible and don't use manual stuff unless necessary. 
-
-also just letting you know that we feed role and permissions in Dbinitializer.cs
-
+			

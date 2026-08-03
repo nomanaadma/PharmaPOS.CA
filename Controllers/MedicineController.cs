@@ -17,6 +17,7 @@ public class MedicineController(
 ) : Controller
 {
 	[HttpGet("/Medicines")]
+	[Authorize(Policy = "medicines")]
 	public async Task<IActionResult> Index()
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
@@ -49,6 +50,7 @@ public class MedicineController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = "medicine/add")]
 	public async Task<IActionResult> Add()
 	{
 		var categoryItems = await GetMedicineCategoriesAsync();
@@ -63,6 +65,7 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = "medicine/add")]
 	public async Task<IActionResult> Add(MedicineViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -102,6 +105,7 @@ public class MedicineController(
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = "medicine/view")]
 	public async Task<IActionResult> View(int id)
 	{
 		var medicine = await context.Medicines
@@ -187,6 +191,7 @@ public class MedicineController(
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = "medicine/edit")]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
@@ -220,6 +225,7 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = "medicine/edit")]
 	public async Task<IActionResult> Edit(MedicineViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -272,6 +278,7 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = "medicine/delete")]
 	public async Task<IActionResult> Delete(int id)
 	{
 		try
