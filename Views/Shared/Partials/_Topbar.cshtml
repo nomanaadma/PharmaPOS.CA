@@ -30,36 +30,49 @@
 	    <div class="col-8 col-md-5 page-hdr-right">	
 		    <div class="page-hdr-desktop">
 			    
-			    <div class="page-menu">
-				    <a asp-controller="Billing" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New POS/Bill"><i class="las las la-cart-plus"></i></a>
-			    </div>
-			    <div class="page-menu">
-				    <a asp-controller="Purchase" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New Purchase"><i class="las la-file-invoice-dollar font-20"></i></a>
-			    </div>
-			    <div class="page-menu">
-				    <a asp-controller="Customer" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New Customer"><i class="las la-user-md"></i></a>
-			    </div>
-			    
-			    <div class="page-menu menu-dropdown-wrapper menu-user">
-			     <a><i class="las la-balance-scale"></i></a>
-			     <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
-			      <div class="arrow arrow-right"></div>
-			      <div class="menu-dropdown-inner">
-			       <div class="menu-dropdown-head">Stock adjustment</div>
-			       <div class="menu-dropdown-body p-2">
-			        <ul class="menu-nav">
-				        <li><a asp-controller="Stock" asp-action="Index" asp-route-type="live"><i class="las la-hourglass"></i><span>Live Stock</span></a></li>
-			    	    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="expired"><i class="las la-hourglass-end"></i><span>Expired Stock</span></a></li>
-			    	    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein1"><i class="las la-hourglass-end"></i><span>Expire in 1 Month</span></a></li>
-			    	    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein2"><i class="las la-hourglass-half"></i><span>Expire in 2 Month</span></a></li>
-			    	    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein3"><i class="las la-hourglass-start"></i><span>Expire in 3 Month</span></a></li>
-				        <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein6"><i class="las la-hourglass-start"></i><span>Expire in 6 Month</span></a></li>
-			        </ul>
-			        </div>
-			      </div>
-			     </div>
-			    </div>
-			    
+			    @if (User.HasPermission(Permissions.Billing.Add))
+			    {
+				    <div class="page-menu">
+					    <a asp-controller="Billing" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New POS/Bill"><i class="las las la-cart-plus"></i></a>
+				    </div>
+			    }
+			    @if (User.HasPermission(Permissions.Purchase.Add))
+			    {
+				    <div class="page-menu">
+					    <a asp-controller="Purchase" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New Purchase"><i class="las la-file-invoice-dollar font-20"></i></a>
+				    </div>
+			    }
+
+			    @if (User.HasPermission(Permissions.Customer.Add))
+			    {
+				    <div class="page-menu">
+					    <a asp-controller="Customer" asp-action="Add" data-toggle="tooltip" data-placement="bottom" title="New Customer"><i class="las la-user-md"></i></a>
+				    </div>
+			    }
+
+			    @if (User.HasPermission(Permissions.Stock.View))
+			    {
+				    <div class="page-menu menu-dropdown-wrapper menu-user">
+					    <a><i class="las la-balance-scale"></i></a>
+					    <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
+						    <div class="arrow arrow-right"></div>
+						    <div class="menu-dropdown-inner">
+							    <div class="menu-dropdown-head">Stock adjustment</div>
+							    <div class="menu-dropdown-body p-2">
+								    <ul class="menu-nav">
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="live"><i class="las la-hourglass"></i><span>Live Stock</span></a></li>
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="expired"><i class="las la-hourglass-end"></i><span>Expired Stock</span></a></li>
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein1"><i class="las la-hourglass-end"></i><span>Expire in 1 Month</span></a></li>
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein2"><i class="las la-hourglass-half"></i><span>Expire in 2 Month</span></a></li>
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein3"><i class="las la-hourglass-start"></i><span>Expire in 3 Month</span></a></li>
+									    <li><a asp-controller="Stock" asp-action="Index" asp-route-type="willexpirein6"><i class="las la-hourglass-start"></i><span>Expire in 6 Month</span></a></li>
+								    </ul>
+							    </div>
+						    </div>
+					    </div>
+				    </div>
+			    }
+
 			    <div class="page-menu menu-dropdown-wrapper menu-user">
 				    <a><div><i class="las la-user-tie"></i></div></a>
 				    <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">

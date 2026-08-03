@@ -44,7 +44,7 @@
 						<th>Discount</th>
 						<th>Amount</th>
 						<th>Bill Date</th>
-						@(canAction) {
+						@if(canAction) {
 							<th class="action-th"></th>
 						}
 					</tr>
@@ -59,7 +59,7 @@
 						<th></th>
 						<th></th>
 						<th></th>
-						@(canAction) {
+						@if(canAction) {
 							<th></th>
 						}
 					</tr>

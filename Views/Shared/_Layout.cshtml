@@ -29,7 +29,7 @@
 	</script>
 </head>
 
-<body data-reports="{{ common.report_permission }}">
+<body data-reports="@User.HasPermission(Permissions.Reports.View)">
     <div class="wrapper">
 	    <!-- Main Container -->
 	    <div id="main-wrapper">
