@@ -24,5 +24,5 @@ public class RoleFormViewModel
 
     public List<string> SelectedPermissions { get; init; } = [];
 
-    public Dictionary<string, List<Permission>> PermissionsGroup { get; set; } = [];
+    public Dictionary<string, Dictionary<string, string>> PermissionsGroup { get; set; } = [];
 }

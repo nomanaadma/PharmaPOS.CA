@@ -7,83 +7,149 @@ public static class Permissions
 	
     public static class Dashboard
     {
-        public static readonly Permission View = new("dashboard", "Dashboard");
+		public const string View = "dashboard";
+		public const string ViewLabel = "Dashboard";
+		
     }
 
     public static class Customer
     {
-        public static readonly Permission List = new("customers", "Customers List");
-        public static readonly Permission Add = new("customer/add", "Customer Add");
-        public static readonly Permission Edit = new("customer/edit", "Customer Edit");
-        public static readonly Permission Delete = new("customer/delete", "Customer Delete");
-        public static readonly Permission View = new("customer/view", "Customer View");
+		public const string List = "customers";
+		public const string ListLabel = "Customers List";
+		
+		public const string Add = "customer/add";
+		public const string AddLabel = "Customer Add";
+		
+		public const string Edit = "customer/edit";
+		public const string EditLabel = "Customer Edit";
+		
+		public const string Delete = "customer/delete";
+		public const string DeleteLabel = "Customer Delete";
+		
+		public const string View = "customer/view";
+		public const string ViewLabel = "Customer View";
+		
     }
 
     public static class Billing
     {
 	    public const string Name = "POS/Bill";
 	    
-        public static readonly Permission List = new("medicine/billing", "POS/Bill List");
-        public static readonly Permission Add = new("medicine/billing/add", "Bill Add");
-        public static readonly Permission Edit = new("medicine/billing/edit", "Bill Edit");
-        public static readonly Permission Delete = new("medicine/billing/delete", "Bill Delete");
-        public static readonly Permission View = new("medicine/billing/view", "Bill View");
+		public const string List = "medicine/billing";
+		public const string ListLabel = "POS/Bill List";
+		
+		public const string Add = "medicine/billing/add";
+		public const string AddLabel = "Bill Add";
+		
+		public const string Edit = "medicine/billing/edit";
+		public const string EditLabel = "Bill Edit";
+		
+		public const string Delete = "medicine/billing/delete";
+		public const string DeleteLabel = "Bill Delete";
+		
+		public const string View = "medicine/billing/view";
+		public const string ViewLabel = "Bill View";
+		
     }
 
     public static class Purchase
     {
-        public static readonly Permission List = new("medicine/purchase", "Purchase List");
-        public static readonly Permission Add = new("medicine/purchase/add", "Purchase Add");
-        public static readonly Permission Edit = new("medicine/purchase/edit", "Purchase Edit");
-        public static readonly Permission Delete = new("medicine/purchase/delete", "Purchase Delete");
-        public static readonly Permission View = new("medicine/purchase/view", "Purchase View");
+		public const string List = "medicine/purchase";
+		public const string ListLabel = "Purchase List";
+		
+		public const string Add = "medicine/purchase/add";
+		public const string AddLabel = "Purchase Add";
+		
+		public const string Edit = "medicine/purchase/edit";
+		public const string EditLabel = "Purchase Edit";
+		
+		public const string Delete = "medicine/purchase/delete";
+		public const string DeleteLabel = "Purchase Delete";
+		
+		public const string View = "medicine/purchase/view";
+		public const string ViewLabel = "Purchase View";
+		
     }
 
     public static class Stock
     {
 	    public const string Name = "Stock Adjustment";
 	    
-        public static readonly Permission View = new("medicine/stock", "Stock List");
-        public static readonly Permission Delete = new("medicine/stock/delete", "Stock Delete");
+		public const string View = "medicine/stock";
+		public const string ViewLabel = "Stock List";
+		
+		public const string Delete = "medicine/stock/delete";
+		public const string DeleteLabel = "Stock Delete";
+		
     }
 
     public static class Medicine
     {
-        public static readonly Permission List = new("medicines", "Medicine List");
-        public static readonly Permission Add = new("medicine/add", "Medicine Add");
-        public static readonly Permission Edit = new("medicine/edit", "Medicine Edit");
-        public static readonly Permission Delete = new("medicine/delete", "Medicine Delete");
-        public static readonly Permission View = new("medicine/view", "Medicine View");
+		public const string List = "medicines";
+		public const string ListLabel = "Medicine List";
+		
+		public const string Add = "medicine/add";
+		public const string AddLabel = "Medicine Add";
+		
+		public const string Edit = "medicine/edit";
+		public const string EditLabel = "Medicine Edit";
+		
+		public const string Delete = "medicine/delete";
+		public const string DeleteLabel = "Medicine Delete";
+		
+		public const string View = "medicine/view";
+		public const string ViewLabel = "Medicine View";
+		
     }
 
     public static class Category
     {
 	    public const string Name = "Medicine Category";
 	    
-        public static readonly Permission List = new("medicine/category", "Medicine Category List");
-        public static readonly Permission Add = new("medicine/category/add", "Medicine Category Add");
-        public static readonly Permission Edit = new("medicine/category/edit", "Medicine Category Edit");
-        public static readonly Permission Delete = new("medicine/category/delete", "Medicine Category Delete");
+		public const string List = "medicine/category";
+		public const string ListLabel = "Medicine Category List";
+		
+		public const string Add = "medicine/category/add";
+		public const string AddLabel = "Medicine Category Add";
+		
+		public const string Edit = "medicine/category/edit";
+		public const string EditLabel = "Medicine Category Edit";
+		
+		public const string Delete = "medicine/category/delete";
+		public const string DeleteLabel = "Medicine Category Delete";
+		
     }
     
     public static class Reports
     {
-	    public static readonly Permission View = new("reports", "All Reports");
+		public const string View = "reports";
+		public const string ViewLabel = "All Reports";
+		
     }
     
     public static class User
     {
-	    public static readonly Permission List = new("users", "User List");
-	    public static readonly Permission Add = new("user/add", "User Add");
-	    public static readonly Permission Edit = new("user/edit", "User Edit");
-	    public static readonly Permission Delete = new("user/delete", "User Delete");
+		public const string List = "users";
+		public const string ListLabel = "User List";
+		
+		public const string Add = "user/add";
+		public const string AddLabel = "User Add";
+		
+		public const string Edit = "user/edit";
+		public const string EditLabel = "User Edit";
+		
+		public const string Delete = "user/delete";
+		public const string DeleteLabel = "User Delete";
+		
     }
     
     public static class Info
     {
 	    public const string Name = "System Info";
 
-	    public static readonly Permission View = new("info", "System Info");
+		public const string View = "info";
+		public const string ViewLabel = "System Info";
+		
     }
     
 
@@ -91,25 +157,47 @@ public static class Permissions
     {
 	    public const string Name = "Payment Method";
 	    
-        public static readonly Permission List = new("paymentmethod", "Payment Methods");
-        public static readonly Permission Add = new("paymentmethod/add", "Payment Method Add");
-        public static readonly Permission Edit = new("paymentmethod/edit", "Payment Method Edit");
-        public static readonly Permission Delete = new("paymentmethod/delete", "Payment Method Delete");
+		public const string List = "paymentmethod";
+		public const string ListLabel = "Payment Methods";
+		
+		public const string Add = "paymentmethod/add";
+		public const string AddLabel = "Payment Method Add";
+		
+		public const string Edit = "paymentmethod/edit";
+		public const string EditLabel = "Payment Method Edit";
+		
+		public const string Delete = "paymentmethod/delete";
+		public const string DeleteLabel = "Payment Method Delete";
+		
     }
 
     public static class Media
     {
-        public static readonly Permission List = new("get/media", "Media on Modal");
-        public static readonly Permission Upload = new("media/upload", "Media Upload");
-        public static readonly Permission Delete = new("media/delete", "Media Delete");
+		public const string List = "get/media";
+		public const string ListLabel = "Media on Modal";
+		
+		public const string Upload = "media/upload";
+		public const string UploadLabel = "Media Upload";
+		
+		public const string Delete = "media/delete";
+		public const string DeleteLabel = "Media Delete";
+		
     }
     
     public static class Suppliers
     {
-        public static readonly Permission List = new("suppliers", "Suppliers List");
-        public static readonly Permission Add = new("supplier/add", "Supplier Add");
-        public static readonly Permission Edit = new("supplier/edit", "Supplier Edit");
-        public static readonly Permission Delete = new("supplier/delete", "Supplier Delete");
+		public const string List = "suppliers";
+		public const string ListLabel = "Suppliers List";
+		
+		public const string Add = "supplier/add";
+		public const string AddLabel = "Supplier Add";
+		
+		public const string Edit = "supplier/edit";
+		public const string EditLabel = "Supplier Edit";
+		
+		public const string Delete = "supplier/delete";
+		public const string DeleteLabel = "Supplier Delete";
+		
     }
    
     
@@ -124,8 +212,12 @@ public static class Permissions
     public static string[] Get(Type group)
     {
 	    return group.GetFields(BindingFlags.Public | BindingFlags.Static)
-		    .Where(f => f.FieldType == typeof(Permission))
-		    .Select(f => ((Permission)f.GetValue(null)!).Key)
+		    // 1. Must be a constant (IsLiteral) and a string
+		    .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+		    // 2. Ignore the group "Name" and any field ending in "Label"
+		    .Where(f => f.Name != "Name" && !f.Name.EndsWith("Label"))
+		    // 3. Extract the value
+		    .Select(f => (string)f.GetValue(null)!)
 		    .ToArray();
     }
     
@@ -136,41 +228,47 @@ public static class Permissions
 		    .ToArray();
     }
     
-    public static Dictionary<string, List<Permission>> GetPermissionsTemplate()
+    public static Dictionary<string, Dictionary<string, string>> GetPermissionsTemplate()
     {
-	    var roles = new Dictionary<string, List<Permission>>();
-
-	    // Loop through all the nested classes (Dashboard, Customer, etc.)
+	    var roles = new Dictionary<string, Dictionary<string, string>>();
 	    var nestedTypes = typeof(Permissions).GetNestedTypes(BindingFlags.Public);
 
 	    foreach (var groupType in nestedTypes)
 	    {
-		    // 1. Determine the Group Name
-		    var groupName = groupType.Name; // Default to class name
-        
-		    // Look for `public const string Name`
+		    // 1. Get Group Name (Template {{ key }})
+		    string groupName = groupType.Name; 
 		    var nameConstant = groupType.GetField("Name", BindingFlags.Public | BindingFlags.Static);
 		    if (nameConstant != null && nameConstant.IsLiteral && nameConstant.FieldType == typeof(string))
 		    {
-			    groupName = (string)nameConstant.GetRawConstantValue()!;
+			    groupName = (string)nameConstant.GetValue(null)!;
 		    }
 
-		    // 2. Get all permission records inside this class
-		    var groupPermissions = new List<Permission>();
+		    // 2. Pair keys with their labels
+		    var permissionsDictionary = new Dictionary<string, string>();
         
-		    var permissionFields = groupType.GetFields(BindingFlags.Public | BindingFlags.Static)
-			    .Where(f => f.FieldType == typeof(Permission));
+		    var allConstants = groupType.GetFields(BindingFlags.Public | BindingFlags.Static)
+			    .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+			    .ToList();
 
-		    foreach (var field in permissionFields)
+		    // Get only the keys (ignore "Name" and "...Label")
+		    var keyFields = allConstants.Where(f => f.Name != "Name" && !f.Name.EndsWith("Label"));
+
+		    foreach (var keyField in keyFields)
 		    {
-			    var permission = (Permission)field.GetValue(null)!;
-			    groupPermissions.Add(permission);
+			    var key = (string)keyField.GetValue(null)!;
+            
+			    // Try to find the matching Label field (e.g., "List" -> "ListLabel")
+			    var labelField = allConstants.FirstOrDefault(f => f.Name == keyField.Name + "Label");
+			    var label = labelField != null ? (string)labelField.GetValue(null)! : key;
+
+			    // Template {{ sub_key }} = key
+			    // Template {{ sub_value }} = label
+			    permissionsDictionary.Add(key, label);
 		    }
 
-		    // Only add if the group actually has permissions
-		    if (groupPermissions.Count > 0)
+		    if (permissionsDictionary.Count > 0)
 		    {
-			    roles.Add(groupName, groupPermissions);
+			    roles.Add(groupName, permissionsDictionary);
 		    }
 	    }
 

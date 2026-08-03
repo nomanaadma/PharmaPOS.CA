@@ -35,7 +35,6 @@ builder.Services.AddAuthorization(options =>
 	{
 		options.AddPolicy(perm, policy =>
 			policy.RequireAssertion(ctx =>
-				ctx.User.IsInRole(PharmaPOS_MVC.Authorization.Roles.Admin) ||
 				ctx.User.HasClaim(c => c.Type == "Permission" && c.Value == perm)));
 	}
 });

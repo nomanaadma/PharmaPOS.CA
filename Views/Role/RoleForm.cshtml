@@ -56,7 +56,7 @@
 										<td>
 											@if (i < group.Value.Count)
 											{
-												var perm = group.Value[i];
+												var perm = group.Value.ElementAt(i);
 												<div class="custom-control custom-checkbox">
 													<input type="checkbox"
 													       class="custom-control-input"
@@ -64,7 +64,7 @@
 													       id="@perm.Key"
 													       value="@perm.Key"
 													       @(Model.SelectedPermissions.Contains(perm.Key) ? "checked" : "")>
-													<label class="custom-control-label" for="@perm.Key">@perm.Name</label>
+													<label class="custom-control-label" for="@perm.Key">@perm.Value</label>
 												</div>
 											}
 										</td>
