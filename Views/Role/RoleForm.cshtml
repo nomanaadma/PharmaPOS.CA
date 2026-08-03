@@ -1,0 +1,91 @@
+@model PharmaPOS_MVC.Models.RoleFormViewModel
+@{
+	ViewData["Title"] = ViewData["page_title"] ?? (string.IsNullOrEmpty(Model.Id) ? "New User Role" : "Edit User Role");
+}
+
+<div class="page-title">
+	<div class="row align-items-center">
+		<div class="col-sm-12">
+			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
+			<div class="breadcrumbs d-inline-block">
+				<ul>
+					<li><a href="/">Dashboard</a></li>
+					<li><a asp-controller="Role" asp-action="Index">User Roles</a></li>
+					<li>@ViewData["Title"]</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<form asp-controller="Role" asp-action="@(string.IsNullOrEmpty(Model.Id) ? "Add" : "Edit")" method="post">
+	@Html.AntiForgeryToken()
+	<input type="hidden" asp-for="Id" />
+	<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-form-label">User Role Name <span class="form-required">*</span></label>
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"><i class="las la-users-cog"></i></span>
+					</div>
+					<input type="text" asp-for="Name" class="form-control" placeholder="Enter User Role Name . . ." required>
+				</div>
+				<span asp-validation-for="Name" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<label class="col-form-label">Description</label>
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"><i class="las la-paragraph"></i></span>
+					</div>
+					<textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter Description . . ."></textarea>
+				</div>
+				<span asp-validation-for="Description" class="text-danger"></span>
+			</div>
+			<div class="mb-2">
+				<label class="col-form-label">Permission</label>
+				<div class="table-responsive">
+					<table class="table table-bordered table-striped userrole-table table-middle">
+						<tbody>
+							@foreach (var group in Model.PermissionsGroup)
+							{
+								<tr>
+									<td class="font-weight-bold" style="width: 200px; vertical-align: middle;">@group.Key</td>
+									<td>
+										<div class="row">
+											@foreach (var perm in group.Value)
+											{
+												var elementId = "perm_" + perm.Key.Replace('/', '_');
+												<div class="col-md-3 col-sm-6 my-1">
+													<div class="custom-control custom-checkbox">
+														<input type="checkbox" 
+															   class="custom-control-input" 
+															   name="SelectedPermissions" 
+															   id="@elementId" 
+															   value="@perm.Key" 
+															   @(Model.SelectedPermissions.Contains(perm.Key) ? "checked" : "")>
+														<label class="custom-control-label" for="@elementId">@perm.Name</label>
+													</div>
+												</div>
+											}
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer text-center">
+			<button type="submit" class="btn btn-primary"><i class="ti-save-alt pr-2"></i> Save</button>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}
