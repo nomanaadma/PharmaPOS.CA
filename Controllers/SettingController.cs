@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.ValueObjects;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Services;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -17,6 +18,7 @@ public class SettingController(
 ) : Controller
 {
 	[HttpGet]
+	[Authorize(Policy = Permissions.Info.View)]
 	public async Task<IActionResult> Index()
 	{
 		var siteInfo = await siteInfoService.GetSettingsAsync();
@@ -38,12 +40,13 @@ public class SettingController(
 			Country = siteInfo.Address?.Country,
 			Postal = siteInfo.Address?.Postal
 		};
-
+		
 		return View("Info", model);
 	}
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Info.View)]
 	public async Task<IActionResult> Index(SystemInfoViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -75,6 +78,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Suppliers.List)]
 	public async Task<IActionResult> Suppliers()
 	{
 		var suppliers = await context.Suppliers
@@ -92,6 +96,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Suppliers.Add)]
 	public IActionResult SupplierAdd()
 	{
 		return View("SupplierForm", new SupplierViewModel());
@@ -99,6 +104,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Suppliers.Add)]
 	public async Task<IActionResult> SupplierAdd(SupplierViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -129,6 +135,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Suppliers.Edit)]
 	public async Task<IActionResult> SupplierEdit(int id)
 	{
 		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
@@ -152,6 +159,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Suppliers.Edit)]
 	public async Task<IActionResult> SupplierEdit(SupplierViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -195,6 +203,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Suppliers.Delete)]
 	public async Task<IActionResult> SupplierDelete(int id)
 	{
 		try
@@ -220,6 +229,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Category.List)]
 	public async Task<IActionResult> Categories()
 	{
 		var categories = await context.MedicineCategories
@@ -235,6 +245,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Category.Add)]
 	public IActionResult CategoryAdd()
 	{
 		return View("CategoryForm", new MedicineCategoryViewModel());
@@ -242,6 +253,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Category.Add)]
 	public async Task<IActionResult> CategoryAdd(MedicineCategoryViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -272,6 +284,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Category.Edit)]
 	public async Task<IActionResult> CategoryEdit(int id)
 	{
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
@@ -292,6 +305,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Category.Edit)]
 	public async Task<IActionResult> CategoryEdit(MedicineCategoryViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -335,6 +349,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Category.Delete)]
 	public async Task<IActionResult> CategoryDelete(int id)
 	{
 		try
@@ -360,6 +375,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.PaymentMethod.List)]
 	public async Task<IActionResult> PaymentMethods()
 	{
 		var methods = await context.PaymentMethods
@@ -376,6 +392,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.PaymentMethod.Add)]
 	public IActionResult PaymentMethodAdd()
 	{
 		return View("PaymentMethodForm", new PaymentMethodViewModel());
@@ -383,6 +400,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.PaymentMethod.Add)]
 	public async Task<IActionResult> PaymentMethodAdd(PaymentMethodViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -413,6 +431,7 @@ public class SettingController(
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
 	public async Task<IActionResult> PaymentMethodEdit(int id)
 	{
 		var method = await context.PaymentMethods.FirstOrDefaultAsync(pm => pm.Id == id);
@@ -434,6 +453,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
 	public async Task<IActionResult> PaymentMethodEdit(PaymentMethodViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -477,6 +497,7 @@ public class SettingController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.PaymentMethod.Delete)]
 	public async Task<IActionResult> PaymentMethodDelete(int id)
 	{
 		try

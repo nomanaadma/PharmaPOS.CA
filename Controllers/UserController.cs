@@ -21,6 +21,7 @@ public class UserController(
 {
 
     [HttpGet("/Users")]
+    [Authorize(Policy = Permissions.User.List)]
     public async Task<IActionResult> Index()
     {
         var users = await userManager.Users.ToListAsync();
@@ -59,6 +60,7 @@ public class UserController(
     }
 
     [HttpGet]
+    [Authorize(Policy = Permissions.User.Add)]
     public async Task<IActionResult> Add()
     {
         var model = new UserFormViewModel
@@ -72,6 +74,7 @@ public class UserController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.User.Add)]
     public async Task<IActionResult> Add(UserFormViewModel model)
     {
         ViewData["Title"] = "Add User";
@@ -141,6 +144,7 @@ public class UserController(
     }
 
     [HttpGet("{id}")]
+    [Authorize(Policy = Permissions.User.Edit)]
     public async Task<IActionResult> Edit(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -185,6 +189,7 @@ public class UserController(
 
     [HttpPost("{id}")]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.User.Edit)]
     public async Task<IActionResult> Edit(UserFormViewModel model)
     {
         ViewData["Title"] = "Edit User";
@@ -272,6 +277,7 @@ public class UserController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.User.Delete)]
     public async Task<IActionResult> Delete(string id)
     {
         if (string.IsNullOrWhiteSpace(id))

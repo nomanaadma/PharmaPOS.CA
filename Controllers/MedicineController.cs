@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -17,7 +18,7 @@ public class MedicineController(
 ) : Controller
 {
 	[HttpGet("/Medicines")]
-	[Authorize(Policy = "medicines")]
+	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> Index()
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
@@ -50,7 +51,7 @@ public class MedicineController(
 	}
 
 	[HttpGet]
-	[Authorize(Policy = "medicine/add")]
+	[Authorize(Policy = Permissions.Medicine.Add)]
 	public async Task<IActionResult> Add()
 	{
 		var categoryItems = await GetMedicineCategoriesAsync();
@@ -65,7 +66,8 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Authorize(Policy = "medicine/add")]
+	[Authorize(Policy = Permissions.Medicine.Add)]
+	
 	public async Task<IActionResult> Add(MedicineViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -105,7 +107,8 @@ public class MedicineController(
 	}
 
 	[HttpGet("{id:int}")]
-	[Authorize(Policy = "medicine/view")]
+	[Authorize(Policy = Permissions.Medicine.View)]
+	
 	public async Task<IActionResult> View(int id)
 	{
 		var medicine = await context.Medicines
@@ -191,7 +194,8 @@ public class MedicineController(
 	}
 
 	[HttpGet("{id:int}")]
-	[Authorize(Policy = "medicine/edit")]
+	[Authorize(Policy = Permissions.Medicine.Edit)]
+	
 	public async Task<IActionResult> Edit(int id)
 	{
 		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
@@ -225,7 +229,8 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Authorize(Policy = "medicine/edit")]
+	[Authorize(Policy = Permissions.Medicine.Edit)]
+	
 	public async Task<IActionResult> Edit(MedicineViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -278,7 +283,8 @@ public class MedicineController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Authorize(Policy = "medicine/delete")]
+	[Authorize(Policy = Permissions.Medicine.Delete)]
+	
 	public async Task<IActionResult> Delete(int id)
 	{
 		try
@@ -320,6 +326,24 @@ public class MedicineController(
 	[Route("/getmedicine")]
 	public async Task<IActionResult> GetMedicine(string term)
 	{
+		
+		var canBillingAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canBillingEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		var canPurchaseAdd = User.HasClaim("Permission", Permissions.Purchase.Add);
+		var canPurchaseEdit = User.HasClaim("Permission", Permissions.Purchase.Edit);
+		var canReportView = User.HasClaim("Permission", Permissions.Purchase.Edit);
+		
+		if (
+			!canBillingAdd && 
+			!canBillingEdit &&
+			!canPurchaseAdd &&
+			!canPurchaseEdit &&
+			!canReportView
+		)
+		{
+			return Forbid();
+		}
+		
 		if (string.IsNullOrWhiteSpace(term))
 		{
 			return Json(Array.Empty<object>());
@@ -344,6 +368,15 @@ public class MedicineController(
 	[Route("/getbatch")]
 	public async Task<IActionResult> GetBatch(int id)
 	{
+		
+		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		
+		if (!canAdd && !canEdit)
+		{
+			return Forbid();
+		}
+		
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var batches = await context.Batches
@@ -373,6 +406,15 @@ public class MedicineController(
 	[Route("/getbatchdata")]
 	public async Task<IActionResult> GetBatchData(int medicine, int batch)
 	{
+		
+		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		
+		if (!canAdd && !canEdit)
+		{
+			return Forbid();
+		}
+		
 		var mBatch = await context.Batches
 			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch);
 

@@ -1,6 +1,8 @@
 @model PharmaPOS_MVC.Domain.Entities.Purchase
 @{
 	ViewData["Title"] = "Purchase View";
+	var canEdit = User.HasPermission(Permissions.Purchase.Edit);
+	
 }
 
 <div class="page-title">
@@ -16,11 +18,14 @@
 			</div>
 		</div>
 		<div class="col-sm-5 text-right">
-			<a
-				asp-controller="Purchase"
-				asp-action="Edit"
-				asp-route-id="@Model.Id"
-				class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+			@if (canEdit)
+			{
+				<a
+					asp-controller="Purchase"
+					asp-action="Edit"
+					asp-route-id="@Model.Id"
+					class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+			}
 		</div>
 	</div>
 </div>

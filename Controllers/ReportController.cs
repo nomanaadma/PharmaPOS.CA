@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Extensions;
@@ -13,12 +14,14 @@ namespace PharmaPOS_MVC.Controllers;
 public class ReportController(ApplicationDbContext context) : Controller
 {
     [HttpGet("/Reports")]
+    [Authorize(Policy = Permissions.Reports.View)]
     public IActionResult Index(string? name)
     {
         return View();
     }
 
     [HttpGet("/Reports/Inventory")]
+    [Authorize(Policy = Permissions.Reports.View)]
     public async Task<IActionResult> Inventory()
     {
         var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
@@ -67,6 +70,7 @@ public class ReportController(ApplicationDbContext context) : Controller
     }
 
     [HttpGet("/Reports/IncomeExpense")]
+    [Authorize(Policy = Permissions.Reports.View)]
     public async Task<IActionResult> IncomeExpense(DateTime? start, DateTime? end, int? medicineId, string? medicineName)
     {
         

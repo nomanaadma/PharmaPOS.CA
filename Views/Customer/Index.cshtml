@@ -1,7 +1,12 @@
-@using PharmaPOS_MVC.Extensions
 @model IEnumerable<PharmaPOS_MVC.Models.CustomerViewModel>
 @{
 	ViewData["Title"] = "Customers";
+	
+	var canAdd = User.HasPermission(Permissions.Customer.Add);
+	var canView = User.HasPermission(Permissions.Customer.View);
+	var canEdit = User.HasPermission(Permissions.Customer.Edit);
+	var canDelete = User.HasPermission(Permissions.Customer.Delete);
+	var canAction = canView || canEdit || canDelete;
 }
 
 <div class="page-title">
@@ -16,9 +21,12 @@
 			</div>
 		</div>
 		<div class="col-sm-8 text-right">
-			<a class="btn btn-primary btn-sm" asp-controller="Customer" asp-action="Add">
-				<i class="las la-plus pr-2"></i> New Customer
-			</a>
+			@if (canAdd)
+			{
+				<a class="btn btn-primary btn-sm" asp-controller="Customer" asp-action="Add">
+					<i class="las la-plus pr-2"></i> New Customer
+				</a>
+			}
 		</div>
 	</div>
 </div>
@@ -36,7 +44,10 @@
 						<th>Number</th>
 						<th>Status</th>
 						<th>Created Date</th>
-						<th></th>
+						@if (canAction)
+						{
+							<th></th>
+						}
 					</tr>
 				</thead>
 				<tbody>
@@ -55,27 +66,42 @@
 								<span class="label @value.Status.GetCssClass()">@value.Status</span>
 							</td>
 							<td>@value.CreatedDate?.ToString("dd/MM/yyyy")</td>
-							<td class="table-action">
+							@if (canAction)
+							{
+								<td class="table-action">
 
-								<div class="dropdown d-inline-block">
-									<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-									<ul class="dropdown-menu dropdown-menu-right">
-										<li>
-											<a asp-controller="Customer" asp-action="View" asp-route-id="@value.Id"><i class="las la-laptop pr-2"></i>View</a>
-										</li>
-										<li>
-											<a 
-												asp-controller="Customer"
-												asp-action="Edit"
-												asp-route-id="@value.Id"
-											><i class="las la-edit pr-2"></i>Edit</a>
-										</li>	
-									</ul>
-								</div>
+									@if (canView || canEdit)
+									{
+										<div class="dropdown d-inline-block">
+											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+											<ul class="dropdown-menu dropdown-menu-right">
+												@if (canView)
+												{
+													<li>
+														<a asp-controller="Customer" asp-action="View" asp-route-id="@value.Id"><i class="las la-laptop pr-2"></i>View</a>
+													</li>
+												}
+												@if (canEdit)
+												{
+													<li>
+														<a 
+															asp-controller="Customer"
+															asp-action="Edit"
+															asp-route-id="@value.Id"
+														><i class="las la-edit pr-2"></i>Edit</a>
+													</li>
+												}
+											</ul>
+										</div>
+									}
 
-								<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="@value.Id"></a>
+									@if (canDelete)
+									{
+										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete"><i class="las la-trash-alt"></i><input type="hidden" value="@value.Id"></a>
+									}
 
-							</td>
+								</td>
+							}
 						</tr>
 						index++;
 					}
@@ -85,6 +111,8 @@
 	</div>
 </div>
 
+@if (canDelete)
+{
 <!-- DELETE MODAL -->
 <div class="modal fade" id="delete-card" role="dialog">
 	<div class="modal-dialog">
@@ -111,3 +139,4 @@
 		</div>
 	</div>
 </div>
+}

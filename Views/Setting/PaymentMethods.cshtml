@@ -1,7 +1,12 @@
-@using PharmaPOS_MVC.Extensions
 @model IEnumerable<PharmaPOS_MVC.Models.PaymentMethodViewModel>
 @{
 	ViewData["Title"] = "Payment Methods";
+	
+	var canAdd = User.HasPermission(Permissions.PaymentMethod.Add);
+	var canEdit = User.HasPermission(Permissions.PaymentMethod.Edit);
+	var canDelete = User.HasPermission(Permissions.PaymentMethod.Delete);
+	var canAction = canEdit || canDelete;
+	
 }
 
 <div class="page-title">
@@ -16,9 +21,12 @@
 			</div>
 		</div>
 		<div class="col-sm-8 text-right">
-			<a class="btn btn-primary btn-sm" asp-controller="Setting" asp-action="PaymentMethodAdd">
-				<i class="las la-plus pr-2"></i> New Payment Method
-			</a>
+			@if (canAdd)
+			{
+				<a class="btn btn-primary btn-sm" asp-controller="Setting" asp-action="PaymentMethodAdd">
+					<i class="las la-plus pr-2"></i> New Payment Method
+				</a>
+			}
 		</div>
 	</div>
 </div>
@@ -32,7 +40,10 @@
 						<th>#</th>
 						<th>Name</th>
 						<th>Status</th>
-						<th></th>
+						@if (canAction)
+						{
+							<th></th>
+						}
 					</tr>
 				</thead>
 				<tbody>
@@ -45,20 +56,30 @@
 							<td>
 								<span class="label @value.Status.GetCssClass()">@value.Status</span>
 							</td>
-							<td class="table-action">
-								<a class="text-primary" 
-								   asp-controller="Setting" 
-								   asp-action="PaymentMethodEdit" 
-								   asp-route-id="@value.Id"
-								   data-toggle="tooltip" 
-								   data-placement="top" 
-								   title="Edit"><i class="las la-edit"></i></a>
-								
-								<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
-									<i class="las la-trash-alt"></i>
-									<input type="hidden" value="@value.Id">
-								</a>
-							</td>
+							@if (canAction)
+							{
+								<td class="table-action">
+									
+									@if (canEdit)
+									{
+										<a class="text-primary"
+										   asp-controller="Setting"
+										   asp-action="PaymentMethodEdit"
+										   asp-route-id="@value.Id"
+										   data-toggle="tooltip"
+										   data-placement="top"
+										   title="Edit"><i class="las la-edit"></i></a>
+									}
+
+									@if (canDelete)
+									{
+										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+											<i class="las la-trash-alt"></i>
+											<input type="hidden" value="@value.Id">
+										</a>
+									}
+								</td>
+							}s
 						</tr>
 						index++;
 					}
@@ -68,29 +89,32 @@
 	</div>
 </div>
 
-<!-- DELETE MODAL -->
-<div class="modal fade" id="delete-card" role="dialog">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Delete Payment Method</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<form asp-controller="Setting" asp-action="PaymentMethodDelete" method="post">
-				@Html.AntiForgeryToken()
-				<div class="modal-body">
-					<p class="m-0">Are you sure you want to delete this payment method?</p>
-					<div class="delete-card-button">
-						<input type="hidden" name="id" class="delete-id">
+@if (canDelete)
+{
+	<!-- DELETE MODAL -->
+	<div class="modal fade" id="delete-card" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Delete Payment Method</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form asp-controller="Setting" asp-action="PaymentMethodDelete" method="post">
+					@Html.AntiForgeryToken()
+					<div class="modal-body">
+						<p class="m-0">Are you sure you want to delete this payment method?</p>
+						<div class="delete-card-button">
+							<input type="hidden" name="id" class="delete-id">
+						</div>
 					</div>
-				</div>
-				<div class="modal-footer text-center">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-					<button type="submit" class="btn btn-danger">Delete</button>
-				</div>
-			</form>
+					<div class="modal-footer text-center">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-danger">Delete</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
-</div>
+}

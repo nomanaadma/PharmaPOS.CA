@@ -1,6 +1,13 @@
 @model IEnumerable<PharmaPOS_MVC.Models.StockViewModel>
 @{
 	var pageTitle = ViewData["Title"];
+	
+	var canPurchaseView = User.HasPermission(Permissions.Purchase.View);
+	var canPurchaseEdit = User.HasPermission(Permissions.Purchase.Edit);
+	var canEdit = User.HasPermission(Permissions.Stock.View);
+	var canDelete = User.HasPermission(Permissions.Stock.Delete);
+
+	var canAction = canPurchaseView || canPurchaseEdit || canEdit || canDelete;
 }
 
 <div class="page-title">
@@ -48,7 +55,10 @@
 					<th>Qty</th>
 					<th>Sold</th>
 					<th>Available</th>
-					<th></th>
+					@if (canAction)
+					{
+						<th></th>
+					}
 				</tr>
 				</thead>
 				<tbody>
@@ -83,20 +93,29 @@
 						<td class="qty">@item.Qty</td>
 						<td class="sold">@item.Sold</td>
 						<td class="available">@item.Available.ToString("0.##")</td>
-						<td class="table-action">
-							<div class="dropdown d-inline-block">
-								<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-								<ul class="dropdown-menu dropdown-menu-right">
-									<li><a class="edit-stock" data-id="@item.Id" data-medicineid="@item.MedicineId"><i class="las la-pen-nib pr-2"></i>Update Stock</a></li>
-									<li><a href="/Medicines/Purchase/View/@item.PurchaseId"><i class="las la-laptop pr-2"></i>Purchase View</a></li>
-									<li><a href="/Medicines/Purchase/Edit/@item.PurchaseId"><i class="las la-edit pr-2"></i>Purchase Edit</a></li>
-								</ul>
-							</div>
-							<a class="table-delete text-danger delete" data-toggle="tooltip" title="Remove from Inventory">
-								<i class="las la-trash-alt"></i>
-								<input type="hidden" value="@item.Id"/>
-							</a>
-						</td>
+						@if (canAction)
+						{
+							<td class="table-action">
+								@if (canPurchaseView || canPurchaseEdit || canEdit)
+								{
+									<div class="dropdown d-inline-block">
+										<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
+										<ul class="dropdown-menu dropdown-menu-right">
+											<li><a class="edit-stock" data-id="@item.Id" data-medicineid="@item.MedicineId"><i class="las la-pen-nib pr-2"></i>Update Stock</a></li>
+											<li><a href="/Medicines/Purchase/View/@item.PurchaseId"><i class="las la-laptop pr-2"></i>Purchase View</a></li>
+											<li><a href="/Medicines/Purchase/Edit/@item.PurchaseId"><i class="las la-edit pr-2"></i>Purchase Edit</a></li>
+										</ul>
+									</div>
+								}
+								@if (canDelete)
+								{
+									<a class="table-delete text-danger delete" data-toggle="tooltip" title="Remove from Inventory">
+										<i class="las la-trash-alt"></i>
+										<input type="hidden" value="@item.Id"/>
+									</a>
+								}
+							</td>
+						}
 					</tr>
 				}
 				</tbody>
@@ -114,7 +133,10 @@
 					<th></th>
 					<th></th>
 					<th></th>
-					<th></th>
+					@if (canAction)
+					{
+						<th></th>
+					}
 				</tr>
 				</tfoot>
 			</table>
@@ -122,7 +144,7 @@
 	</div>
 </div>
 
-
+@if(canEdit) {
 <div class="modal fade" id="editstock-modal">
 	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
@@ -173,33 +195,37 @@
 		</div>
 	</div>
 </div>
+}
 
-<!-- DELETE MODAL -->
-<div class="modal fade" id="delete-card" role="dialog">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Confirm Delete</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<form asp-controller="Stock" asp-action="Delete" method="post">
-				@Html.AntiForgeryToken()
-				<div class="modal-body">
-					<p class="m-0">Are you sure you want to delete?</p>
-					<div class="delete-card-button">
-						<input type="hidden" name="id" class="delete-id">
+@if (canDelete)
+{
+	<!-- DELETE MODAL -->
+	<div class="modal fade" id="delete-card" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Confirm Delete</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form asp-controller="Stock" asp-action="Delete" method="post">
+					@Html.AntiForgeryToken()
+					<div class="modal-body">
+						<p class="m-0">Are you sure you want to delete?</p>
+						<div class="delete-card-button">
+							<input type="hidden" name="id" class="delete-id">
+						</div>
 					</div>
-				</div>
-				<div class="modal-footer text-center">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-					<button type="submit" class="btn btn-danger">Delete</button>
-				</div>
-			</form>
+					<div class="modal-footer text-center">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-danger">Delete</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
-</div>
+}
 
 @section Scripts {
 	<script type="text/javascript" src="~/js/stock.js"></script>

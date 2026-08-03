@@ -2,6 +2,9 @@
 @{
 	ViewData["Title"] = "Bill View";
 	var siteInfo = await SiteInfo.GetSettingsAsync();
+	
+	var canEdit = User.HasPermission(Permissions.Billing.Edit);
+	
 }
 
 <div class="page-title">
@@ -17,11 +20,14 @@
 			</div>
 		</div>
 		<div class="col-sm-5 text-right">
-			<a
-				asp-controller="Billing"
-				asp-action="Edit"
-				asp-route-id="@Model.Id"
-				class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+			@if (canEdit)
+			{
+				<a
+					asp-controller="Billing"
+					asp-action="Edit"
+					asp-route-id="@Model.Id"
+					class="btn btn-primary btn-sm"><i class="las la-edit mr-2"></i>Edit</a>
+			}
 		</div>
 	</div>
 </div>

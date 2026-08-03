@@ -31,17 +31,22 @@
 									<div class="form-group">
 										<label class="d-block">Logo</label>
 										<div class="image-upload" style="@(string.IsNullOrEmpty(Model.Logo) ? "" : "display:none")">
-											<a>Upload</a>
+											@if (User.HasPermission(Permissions.Media.Upload))
+											{
+												<a>Upload</a>
+											}
 										</div>
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Logo) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Logo))
 											{
-												<img class="img-thumbnail" src="~/uploads/@Model.Logo" alt="">
+												<img class="img-thumbnail" src="@Model.Logo" alt="">
 											}
 											<input type="hidden" asp-for="Logo">
 										</div>
 										<div class="saved-picture-delete" data-toggle="tooltip" data-placement="right" title="Remove" style="@(string.IsNullOrEmpty(Model.Logo) ? "display:none" : "")">
-											<a class="las la-trash-alt"></a>
+											@if(User.HasPermission(Permissions.Media.Delete)) {
+												<a class="las la-trash-alt"></a>
+											}
 										</div>
 									</div>
 								</div>
@@ -51,17 +56,21 @@
 									<div class="form-group">
 										<label class="d-block">Logo Icon</label>
 										<div class="image-upload" style="@(string.IsNullOrEmpty(Model.LogoIcon) ? "" : "display:none")">
-											<a>Upload</a>
+											@if(User.HasPermission(Permissions.Media.Upload)) {
+												<a>Upload</a>
+											}
 										</div>
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LogoIcon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LogoIcon))
 											{
-												<img class="img-thumbnail" src="/uploads/@Model.LogoIcon" alt="">
+												<img class="img-thumbnail" src="@Model.LogoIcon" alt="">
 											}
 											<input type="hidden" asp-for="LogoIcon">
 										</div>
 										<div class="saved-picture-delete" data-toggle="tooltip" data-placement="right" title="Remove" style="@(string.IsNullOrEmpty(Model.LogoIcon) ? "display:none" : "")">
-											<a class="las la-trash-alt"></a>
+											@if(User.HasPermission(Permissions.Media.Delete)) {
+												<a class="las la-trash-alt"></a>
+											}
 										</div>
 									</div>
 								</div>
@@ -71,17 +80,21 @@
 									<div class="form-group">
 										<label class="d-block">Login background</label>
 										<div class="image-upload" style="@(string.IsNullOrEmpty(Model.LgBackground) ? "" : "display:none")">
-											<a>Upload</a>
+											@if(User.HasPermission(Permissions.Media.Upload)) {
+												<a>Upload</a>
+											}
 										</div>
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LgBackground) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LgBackground))
 											{
-												<img class="img-thumbnail" src="/uploads/@Model.LgBackground" alt="">
+												<img class="img-thumbnail" src="@Model.LgBackground" alt="">
 											}
 											<input type="hidden" asp-for="LgBackground">
 										</div>
 										<div class="saved-picture-delete" data-toggle="tooltip" data-placement="right" title="Remove" style="@(string.IsNullOrEmpty(Model.LgBackground) ? "display:none" : "")">
-											<a class="las la-trash-alt"></a>
+											@if(User.HasPermission(Permissions.Media.Delete)) {
+												<a class="las la-trash-alt"></a>
+											}
 										</div>
 									</div>
 								</div>
@@ -91,17 +104,21 @@
 									<div class="form-group">
 										<label class="d-block">Favicon</label>
 										<div class="image-upload" style="@(string.IsNullOrEmpty(Model.Favicon) ? "" : "display:none")">
-											<a>Upload</a>
+											@if(User.HasPermission(Permissions.Media.Upload)) {
+												<a>Upload</a>
+											}
 										</div>
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Favicon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Favicon))
 											{
-												<img class="img-thumbnail" src="/uploads/@Model.Favicon" alt="">
+												<img class="img-thumbnail" src="@Model.Favicon" alt="">
 											}
 											<input type="hidden" asp-for="Favicon">
 										</div>
 										<div class="saved-picture-delete" data-toggle="tooltip" data-placement="right" title="Remove" style="@(string.IsNullOrEmpty(Model.Favicon) ? "display:none" : "")">
-											<a class="las la-trash-alt"></a>
+											@if(User.HasPermission(Permissions.Media.Delete)) {
+												<a class="las la-trash-alt"></a>
+											}
 										</div>
 									</div>
 								</div>

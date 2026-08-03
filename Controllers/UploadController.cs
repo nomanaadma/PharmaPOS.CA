@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Extensions;
@@ -14,6 +15,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 {
 	[HttpGet]
 	[Route("get")]
+	[Authorize(Policy = Permissions.Media.List)]
 	public async Task<IActionResult> Get()
 	{
 		var result = await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync();
@@ -44,6 +46,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	[HttpPost]
 	[Route("upload")]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Media.Upload)]
 	public async Task<IActionResult> Upload(IFormFile? file)
 	{
 		if (file == null || file.Length == 0)
@@ -67,19 +70,25 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 		await dbContext.SaveChangesAsync();
 
 		var (width, height) = GetImageDimensions(filePath);
+		
+		var canDelete = User.HasPermission(Permissions.Media.Delete);
+
+		var deleteHtml = canDelete
+			? """<a class="remove" data-toggle="tooltip" data-placement="top" title="Remove"><i class="las la-trash-alt"></i></a>"""
+			: string.Empty;
 
 		var mediaHtml = $"""
-             <div class="block">
-             <a class="remove" data-toggle="tooltip" data-placement="top" title="Remove"><i class="las la-trash-alt"></i></a>
-             <input type="radio" class="block-id" value="{media.Id}">
-             <div class="picture">
-             <img src="/uploads/{fileName}" title="{fileName}">
-             <input type="radio" id="{fileName}" value="{fileName}">
-             <label for="{fileName}">{fileName}</label>
-             </div>
-             <label class="font-12">Image Size : {width}*{height}</label>
-             </div>
-             """;
+		                 <div class="block">
+		                     {deleteHtml}
+		                     <input type="radio" class="block-id" value="{media.Id}">
+		                     <div class="picture">
+		                         <img src="/uploads/{fileName}" title="{fileName}">
+		                         <input type="radio" id="{fileName}" value="{fileName}">
+		                         <label for="{fileName}">{fileName}</label>
+		                     </div>
+		                     <label class="font-12">Image Size : {width}*{height}</label>
+		                 </div>
+		                 """;
 
 		return Json(new { error = false, name = fileName, id = media.Id, media = mediaHtml });
 	}
@@ -87,6 +96,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	[HttpPost]
 	[Route("delete")]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Media.Delete)]
 	public async Task<IActionResult> Delete(string name, int id)
 	{
 		if (string.IsNullOrEmpty(name))

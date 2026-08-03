@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Authorization;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -17,6 +18,7 @@ public class CustomerController(
 {
 	[HttpGet]
 	[Route("/Customers")]
+	[Authorize(Policy = Permissions.Customer.List)]
 	public async Task<IActionResult> Index()
 	{
 		var customers = await context.Customers
@@ -38,6 +40,7 @@ public class CustomerController(
 	}
 
 	[HttpGet]
+		[Authorize(Policy = Permissions.Customer.Add)]
 	public IActionResult Add()
 	{
 		return View("CustomerForm", new CustomerViewModel());
@@ -45,6 +48,7 @@ public class CustomerController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Customer.Add)]
 	public async Task<IActionResult> Add(CustomerViewModel model)
 	{
 		if (!ModelState.IsValid)
@@ -75,6 +79,7 @@ public class CustomerController(
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = Permissions.Customer.View)]
 	public async Task<IActionResult> View(int id)
 	{
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
@@ -116,6 +121,7 @@ public class CustomerController(
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = Permissions.Customer.Edit)]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
@@ -141,6 +147,7 @@ public class CustomerController(
 
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Customer.Edit)]
 	public async Task<IActionResult> Edit(CustomerViewModel model)
 	{
 		if (!model.Id.HasValue)
@@ -184,6 +191,7 @@ public class CustomerController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Customer.Delete)]
 	public async Task<IActionResult> Delete(int id)
 	{
 		try
@@ -210,8 +218,18 @@ public class CustomerController(
 
 	[HttpGet]
 	[Route("/getcustomer")]
+	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> SearchCustomer(string term)
 	{
+		
+		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		
+		if (!canAdd && !canEdit)
+		{
+			return Forbid();
+		}
+		
 		if (string.IsNullOrWhiteSpace(term))
 		{
 			return Json(Array.Empty<object>());

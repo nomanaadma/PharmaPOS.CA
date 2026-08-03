@@ -129,6 +129,9 @@
 	</div>
 </div>
 
+@if (User.HasPermission(Permissions.Medicine.Delete))
+{
+	
 <!-- DELETE MODAL -->
 <div class="modal fade" id="delete-card" role="dialog">
 	<div class="modal-dialog">
@@ -155,3 +158,4 @@
 		</div>
 	</div>
 </div>
+}

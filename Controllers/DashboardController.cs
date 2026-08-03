@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -8,6 +9,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Authorize]
 public class DashboardController : Controller
 {
+	[Authorize(Policy = Permissions.Dashboard.View)]
 	public IActionResult Index()
 	{
 		return View();

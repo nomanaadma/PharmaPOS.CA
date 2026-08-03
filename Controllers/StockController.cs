@@ -5,6 +5,7 @@ using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
+using PharmaPOS_MVC.Authorization;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -13,6 +14,7 @@ namespace PharmaPOS_MVC.Controllers;
 public class StockController(ApplicationDbContext context) : Controller
 {
 	[HttpGet("/Medicine/Stock")]
+	[Authorize(Policy = Permissions.Stock.View)]
 	public async Task<IActionResult> Index(string? type)
 	{
 		var batchesQuery = context.Batches
@@ -137,6 +139,7 @@ public class StockController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Stock.View)]
 	public async Task<IActionResult> Update(int id, int medicineId, decimal available)
 	{
 		var batch = await context.Batches
@@ -160,6 +163,7 @@ public class StockController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Stock.Delete)]
 	public async Task<IActionResult> Delete(int id)
 	{
 		var batch = await context.Batches

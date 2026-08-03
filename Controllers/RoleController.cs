@@ -9,7 +9,7 @@ using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
 
-[Authorize]
+[Authorize(Roles = Roles.Admin)]
 [Route("Roles/[action]")]
 public class RoleController(
     RoleManager<IdentityRole> roleManager

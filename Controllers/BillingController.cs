@@ -1,11 +1,14 @@
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -16,6 +19,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 {
 	[HttpGet]
 	[Route("/Medicines/Billing")]
+	[Authorize(Policy = Permissions.Billing.List)]
 	public IActionResult Index()
 	{
 		return View();
@@ -23,6 +27,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Billing.List)]
 	public async Task<IActionResult> Filter()
 	{
 		var draw = Convert.ToInt32(Request.Form["draw"].FirstOrDefault() ?? "1");
@@ -251,28 +256,78 @@ public class BillingController(ApplicationDbContext context) : Controller
 		}
 
 		var rawData = await pagedQuery.ToListAsync();
-
-		var formattedData = rawData.Select(mb => new
+		
+		var canView = User.HasPermission(Permissions.Billing.View);
+		var canEdit = User.HasPermission(Permissions.Billing.Edit);
+		var canDelete = User.HasPermission(Permissions.Billing.Delete);
+		var canAction = canView || canEdit || canDelete;
+		
+		var formattedData = rawData.Select(mb =>
 		{
-			id = mb.Id,
-			name = mb.Name,
-			subtotal = "Rs " + mb.Subtotal.ToString("F2"),
-			tax = "Rs " + mb.Tax.ToString("F2"),
-			discount_value = "Rs " + mb.DiscountValue.ToString("F2"),
-			amount = "Rs " + mb.Amount.ToString("F2"),
-			bill_date = mb.BillDate.ToString("yyyy-MM-dd"),
-			action = $@"
-				<div class=""dropdown d-inline-block"">
-					<a class=""text-primary edit dropdown-toggle"" data-toggle=""dropdown""><i class=""las la-ellipsis-h""></i></a>
-					<ul class=""dropdown-menu dropdown-menu-right"">
-						<li><a href=""/Medicines/Billing/View/{mb.Id}""><i class=""las la-laptop pr-2""></i>View</a></li>
-						<li><a href=""/Medicines/Billing/Edit/{mb.Id}""><i class=""las la-edit pr-2""></i>Edit</a></li>
-					</ul>
-				</div>
-				<a class=""table-delete text-danger delete"" data-toggle=""tooltip"" title=""Delete"">
-					<i class=""las la-trash-alt""></i>
-					<input type=""hidden"" value=""{mb.Id}"">
-				</a>"
+			var actionHtml = new StringBuilder();
+		
+			if (canAction)
+			{
+				if (canView || canEdit)
+				{
+					actionHtml.Append("""
+						<div class="dropdown d-inline-block">
+							<a class="text-primary edit dropdown-toggle" data-toggle="dropdown">
+								<i class="las la-ellipsis-h"></i>
+							</a>
+							<ul class="dropdown-menu dropdown-menu-right">
+						""");
+		
+					if (canView)
+					{
+						actionHtml.Append($"""
+							<li>
+								<a href="/Medicines/Billing/View/{mb.Id}">
+									<i class="las la-laptop pr-2"></i>View
+								</a>
+							</li>
+							""");
+					}
+		
+					if (canEdit)
+					{
+						actionHtml.Append($"""
+							<li>
+								<a href="/Medicines/Billing/Edit/{mb.Id}">
+									<i class="las la-edit pr-2"></i>Edit
+								</a>
+							</li>
+							""");
+					}
+		
+					actionHtml.Append("""
+							</ul>
+						</div>
+						""");
+				}
+		
+				if (canDelete)
+				{
+					actionHtml.Append($"""
+						<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
+							<i class="las la-trash-alt"></i>
+							<input type="hidden" value="{mb.Id}">
+						</a>
+						""");
+				}
+			}
+		
+			return new
+			{
+				id = mb.Id,
+				name = mb.Name,
+				subtotal = "Rs " + mb.Subtotal.ToString("F2"),
+				tax = "Rs " + mb.Tax.ToString("F2"),
+				discount_value = "Rs " + mb.DiscountValue.ToString("F2"),
+				amount = "Rs " + mb.Amount.ToString("F2"),
+				bill_date = mb.BillDate.ToString("yyyy-MM-dd"),
+				action = actionHtml.ToString()
+			};
 		}).ToList();
 
 		return Json(new
@@ -285,6 +340,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	}
 
 	[HttpGet]
+	[Authorize(Policy = Permissions.Billing.Add)]
 	public async Task<IActionResult> Add()
 	{
 		var model = new BillingFormModel
@@ -296,6 +352,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Billing.Add)]
 	public async Task<IActionResult> Add(BillingFormModel model)
 	{
 		
@@ -398,6 +455,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = Permissions.Billing.Edit)]
 	public async Task<IActionResult> Edit(int id)
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
@@ -480,6 +538,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Billing.Edit)]
 	public async Task<IActionResult> Edit(int id, BillingFormModel model)
 	{
 		if (id != model.Id) return NotFound();
@@ -578,6 +637,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
+	[Authorize(Policy = Permissions.Billing.Delete)]
 	public async Task<IActionResult> Delete(int id)
 	{
 		await using var transaction = await context.Database.BeginTransactionAsync();
@@ -612,6 +672,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	}
 
 	[HttpGet("{id:int}")]
+	[Authorize(Policy = Permissions.Billing.View)]
 	public async Task<IActionResult> View(int id)
 	{
 		var bill = await context.Bills
