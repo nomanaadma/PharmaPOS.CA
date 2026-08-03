@@ -1,3 +1,4 @@
+@using PharmaPOS_MVC.Authorization
 @using PharmaPOS_MVC.Extensions
 @model IEnumerable<PharmaPOS_MVC.Models.UserListViewModel>
 @{
@@ -56,7 +57,7 @@
 							</td>
 							<td>@value.CreatedDate</td>
 							<td class="table-action">
-								@if (value.Role != "Admin")
+								@if (value.Role != Roles.Admin)
 								{
 									<a asp-controller="User" asp-action="Edit" asp-route-id="@value.Id" class="text-primary edit" data-toggle="tooltip" title="Edit">
 										<i class="las la-edit"></i>

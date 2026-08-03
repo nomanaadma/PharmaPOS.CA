@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Helpers;
@@ -296,7 +297,7 @@ public class UserController(
         
         var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
 
-        if (roleName == "Admin")
+        if (roleName == Roles.Admin)
         {
             TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Administrator account cannot be deleted!" });
             return RedirectToAction(nameof(Index));

@@ -15,7 +15,6 @@ public class RoleController(
     RoleManager<IdentityRole> roleManager
 ) : Controller
 {
-    private const string AdminRoleName = "Admin";
 
     [HttpGet("/Roles")]
     public async Task<IActionResult> Index()
@@ -41,7 +40,6 @@ public class RoleController(
                 Name = role.Name ?? "",
                 Description = description,
                 CreatedDate = createdDate,
-                IsAdminRole = string.Equals(role.Name, AdminRoleName, StringComparison.OrdinalIgnoreCase)
             });
             
         }
@@ -128,7 +126,7 @@ public class RoleController(
             return RedirectToAction(nameof(Index));
         }
 
-        if (string.Equals(role.Name, AdminRoleName, StringComparison.OrdinalIgnoreCase))
+        if (role.Name == Roles.Admin)
         {
             TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "You can not change Admin role setting." });
             return RedirectToAction(nameof(Index));
@@ -170,7 +168,7 @@ public class RoleController(
             return RedirectToAction(nameof(Index));
         }
 
-        if (string.Equals(role.Name, AdminRoleName, StringComparison.OrdinalIgnoreCase))
+        if (role.Name == Roles.Admin)
         {
             TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "You can not change Admin role setting." });
             return RedirectToAction(nameof(Index));
@@ -247,7 +245,7 @@ public class RoleController(
             return RedirectToAction(nameof(Index));
         }
 
-        if (string.Equals(role.Name, AdminRoleName, StringComparison.OrdinalIgnoreCase))
+	    if (role.Name == Roles.Admin)   
         {
             TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Admin role cannot be deleted!" });
             return RedirectToAction(nameof(Index));

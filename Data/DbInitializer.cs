@@ -70,7 +70,7 @@ public static class DbInitializer
 			var createResult = await userManager.CreateAsync(adminUser, "$upeEam#@!f0");
 			if (createResult.Succeeded)
 			{
-				await userManager.AddToRoleAsync(adminUser, "Admin");
+				await userManager.AddToRoleAsync(adminUser, Roles.Admin);
 			}
 		}
 	}

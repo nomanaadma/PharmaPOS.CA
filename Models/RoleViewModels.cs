@@ -5,31 +5,24 @@ namespace PharmaPOS_MVC.Models;
 
 public class RoleListViewModel
 {
-    public string Id { get; set; } = null!;
-    public string Name { get; set; } = "";
-    public string Description { get; set; } = "";
-    public string CreatedDate { get; set; } = "";
-    public bool IsAdminRole { get; set; }
-}
-
-public class RolePermissionItem
-{
-    public string Key { get; set; } = "";
-    public string Name { get; set; } = "";
+    public string Id { get; init; } = null!;
+    public string Name { get; init; } = "";
+    public string Description { get; init; } = "";
+    public string CreatedDate { get; init; } = "";
 }
 
 public class RoleFormViewModel
 {
-    public string? Id { get; set; }
+    public string? Id { get; init; }
 
     [Required(ErrorMessage = "User Role Name is required.")]
     [Display(Name = "User Role Name")]
-    public string Name { get; set; } = "";
+    public string Name { get; init; } = "";
 
     [Display(Name = "Description")]
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-    public List<string> SelectedPermissions { get; set; } = [];
+    public List<string> SelectedPermissions { get; init; } = [];
 
     public Dictionary<string, List<Permission>> PermissionsGroup { get; set; } = [];
 }
