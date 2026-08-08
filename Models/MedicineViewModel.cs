@@ -46,7 +46,7 @@ public class MedicineViewModel
 
 	public string? Note { get; init; }
 
-	public decimal LiveStock { get; init; }
+	public decimal LiveStock { get; set; }
 
 	public DateTime? CreatedDate { get; init; }
 

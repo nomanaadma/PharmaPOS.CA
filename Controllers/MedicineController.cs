@@ -8,6 +8,7 @@ using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -24,41 +25,39 @@ public class MedicineController(
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var medicines = await context.Medicines
+			.Include(m => m.Category)
 			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new MedicineViewModel
+			.Select(m => new
 			{
-				Id = m.Id,
-				Name = m.Name,
-				Company = m.Company,
-				Generic = m.Generic,
-				MedicineGroup = m.MedicineGroup,
-				CategoryId = m.CategoryId,
-				CategoryName = m.Category.Name,
-				StoreBox = m.StoreBox,
-				MinLevel = m.MinLevel,
-				ReOrderLevel = m.ReOrderLevel,
-				Unit = m.Unit,
-				UnitPacking = m.UnitPacking,
-				Note = m.Note,
+				Medicine = m, // The raw entity
+				// The SQL aggregation
 				LiveStock = m.Batches
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m,
-				CreatedDate = m.CreatedDate
 			})
 			.ToListAsync();
+		
+		// 2. Map the results in memory using your existing mapper
+		var medicineResponse = medicines.Select(data => 
+		{
+			// Use your existing method (no duplication!)
+			var vm = MedicineMapper.MapToMedicine(data.Medicine);
+			// Inject the calculated SQL value
+			vm.LiveStock = data.LiveStock;
+    
+			return vm;
+		}).ToList();
 
-		return View(medicines);
+		return View(medicineResponse);
 	}
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.Add)]
 	public async Task<IActionResult> Add()
 	{
-		var categoryItems = await GetMedicineCategoriesAsync();
-
 		var medicineViewModel = new MedicineViewModel
 		{
-			Categories = categoryItems
+			Categories = await GetMedicineCategoriesAsync()
 		};
 		
 		return View("MedicineForm", medicineViewModel);
@@ -169,23 +168,7 @@ public class MedicineController(
 
 		var model = new MedicineViewPageModel
 		{
-			Medicine = new MedicineViewModel
-			{
-				Id = medicine.Id,
-				Name = medicine.Name,
-				Company = medicine.Company,
-				Generic = medicine.Generic,
-				MedicineGroup = medicine.MedicineGroup,
-				CategoryId = medicine.CategoryId,
-				CategoryName = medicine.Category?.Name,
-				StoreBox = medicine.StoreBox,
-				MinLevel = medicine.MinLevel,
-				ReOrderLevel = medicine.ReOrderLevel,
-				Unit = medicine.Unit,
-				UnitPacking = medicine.UnitPacking,
-				Note = medicine.Note,
-				CreatedDate = medicine.CreatedDate
-			},
+			Medicine = MedicineMapper.MapToMedicine(medicine),
 			LiveStock = liveBatches,
 			BadStock = badBatches
 		};
@@ -206,23 +189,7 @@ public class MedicineController(
 		}
 		
 		var medicineCategories =  await GetMedicineCategoriesAsync();
-
-		var model = new MedicineViewModel
-		{
-			Id = medicine.Id,
-			Name = medicine.Name,
-			Company = medicine.Company,
-			Generic = medicine.Generic,
-			MedicineGroup = medicine.MedicineGroup,
-			CategoryId = medicine.CategoryId,
-			StoreBox = medicine.StoreBox,
-			MinLevel = medicine.MinLevel,
-			ReOrderLevel = medicine.ReOrderLevel,
-			Unit = medicine.Unit,
-			UnitPacking = medicine.UnitPacking,
-			Note = medicine.Note,
-			Categories = medicineCategories 
-		};
+		var model = MedicineMapper.MapToMedicine(medicine, medicineCategories);
 		
 		return View("MedicineForm", model);
 	}
