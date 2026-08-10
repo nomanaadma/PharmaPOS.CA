@@ -5,6 +5,8 @@ using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Data;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Extensions;
+using PharmaPOS_MVC.Mappers;
+using PharmaPOS_MVC.DTOs;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -26,45 +28,30 @@ public class ReportController(ApplicationDbContext context) : Controller
     {
         var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
         
-        var inventory = await context.Medicines
+		var inventoryDto = await context.Medicines
 	        // 1. Order the base query first
 	        .OrderByDescending(m => m.Id)
     
 	        // 2. Use an intermediate projection to calculate aggregates once (replacing 'let')
-	        .Select(m => new
-	        {
-		        Medicine = m,
-        
-		        TotalPurchase = m.Batches
+	        .Select(m => new InventoryReportDto
+	        (
+		        m,
+		        m.Batches
 			        .Where(b => b.Qty > 0)
 			        .Sum(b => (decimal?)((b.Price / b.Qty) * b.Sold)) ?? 0,
             
-		        TotalSales = context.BillItems
+		        context.BillItems
 			        .Where(bi => bi.MedicineId == m.Id)
 			        .Sum(bi => (decimal?)bi.Price) ?? 0,
             
-		        LiveStock = m.Batches
+		        m.Batches
 			        .Where(b => b.Status == Status.Active && 
 			                    string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 			        .Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0
-	        })
-    
-	        // 3. Project into your final ViewModel, reusing the calculated variables
-	        .Select(x => new InventoryReportViewModel
-	        {
-		        MedicineId = x.Medicine.Id,
-		        MedicineName = x.Medicine.Name,
-		        TotalPurchase = x.TotalPurchase,
-		        TotalSales = x.TotalSales,
-        
-		        // No redundant SQL queries! Just basic math on the properties we already resolved.
-		        Profit = x.TotalSales - x.TotalPurchase, 
-        
-		        ReorderLevel = x.Medicine.ReOrderLevel,
-		        MinLevel = x.Medicine.MinLevel,
-		        LiveStock = x.LiveStock
-	        })
+	        ))
 	        .ToListAsync();
+
+		var inventory = ReportMapper.MapToInventoryReport(inventoryDto);
 
         return View(inventory);
     }
