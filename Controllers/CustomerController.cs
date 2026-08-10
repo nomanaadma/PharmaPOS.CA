@@ -7,6 +7,7 @@ using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -21,26 +22,17 @@ public class CustomerController(
 	[Authorize(Policy = Permissions.Customer.List)]
 	public async Task<IActionResult> Index()
 	{
-		var customers = await context.Customers
+		var customersQuery = await context.Customers
 			.OrderByDescending(c => c.CreatedDate)
-			.Select(c => new CustomerViewModel
-			{
-				Id = c.Id,
-				FirstName = c.FirstName,
-				LastName = c.LastName,
-				Email = c.Email,
-				Mobile = c.Mobile,
-				Gender = c.Gender,
-				Status = c.Status,
-				CreatedDate = c.CreatedDate
-			})
 			.ToListAsync();
+
+		var customers = CustomerMapper.MapToCustomers(customersQuery);
 
 		return View(customers);
 	}
 
 	[HttpGet]
-		[Authorize(Policy = Permissions.Customer.Add)]
+	[Authorize(Policy = Permissions.Customer.Add)]
 	public IActionResult Add()
 	{
 		return View("CustomerForm", new CustomerViewModel());
@@ -93,28 +85,12 @@ public class CustomerController(
 			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
 			.OrderByDescending(b => b.BillDate)
 			.Take(20)
-			.Select(b => new CustomerBillViewModel
-			{
-				Id = b.Id,
-				Amount = b.Amount,
-				BillDate = b.BillDate
-			})
 			.ToListAsync();
-
+		
 		var model = new CustomerViewPageModel
 		{
-			Customer = new CustomerViewModel
-			{
-				Id = customer.Id,
-				FirstName = customer.FirstName,
-				LastName = customer.LastName,
-				Email = customer.Email,
-				Mobile = customer.Mobile,
-				Gender = customer.Gender,
-				Status = customer.Status,
-				CreatedDate = customer.CreatedDate
-			},
-			RecentBills = recentBills
+			Customer = CustomerMapper.MapToCustomer(customer),
+			RecentBills = CustomerMapper.MapToCustomerBills(recentBills)
 		};
 
 		return View(model);
@@ -131,16 +107,7 @@ public class CustomerController(
 			return RedirectToAction(nameof(Index));
 		}
 
-		var model = new CustomerViewModel
-		{
-			Id = customer.Id,
-			FirstName = customer.FirstName,
-			LastName = customer.LastName,
-			Email = customer.Email,
-			Mobile = customer.Mobile,
-			Gender = customer.Gender,
-			Status = customer.Status
-		};
+		var model = CustomerMapper.MapToCustomer(customer);
 
 		return View("CustomerForm", model);
 	}
