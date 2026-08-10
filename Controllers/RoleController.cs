@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -136,14 +137,7 @@ public class RoleController(
         var description = claims.FirstOrDefault(c => c.Type == "Description")?.Value ?? "";
         var selectedPermissions = claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
 
-        var model = new RoleFormViewModel
-        {
-            Id = role.Id,
-            Name = role.Name ?? "",
-            Description = description,
-            SelectedPermissions = selectedPermissions,
-            PermissionsGroup = Permissions.GetPermissionsTemplate()
-        };
+        var model = RoleMapper.MapToRoleForm(role, description, selectedPermissions);
 
         ViewData["Title"] = "Edit User Role";
         return View("RoleForm", model);
