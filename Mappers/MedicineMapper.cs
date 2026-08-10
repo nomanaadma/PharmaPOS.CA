@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.DTOs;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Mappers;
@@ -7,7 +8,7 @@ namespace PharmaPOS_MVC.Mappers;
 public static class MedicineMapper
 {
 	public static MedicineViewModel MapToMedicine(Medicine medicine, 
-		IEnumerable<SelectListItem>? medicineCategories = null)
+		IEnumerable<SelectListItem>? medicineCategories = null, decimal? liveStock = null)
 	{
 		
 		var medicineResponse = new MedicineViewModel
@@ -25,6 +26,7 @@ public static class MedicineMapper
 			Unit = medicine.Unit,
 			UnitPacking = medicine.UnitPacking,
 			Note = medicine.Note,
+			CreatedDate = medicine.CreatedDate
 		};
 
 		if (medicineCategories != null)
@@ -32,7 +34,20 @@ public static class MedicineMapper
 			medicineResponse.Categories = medicineCategories;
 		}
 
+		if (liveStock != null)
+		{
+			medicineResponse.LiveStock = liveStock.Value;
+		} 
+
 		return medicineResponse;
+	}
+	
+	public static IEnumerable<MedicineViewModel> MapToMedicinesWithStock(List<MedicineWithStockDto> medicines)
+	{
+		return medicines
+			.Select(data => 
+				MedicineMapper.MapToMedicine(data.Medicine, null, data.LiveStock))
+			.ToList();
 	}
 	
 }

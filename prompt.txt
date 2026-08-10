@@ -1,66 +1,9 @@
-﻿ok as you can see I have implemented permissions read authorization directory also and role controller
+﻿I did some mapping for medicine create medicinewithstock dto and mapping directory
 
-now my question is how to block certain actions and methods
+now what I want you to do is create mapping for other models as well 
 
-let me show you how my php implementation was doing it 
+take the example of medicine/index
 
-medicine_list
-
-
-public function index()
-{
-	$this->load->model('commons');
-	$data['common'] = $this->model_commons->getCommonData($this->session->data['user_id']);
-	/**
-	* Get all Medicine data from DB using Medicine model 
-	**/
-	$this->load->model('medicine');
-	$data['result'] = $this->model_medicine->getMedicines();
-
-	/* Set confirmation message if page submitted before */
-	if (isset($this->session->data['message'])) {
-		$data['message'] = $this->session->data['message'];
-		unset($this->session->data['message']);
-	}
-	/* Set page title */
-	$data['page_title'] = 'Medicines';
-	$data['page_view'] = $this->user_agent->hasPermission('medicine/view') ? true : false;
-	$data['page_add'] = $this->user_agent->hasPermission('medicine/add') ? true : false;
-	$data['page_edit'] = $this->user_agent->hasPermission('medicine/edit') ? true : false;
-	$data['page_delete'] = $this->user_agent->hasPermission('medicine/delete') ? true : false;
-	
-	$data['action_delete'] = URL.DIR_ROUTE.'medicine/delete';
-	
-	/*Render Medicine view*/
-	$this->response->setOutput($this->load->view('medicine/medicine_list', $data));
-}
+I'll be mapping all the controllers one by one so first start off with medicine controller first 
 
 
-{% if page_view or page_edit or page_delete %}
-							<th></th>
-						{% endif %}
-
-						{% if page_view or page_edit or page_delete %}
-								<td class="table-action">
-									{% if page_view or page_edit %}
-										<div class="dropdown d-inline-block">
-											<a class="text-primary edit dropdown-toggle" data-toggle="dropdown"><i class="las la-ellipsis-h"></i></a>
-											<ul class="dropdown-menu dropdown-menu-right">
-												{% if page_view %}
-													<li><a href="{{ common.info.url_route~'medicine/view&id='~value.id }}"><i class="las la-laptop pr-2"></i>View</a></li>
-												{% endif %}
-												{% if page_edit %}
-													<li><a href="{{ common.info.url_route~'medicine/edit&id='~value.id }}"><i class="las la-edit pr-2"></i>Edit</a></li>	
-												{% endif %}
-											</ul>
-										</div>
-									{% endif %}
-									{% if page_delete %}
-										<a class="table-delete text-danger delete" data-toggle="tooltip" title="Delete">
-											<i class="las la-trash-alt"></i><input type="hidden" value="{{ value.id }}">
-										</a>
-									{% endif %}
-								</td>
-							{% endif %}
-
-			

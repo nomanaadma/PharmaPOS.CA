@@ -8,6 +8,7 @@ using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.DTOs;
 using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -27,27 +28,18 @@ public class MedicineController(
 		var medicines = await context.Medicines
 			.Include(m => m.Category)
 			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new
-			{
-				Medicine = m, // The raw entity
+			.Select(m => new MedicineWithStockDto
+			(
+				Medicine: m, // The raw entity
 				// The SQL aggregation
-				LiveStock = m.Batches
+				LiveStock: m.Batches
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m,
-			})
+					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m
+			))
 			.ToListAsync();
-		
-		// 2. Map the results in memory using your existing mapper
-		var medicineResponse = medicines.Select(data => 
-		{
-			// Use your existing method (no duplication!)
-			var vm = MedicineMapper.MapToMedicine(data.Medicine);
-			// Inject the calculated SQL value
-			vm.LiveStock = data.LiveStock;
-    
-			return vm;
-		}).ToList();
 
+		var medicineResponse = MedicineMapper.MapToMedicinesWithStock(medicines);
+		
 		return View(medicineResponse);
 	}
 
@@ -132,45 +124,17 @@ public class MedicineController(
 			.ToListAsync();
 		
 		var liveBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0)
-			.Select(b => new StockViewModel
-			{
-				Id = b.Id,
-				MedicineId = b.MedicineId,
-				PurchaseId = b.PurchaseId,
-				Name = medicine.Name,
-				Batch = b.BatchName,
-				Expiry = b.Expiry,
-				PurchasePrice = b.PurchasePrice,
-				SalePrice = b.SalePrice,
-				Qty = b.Qty,
-				Sold = b.Sold,
-				Available = b.Qty - b.Sold
-			}).ToList();
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
 		
 		var badBatches = batchesQuery.Where(b => 
 				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
-			.Where(b => b.Qty > b.Sold)
-			.Select(b => new StockViewModel
-			{
-				Id = b.Id,
-				MedicineId = b.MedicineId,
-				PurchaseId = b.PurchaseId,
-				Name = medicine.Name,
-				Batch = b.BatchName,
-				Expiry = b.Expiry,
-				PurchasePrice = b.PurchasePrice,
-				SalePrice = b.SalePrice,
-				Qty = b.Qty,
-				Sold = b.Sold,
-				Available = b.Qty - b.Sold
-			}).ToList();
-
+			.Where(b => b.Qty > b.Sold);
+		
 		var model = new MedicineViewPageModel
 		{
 			Medicine = MedicineMapper.MapToMedicine(medicine),
-			LiveStock = liveBatches,
-			BadStock = badBatches
+			LiveStock = StockMapper.MapToStocks(liveBatches, medicine.Name),
+			BadStock = StockMapper.MapToStocks(badBatches, medicine.Name)
 		};
 
 		return View(model);
@@ -354,7 +318,7 @@ public class MedicineController(
 			.OrderBy(b => b.Expiry)
 			.ToListAsync();
 		
-		if (!batches.Any())
+		if (batches.Count == 0)
 		{
 			return Json(new { error = true, message = "No active batches found for this medicine." });
 		}
