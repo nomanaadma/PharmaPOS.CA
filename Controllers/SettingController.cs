@@ -7,6 +7,7 @@ using PharmaPOS_MVC.Domain.ValueObjects;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Services;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -24,22 +25,7 @@ public class SettingController(
 		var siteInfo = await siteInfoService.GetSettingsAsync();
 		var rawSetting = await context.Settings.FirstOrDefaultAsync();
 
-		var model = new SystemInfoViewModel
-		{
-			Logo = rawSetting?.Logo,
-			LogoIcon = rawSetting?.LogoIcon,
-			LgBackground = rawSetting?.LgBackground,
-			Favicon = rawSetting?.Favicon,
-			Name = siteInfo.Name,
-			LegalName = siteInfo.LegalName,
-			Mail = siteInfo.Mail,
-			Phone = siteInfo.Phone,
-			AddressLine1 = siteInfo.Address?.Line1,
-			AddressLine2 = siteInfo.Address?.Line2,
-			City = siteInfo.Address?.City,
-			Country = siteInfo.Address?.Country,
-			Postal = siteInfo.Address?.Postal
-		};
+		var model = SettingMapper.MapToSystemInfo(rawSetting, siteInfo);
 		
 		return View("Info", model);
 	}
@@ -81,17 +67,11 @@ public class SettingController(
 	[Authorize(Policy = Permissions.Suppliers.List)]
 	public async Task<IActionResult> Suppliers()
 	{
-		var suppliers = await context.Suppliers
+		var suppliersQuery = await context.Suppliers
 			.OrderBy(s => s.Id)
-			.Select(c => new SupplierViewModel()
-			{
-				Id = c.Id,
-				Name = c.Name, 
-				Email = c.Name, 
-				Phone = c.Name, 
-				Address = c.Address
-			})
 			.ToListAsync();
+
+		var suppliers = SettingMapper.MapToSuppliers(suppliersQuery);
 		return View(suppliers);
 	}
 
@@ -145,14 +125,7 @@ public class SettingController(
 			return RedirectToAction(nameof(Suppliers));
 		}
 
-		var model = new SupplierViewModel
-		{
-			Id = supplier.Id,
-			Name = supplier.Name,
-			Email = supplier.Email,
-			Phone = supplier.Phone,
-			Address = supplier.Address
-		};
+		var model = SettingMapper.MapToSupplier(supplier);
 
 		return View("SupplierForm", model);
 	}
@@ -232,14 +205,11 @@ public class SettingController(
 	[Authorize(Policy = Permissions.Category.List)]
 	public async Task<IActionResult> Categories()
 	{
-		var categories = await context.MedicineCategories
+		var categoriesQuery = await context.MedicineCategories
 			.OrderBy(c => c.Id)
-			.Select(c => new MedicineCategoryViewModel
-			{
-				Id = c.Id,
-				Name = c.Name, 
-			})
 			.ToListAsync();
+
+		var categories = SettingMapper.MapToMedicineCategories(categoriesQuery);
 		
 		return View(categories);
 	}
@@ -294,11 +264,7 @@ public class SettingController(
 			return RedirectToAction(nameof(Categories));
 		}
 
-		var model = new MedicineCategoryViewModel
-		{
-			Id = category.Id,
-			Name = category.Name
-		};
+		var model = SettingMapper.MapToMedicineCategory(category);
 
 		return View("CategoryForm", model);
 	}
@@ -378,15 +344,11 @@ public class SettingController(
 	[Authorize(Policy = Permissions.PaymentMethod.List)]
 	public async Task<IActionResult> PaymentMethods()
 	{
-		var methods = await context.PaymentMethods
+		var methodsQuery = await context.PaymentMethods
 			.OrderBy(pm => pm.Id)
-			.Select(pm => new PaymentMethodViewModel
-			{
-				Id = pm.Id,
-				Name = pm.Name,
-				Status = pm.Status
-			})
 			.ToListAsync();
+
+		var methods = SettingMapper.MapToPaymentMethods(methodsQuery);
 		
 		return View(methods);
 	}
@@ -441,12 +403,7 @@ public class SettingController(
 			return RedirectToAction(nameof(PaymentMethods));
 		}
 
-		var model = new PaymentMethodViewModel
-		{
-			Id = method.Id,
-			Name = method.Name,
-			Status = method.Status
-		};
+		var model = SettingMapper.MapToPaymentMethod(method);
 
 		return View("PaymentMethodForm", model);
 	}
