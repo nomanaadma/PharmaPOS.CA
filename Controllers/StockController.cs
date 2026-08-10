@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -112,24 +113,9 @@ public class StockController(ApplicationDbContext context) : Controller
 				totalSales += Math.Round(unitSalePrice * b.Sold, 2);
 				profit += Math.Round(totalSales - totalPurchase, 2);
 			}
+
+			return StockMapper.MapToStock(b, false, unitPurchasePrice, unitSalePrice, totalPurchase, totalSales, profit);
 			
-			return new StockViewModel
-			{
-				Id = b.Id,
-				MedicineId = b.MedicineId,
-				PurchaseId = b.PurchaseId,
-				Name = b.Medicine.Name,
-				Batch = b.BatchName,
-				Expiry = b.Expiry,
-				PurchasePrice = unitPurchasePrice,
-				SalePrice = unitSalePrice,
-				TotalPurchase = totalPurchase,
-				TotalSales = totalSales,
-				Profit = profit,
-				Qty = b.Qty,
-				Sold = b.Sold,
-				Available = b.Qty - b.Sold
-			};
 		}).ToList();
 		
 		ViewData["Title"] = pageTitle;

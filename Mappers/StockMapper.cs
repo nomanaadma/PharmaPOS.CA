@@ -5,26 +5,67 @@ namespace PharmaPOS_MVC.Mappers;
 
 public static class StockMapper
 {
-    public static StockViewModel MapToStock(Batch batch, string medicineName)
+   
+    public static IEnumerable<StockViewModel> MapToStocks(IEnumerable<Batch> batches)
     {
-        return new StockViewModel
-        {
-            Id = batch.Id,
-            MedicineId = batch.MedicineId,
-            PurchaseId = batch.PurchaseId,
-            Name = medicineName,
-            Batch = batch.BatchName,
-            Expiry = batch.Expiry,
-            PurchasePrice = batch.PurchasePrice,
-            SalePrice = batch.SalePrice,
-            Qty = batch.Qty,
-            Sold = batch.Sold,
-            Available = batch.Qty - batch.Sold
-        };
+	    return batches.Select(batch => MapToStock(batch));
     }
 
-    public static IEnumerable<StockViewModel> MapToStocks(IEnumerable<Batch> batches, string medicineName)
+    public static StockViewModel MapToStock(Batch batch,
+	    bool? single = true,
+	    decimal? unitPurchasePrice = null,
+	    decimal? unitSalePrice = null,
+	    decimal? totalPurchase = null,
+	    decimal? totalSales = null,
+	    decimal? profit = null
+	    )
     {
-        return batches.Select(b => MapToStock(b, medicineName)).ToList();
+	    
+	    var stockViewModel =  new StockViewModel
+	    {
+		    Id = batch.Id,
+		    MedicineId = batch.MedicineId,
+		    PurchaseId = batch.PurchaseId,
+		    Name = batch.Medicine.Name,
+		    Batch = batch.BatchName,
+		    Expiry = batch.Expiry,
+		    Qty = batch.Qty,
+		    Sold = batch.Sold,
+		    Available = batch.Qty - batch.Sold
+	    };
+
+	    if (single == true)
+	    {
+		    stockViewModel.PurchasePrice = batch.PurchasePrice;
+		    stockViewModel.SalePrice = batch.SalePrice;
+	    }
+	    else
+	    {
+		    
+		    if (unitPurchasePrice != null)
+		    {
+			    stockViewModel.PurchasePrice = unitPurchasePrice.Value;
+		    }
+		    if (unitSalePrice != null)
+		    {
+			    stockViewModel.SalePrice = unitSalePrice.Value;
+		    }
+		    if (totalPurchase != null)
+		    {
+			    stockViewModel.TotalPurchase = totalPurchase.Value;
+		    }
+		    if (totalSales != null)
+		    {
+			    stockViewModel.TotalSales = totalSales.Value;
+		    }
+		    if (profit != null)
+		    {
+			    stockViewModel.Profit = profit.Value;
+		    }    
+		    
+	    }
+
+	    return stockViewModel;
+
     }
 }

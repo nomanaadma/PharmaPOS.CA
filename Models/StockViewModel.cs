@@ -8,11 +8,11 @@ public class StockViewModel
 	public string Name { get; init; } = null!;
 	public string Batch { get; init; } = null!;
 	public string Expiry { get; init; } = null!;
-	public decimal PurchasePrice { get; init; }
-	public decimal SalePrice { get; init; }
-	public decimal TotalPurchase { get; init; }
-	public decimal TotalSales { get; init; }
-	public decimal Profit { get; init; }
+	public decimal PurchasePrice { get; set; }
+	public decimal SalePrice { get; set; }
+	public decimal TotalPurchase { get; set; }
+	public decimal TotalSales { get; set; }
+	public decimal Profit { get; set; }
 	public decimal Qty { get; init; }
 	public decimal Sold { get; init; }
 	public decimal Available { get; init; }

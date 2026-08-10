@@ -133,8 +133,8 @@ public class MedicineController(
 		var model = new MedicineViewPageModel
 		{
 			Medicine = MedicineMapper.MapToMedicine(medicine),
-			LiveStock = StockMapper.MapToStocks(liveBatches, medicine.Name),
-			BadStock = StockMapper.MapToStocks(badBatches, medicine.Name)
+			LiveStock = StockMapper.MapToStocks(liveBatches),
+			BadStock = StockMapper.MapToStocks(badBatches)
 		};
 
 		return View(model);
