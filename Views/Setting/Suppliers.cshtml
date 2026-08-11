@@ -23,7 +23,7 @@
 		<div class="col-sm-8 text-right">
 			@if (canAdd)
 			{
-				<a class="btn btn-primary btn-sm" asp-controller="Setting" asp-action="SupplierAdd">
+				<a class="btn btn-primary btn-sm" asp-controller="Setting" asp-action="SuppliersAdd">
 					<i class="las la-plus pr-2"></i> New Supplier
 				</a>
 			}
@@ -65,7 +65,7 @@
 									{
 										<a class="text-primary"
 										   asp-controller="Setting"
-										   asp-action="SupplierEdit"
+										   asp-action="SuppliersEdit"
 										   asp-route-id="@value.Id"
 										   data-toggle="tooltip"
 										   data-placement="top"

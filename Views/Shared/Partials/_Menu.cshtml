@@ -1,15 +1,51 @@
+@{
+	var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Dashboard";
+	var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+
+	string IsActive(string c, string? a = null)
+	{
+		var match = string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
+		
+		if (match && a != null)
+		{
+			match = currentAction.Contains(a, StringComparison.OrdinalIgnoreCase);
+		}
+		
+		return match ? "active" : "";
+	}
+
+	string[] IsHasSubActive(params string[] controllers)
+	{
+		var matchRoute = controllers.Any(c => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase));
+
+		if (!matchRoute)
+		{
+			return ["", "", ""];
+		}
+		
+		return
+		[
+			"active",
+			"rotate",
+			"style=\"display: block;\"",
+		];
+	}
+
+
+}
+
 <div class="menu-wrapper">
 	<div class="menu">
 		<ul>
 			@if (User.HasPermission(Permissions.Dashboard.View))
 			{
-				<li>
+				<li class="@IsActive("Dashboard")">
 					<a href="/"><i class="las la-chalkboard"></i><span>Dashboard</span></a>
 				</li>
 			}
 			@if (User.HasPermission(Permissions.Customer.List))
 			{
-				<li>
+				<li class="@IsActive("Customer")">
 					<a asp-controller="Customer" asp-action="Index">
 						<i class="las la-user-md"></i>
 						<span>Customers</span>
@@ -18,7 +54,7 @@
 			}
 			@if (User.HasPermission(Permissions.Billing.List))
 			{
-				<li>
+				<li class="@IsActive("Billing")">
 					<a asp-controller="Billing" asp-action="Index">
 						<i class="las la-cart-plus"></i>
 						<span>POS/Bill</span>
@@ -27,7 +63,7 @@
 			}
 			@if (User.HasPermission(Permissions.Purchase.List))
 			{
-				<li>
+				<li class="@IsActive("Purchase")">
 					<a asp-controller="Purchase" asp-action="Index">
 						<i class="las la-file-invoice-dollar"></i>
 						<span>Purchase</span>
@@ -36,7 +72,7 @@
 			}
 			@if (User.HasPermission(Permissions.Stock.View))
 			{
-				<li>
+				<li class="@IsActive("Stock")">
 					<a asp-controller="Stock" asp-action="Index">
 						<i class="las la-balance-scale"></i>
 						<span>Stock adjustment</span>
@@ -46,7 +82,7 @@
 
 			@if (User.HasPermission(Permissions.Medicine.List))
 			{
-				<li>
+				<li class="@IsActive("Medicine")">
 					<a asp-controller="Medicine" asp-action="Index">
 						<i class="las la-pills"></i>
 						<span>Medicines</span>
@@ -56,7 +92,7 @@
 
 			@if (User.HasPermission(Permissions.Reports.View))
 			{
-				<li>
+				<li class="@IsActive("Report")">
 					<a asp-controller="Report" asp-action="Index">
 						<i class="las la-chalkboard-teacher"></i>
 						<span>Report</span>
@@ -66,14 +102,16 @@
 			
 			@if (User.HasPermission(Permissions.User.List))
 			{
-				<li class="has-sub">
-					<a><i class="las la-users"></i><span>Users</span><i class="arrow"></i></a>
-					<ul class="sub-menu">
-						<li><a asp-controller="User" asp-action="Index"><span>Users List</span></a></li>
+				var subActive = IsHasSubActive("User", "Role");
+				
+				<li class="has-sub @subActive[0]">
+					<a><i class="las la-users"></i><span>Users</span><i class="arrow @subActive[1]"></i></a>
+					<ul class="sub-menu" @Html.Raw(subActive[2])>
+						<li class="@IsActive("User")"><a asp-controller="User" asp-action="Index"><span>Users List</span></a></li>
 						
 						@if (User.IsInRole(Roles.Admin))
 						{
-							<li><a asp-controller="Role" asp-action="Index"><span>User Role</span></a></li>
+							<li class="@IsActive("Role")"><a asp-controller="Role" asp-action="Index"><span>User Role</span></a></li>
 						}
 					</ul>
 				</li>
@@ -88,24 +126,25 @@
 			
 			@if (canViewInfo || canViewCategory || canViewMethod || canViewSupplier)
 			{
+				var subActive = IsHasSubActive("Setting");
 				
-				<li class="has-sub">
-					<a><i class="las la-cog"></i><span>Setting</span><i class="arrow"></i></a>
-					<ul class="sub-menu">
+				<li class="has-sub @subActive[0]">
+					<a><i class="las la-cog"></i><span>Setting</span><i class="arrow @subActive[1]"></i></a>
+					<ul class="sub-menu" @Html.Raw(subActive[2])>
 						@if(canViewInfo) {
-							<li><a asp-controller="Setting" asp-action="Index"><span>System Info</span></a></li>
+							<li class="@IsActive("Setting", "Index")"><a asp-controller="Setting" asp-action="Index"><span>System Info</span></a></li>
 						}
 						
 						@if(canViewCategory) {
-							<li><a asp-controller="Setting" asp-action="Categories"><span>Medicine Category</span></a></li>
+							<li class="@IsActive("Setting", "Categories")"><a asp-controller="Setting" asp-action="Categories"><span>Medicine Category</span></a></li>
 						}
 						
 						@if(canViewMethod) {
-							<li><a asp-controller="Setting" asp-action="PaymentMethods"><span>Payment Methods</span></a></li>
+							<li class="@IsActive("Setting", "PaymentMethods")"><a asp-controller="Setting" asp-action="PaymentMethods"><span>Payment Methods</span></a></li>
 						}
 						
 						@if(canViewSupplier) {
-							<li><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
+							<li class="@IsActive("Setting", "Suppliers")"><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
 						}
 					</ul>
 				</li>

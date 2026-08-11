@@ -1,9 +1,1 @@
-﻿I did some mapping for medicine create medicinewithstock dto and mapping directory
-
-now what I want you to do is create mapping for other models as well 
-
-take the example of medicine/index
-
-I'll be mapping all the controllers one by one so first start off with medicine controller first 
-
-
+﻿

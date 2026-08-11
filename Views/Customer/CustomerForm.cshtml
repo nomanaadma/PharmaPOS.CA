@@ -24,10 +24,7 @@
 
 <form asp-controller="Customer" asp-action="@pageType" method="post">
 	@Html.AntiForgeryToken()
-	@if (isEdit)
-	{
-		<input type="hidden" asp-for="Id" />
-	}
+	<input type="hidden" asp-for="Id" />
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">

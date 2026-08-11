@@ -77,7 +77,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Suppliers.Add)]
-	public IActionResult SupplierAdd()
+	public IActionResult SuppliersAdd()
 	{
 		return View("SupplierForm", new SupplierViewModel());
 	}
@@ -85,7 +85,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Suppliers.Add)]
-	public async Task<IActionResult> SupplierAdd(SupplierViewModel model)
+	public async Task<IActionResult> SuppliersAdd(SupplierViewModel model)
 	{
 		if (!ModelState.IsValid)
 		{
@@ -116,7 +116,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Suppliers.Edit)]
-	public async Task<IActionResult> SupplierEdit(int id)
+	public async Task<IActionResult> SuppliersEdit(int id)
 	{
 		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
 		if (supplier == null)
@@ -133,7 +133,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Suppliers.Edit)]
-	public async Task<IActionResult> SupplierEdit(SupplierViewModel model)
+	public async Task<IActionResult> SuppliersEdit(SupplierViewModel model)
 	{
 		if (!model.Id.HasValue)
 		{
@@ -216,7 +216,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.Add)]
-	public IActionResult CategoryAdd()
+	public IActionResult CategoriesAdd()
 	{
 		return View("CategoryForm", new MedicineCategoryViewModel());
 	}
@@ -224,7 +224,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Add)]
-	public async Task<IActionResult> CategoryAdd(MedicineCategoryViewModel model)
+	public async Task<IActionResult> CategoriesAdd(MedicineCategoryViewModel model)
 	{
 		if (!ModelState.IsValid)
 		{
@@ -255,7 +255,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.Edit)]
-	public async Task<IActionResult> CategoryEdit(int id)
+	public async Task<IActionResult> CategoriesEdit(int id)
 	{
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
 		if (category == null)
@@ -272,7 +272,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Edit)]
-	public async Task<IActionResult> CategoryEdit(MedicineCategoryViewModel model)
+	public async Task<IActionResult> CategoriesEdit(MedicineCategoryViewModel model)
 	{
 		if (!model.Id.HasValue)
 		{
@@ -355,7 +355,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.PaymentMethod.Add)]
-	public IActionResult PaymentMethodAdd()
+	public IActionResult PaymentMethodsAdd()
 	{
 		return View("PaymentMethodForm", new PaymentMethodViewModel());
 	}
@@ -363,7 +363,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Add)]
-	public async Task<IActionResult> PaymentMethodAdd(PaymentMethodViewModel model)
+	public async Task<IActionResult> PaymentMethodsAdd(PaymentMethodViewModel model)
 	{
 		if (!ModelState.IsValid)
 		{
@@ -394,7 +394,7 @@ public class SettingController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
-	public async Task<IActionResult> PaymentMethodEdit(int id)
+	public async Task<IActionResult> PaymentMethodsEdit(int id)
 	{
 		var method = await context.PaymentMethods.FirstOrDefaultAsync(pm => pm.Id == id);
 		if (method == null)
@@ -411,7 +411,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
-	public async Task<IActionResult> PaymentMethodEdit(PaymentMethodViewModel model)
+	public async Task<IActionResult> PaymentMethodsEdit(PaymentMethodViewModel model)
 	{
 		if (!model.Id.HasValue)
 		{
