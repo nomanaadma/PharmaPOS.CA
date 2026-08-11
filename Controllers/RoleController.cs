@@ -146,8 +146,14 @@ public class RoleController(
 
     [HttpPost("{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(RoleFormViewModel model)
+    public async Task<IActionResult> Edit(string id, RoleFormViewModel model)
     {
+        if (id != model.Id)
+        {
+            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+            return RedirectToAction(nameof(Index));
+        }
+        
         model.PermissionsGroup = Permissions.GetPermissionsTemplate();
         ViewData["Title"] = "Edit User Role";
 

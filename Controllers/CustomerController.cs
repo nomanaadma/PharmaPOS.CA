@@ -115,20 +115,27 @@ public class CustomerController(
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Customer.Edit)]
-	public async Task<IActionResult> Edit(CustomerViewModel model)
+	public async Task<IActionResult> Edit(int id, CustomerViewModel model)
 	{
+		
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Index));
+		}
+		
 		if (!model.Id.HasValue)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer ID is required for editing." });
 			return RedirectToAction(nameof(Index));
 		}
-
+		
 		if (!ModelState.IsValid)
 		{
 			return View("CustomerForm", model);
 		}
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != model.Id.Value))
+		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id))
 		{
 			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
 			return View("CustomerForm", model);
@@ -136,7 +143,7 @@ public class CustomerController(
 
 		try
 		{
-			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == model.Id.Value);
+			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 			if (customer == null)
 			{
 				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer not found." });

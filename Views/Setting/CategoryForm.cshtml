@@ -21,9 +21,12 @@
 	</div>
 </div>
 
-<form asp-controller="Setting" asp-action="@( "Category" + pageType )" method="post">
+<form asp-controller="Setting" asp-action="@( "Categories" + pageType )" method="post">
 	@Html.AntiForgeryToken()
-	<input type="hidden" asp-for="Id" />
+	@if (isEdit)
+	{
+		<input type="hidden" asp-for="Id" />
+	}
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">

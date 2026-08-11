@@ -191,8 +191,14 @@ public class UserController(
     [HttpPost("{id}")]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = Permissions.User.Edit)]
-    public async Task<IActionResult> Edit(UserFormViewModel model)
+    public async Task<IActionResult> Edit(string id, UserFormViewModel model)
     {
+        if (id != model.UserId)
+        {
+            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+            return RedirectToAction(nameof(Index));
+        }
+        
         ViewData["Title"] = "Edit User";
         model.Roles = await GetRolesSelectListAsync();
 

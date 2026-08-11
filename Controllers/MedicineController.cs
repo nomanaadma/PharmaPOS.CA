@@ -159,12 +159,18 @@ public class MedicineController(
 		return View("MedicineForm", model);
 	}
 
-	[HttpPost]
+	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Medicine.Edit)]
 	
-	public async Task<IActionResult> Edit(MedicineViewModel model)
+	public async Task<IActionResult> Edit(int id, MedicineViewModel model)
 	{
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Index));
+		}
+		
 		if (!model.Id.HasValue)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine ID is required for editing." });

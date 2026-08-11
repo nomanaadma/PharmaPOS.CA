@@ -413,7 +413,13 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.Edit)]
 	public async Task<IActionResult> Edit(int id, PurchaseFormModel model)
 	{
-		if (id != model.Id) return NotFound();
+		
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Index));
+		}
+		
 		
 		model.Suppliers = await GetSuppliersAsync();
 

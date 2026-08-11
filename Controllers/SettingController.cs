@@ -129,12 +129,18 @@ public class SettingController(
 
 		return View("SupplierForm", model);
 	}
-
+	
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Suppliers.Edit)]
-	public async Task<IActionResult> SuppliersEdit(SupplierViewModel model)
+	public async Task<IActionResult> SuppliersEdit(int id, SupplierViewModel model)
 	{
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Suppliers));
+		}
+		
 		if (!model.Id.HasValue)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier ID is required for editing." });
@@ -268,12 +274,18 @@ public class SettingController(
 
 		return View("CategoryForm", model);
 	}
-
+	
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Edit)]
-	public async Task<IActionResult> CategoriesEdit(MedicineCategoryViewModel model)
+	public async Task<IActionResult> CategoriesEdit(int id, MedicineCategoryViewModel model)
 	{
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Categories));
+		}
+		
 		if (!model.Id.HasValue)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category ID is required for editing." });
@@ -411,8 +423,14 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
-	public async Task<IActionResult> PaymentMethodsEdit(PaymentMethodViewModel model)
+	public async Task<IActionResult> PaymentMethodsEdit(int id, PaymentMethodViewModel model)
 	{
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(PaymentMethods));
+		}
+		
 		if (!model.Id.HasValue)
 		{
 			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method ID is required for editing." });

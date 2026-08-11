@@ -20,9 +20,12 @@
 	</div>
 </div>
 
-<form method="post" class="purchase_form">
-	
-	<input type="hidden" asp-for="Id"/>
+<form method="post" class="purchase_form" asp-action="@pageType">
+	@Html.AntiForgeryToken()
+	@if (isEdit)
+	{
+		<input type="hidden" asp-for="Id" />
+	}
 
 	<div class="panel panel-default">
 		<div class="panel-body">

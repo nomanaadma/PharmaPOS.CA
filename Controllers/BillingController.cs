@@ -408,6 +408,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 		if (bill == null)
 		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Bill does not exist in database!" });
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -437,7 +438,12 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[Authorize(Policy = Permissions.Billing.Edit)]
 	public async Task<IActionResult> Edit(int id, BillingFormModel model)
 	{
-		if (id != model.Id) return NotFound();
+		
+		if (id != model.Id)
+		{
+			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			return RedirectToAction(nameof(Index));
+		}
 		
 		model.PaymentMethods = await GetPaymentMethodsAsync();
 

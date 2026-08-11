@@ -1,10 +1,9 @@
-@using System.Threading.Tasks.Dataflow
-@using Humanizer
 @model PharmaPOS_MVC.Models.BillingFormModel
 @{
 	var isEdit = Model?.Id.HasValue ?? false;
-	var pageType = isEdit ? "Edit" : "New";
-	ViewData["Title"] = pageType + " Bill";
+	ViewData["Title"] = isEdit ? "Edit" : "New" + " Bill";
+	
+	var actionType = isEdit ? "Edit" : "Add";
 }
 
 <div class="page-title">
@@ -22,10 +21,13 @@
 	</div>
 </div>
 
-<form method="post" class="billing_form">
+<form method="post" class="billing_form" asp-action="@actionType">
+	@Html.AntiForgeryToken()
+	@if (isEdit)
+	{
+		<input type="hidden" asp-for="Id" />
+	}
 	
-	<input type="hidden" asp-for="Id"/>
-
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="row">
