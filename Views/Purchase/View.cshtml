@@ -1,4 +1,4 @@
-@model PharmaPOS_MVC.Domain.Entities.Purchase
+@model PharmaPOS_MVC.Models.PurchaseViewModel
 @{
 	ViewData["Title"] = "Purchase View";
 	var canEdit = User.HasPermission(Permissions.Purchase.Edit);
@@ -37,9 +37,9 @@
 					<tr>
 						<td class="bill-to v-aling-bottom">
 							<div class="heading">Supplier</div>
-							<div class="title">@Model.Supplier.Name</div>
-							<div class="text">@Model.Supplier.Email</div>
-							<div class="text">@Model.Supplier.Phone</div>
+							<div class="title">@Model.SupplierName</div>
+							<div class="text">@Model.SupplierEmail</div>
+							<div class="text">@Model.SupplierPhone</div>
 						</td>
 						<td class="info v-aling-bottom">
 							<table class="text-right">
@@ -80,7 +80,7 @@
 					@foreach (var value in Model.Batches)
 					{
 						<tr>
-							<td>@value.Medicine.Name</td>
+							<td>@value.MedicineName</td>
 							<td>@value.BatchName</td>
 							<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Expiry)</td>
 							<td>@value.Pqty</td>

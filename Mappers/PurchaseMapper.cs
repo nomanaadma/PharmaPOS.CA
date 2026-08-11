@@ -122,4 +122,35 @@ public static class PurchaseMapper
             }).ToList()
         };
     }
+
+    public static PurchaseViewModel MapToPurchaseView(Purchase purchase)
+    {
+        return new PurchaseViewModel
+        {
+            Id = purchase.Id,
+            SupplierName = purchase.Supplier?.Name ?? "",
+            SupplierEmail = purchase.Supplier?.Email,
+            SupplierPhone = purchase.Supplier?.Phone,
+            Date = purchase.Date,
+            Total = purchase.Total,
+            Tax = purchase.Tax,
+            DiscountValue = purchase.DiscountValue,
+            Amount = purchase.Amount,
+            Note = purchase.Note,
+            Batches = purchase.Batches.Select(b => new PurchaseBatchViewModel
+            {
+                MedicineName = b.Medicine?.Name ?? "",
+                BatchName = b.BatchName,
+                Expiry = b.Expiry,
+                Pqty = b.Pqty,
+                Qty = b.Qty,
+                PurchasePrice = b.PurchasePrice,
+                SalePrice = b.SalePrice,
+                Gross = b.Gross,
+                DiscountValue = b.DiscountValue,
+                TaxPrice = b.TaxPrice,
+                Price = b.Price
+            }).ToList()
+        };
+    }
 }

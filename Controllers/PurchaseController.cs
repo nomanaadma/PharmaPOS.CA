@@ -294,7 +294,9 @@ public class PurchaseController(
 			return RedirectToAction(nameof(Index));
 		}
 
-		return View(purchase);
+		var model = PurchaseMapper.MapToPurchaseView(purchase);
+
+		return View(model);
 
 	}
 

@@ -134,4 +134,34 @@ public static class BillingMapper
             }).ToList()
         };
     }
+
+    public static BillingViewModel MapToBillDetailsViewModel(Bill bill)
+    {
+        return new BillingViewModel
+        {
+            Id = bill.Id,
+            Name = bill.Name,
+            Email = bill.Email,
+            Mobile = bill.Mobile,
+            BillDate = bill.BillDate,
+            PaymentMethodName = bill.PaymentMethod?.Name,
+            Subtotal = bill.Subtotal,
+            DiscountValue = bill.DiscountValue,
+            Tax = bill.Tax,
+            Amount = bill.Amount,
+            Note = bill.Note,
+            Items = bill.Items.Select(i => new BillingItemViewModel
+            {
+                MedicineName = i.Medicine?.Name ?? "",
+                BatchName = i.Batch?.BatchName ?? "",
+                Expiry = i.Batch?.Expiry ?? "",
+                Qty = i.Qty,
+                SalePrice = i.SalePrice,
+                Gross = i.Gross,
+                DiscountValue = i.DiscountValue,
+                TaxPrice = i.TaxPrice,
+                Price = i.Price
+            }).ToList()
+        };
+    }
 }

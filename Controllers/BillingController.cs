@@ -582,7 +582,9 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 		if (bill == null) return NotFound();
 
-		return View(bill);
+		var model = BillingMapper.MapToBillDetailsViewModel(bill);
+
+		return View(model);
 	}
 
 	private async Task<IEnumerable<SelectListItem>> GetPaymentMethodsAsync()

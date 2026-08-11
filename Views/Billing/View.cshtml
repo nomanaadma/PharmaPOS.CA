@@ -1,4 +1,4 @@
-@model PharmaPOS_MVC.Domain.Entities.Bill
+@model PharmaPOS_MVC.Models.BillingViewModel
 @{
 	ViewData["Title"] = "Bill View";
 	var siteInfo = await SiteInfo.GetSettingsAsync();
@@ -75,7 +75,7 @@
 										</tr>
 										<tr>
 											<td class="text">Payment Method</td>
-											<td class="text w-min-130">@Model.PaymentMethod?.Name</td>
+											<td class="text w-min-130">@Model.PaymentMethodName</td>
 										</tr>
 									</tbody>
 								</table>
@@ -104,9 +104,9 @@
 							@foreach (var value in Model.Items)
 							{
 								<tr>
-									<td>@value.Medicine.Name</td>
-									<td>@value.Batch.BatchName</td>
-									<td>@(DateTime.TryParse(value.Batch.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Batch.Expiry)</td>
+									<td>@value.MedicineName</td>
+									<td>@value.BatchName</td>
+									<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Expiry)</td>
 									<td>@value.Qty.ToString("0.##")</td>
 									<td>@value.SalePrice</td>
 									<td>@value.Gross</td>
