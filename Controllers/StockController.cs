@@ -6,6 +6,7 @@ using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -27,7 +28,7 @@ public class StockController(ApplicationDbContext context) : Controller
 		var today = DateTime.UtcNow.Date;
 		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
 		
-		var currentMonthStr = currentMonthDate.ToString("yyyyMM");
+		var currentMonthStr = currentMonthDate.ExpiryFormat();
 
 		string pageTitle;
 		var pageType = type ?? "live";
@@ -42,7 +43,7 @@ public class StockController(ApplicationDbContext context) : Controller
 				
 			case "willexpirein1":
 				pageTitle = "Expire in 1 Month";
-				var oneMonthStr = currentMonthDate.AddMonths(1).ToString("yyyyMM");
+				var oneMonthStr = currentMonthDate.AddMonths(1).ExpiryFormat();
 				batchesQuery = batchesQuery.Where(b => 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), oneMonthStr) <= 0 && 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
@@ -50,7 +51,7 @@ public class StockController(ApplicationDbContext context) : Controller
 				
 			case "willexpirein2":
 				pageTitle = "Expire in 2 Month";
-				var twoMonthStr = currentMonthDate.AddMonths(2).ToString("yyyyMM");
+				var twoMonthStr = currentMonthDate.AddMonths(2).ExpiryFormat();
 				batchesQuery = batchesQuery.Where(b => 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), twoMonthStr) <= 0 && 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
@@ -58,7 +59,7 @@ public class StockController(ApplicationDbContext context) : Controller
 				
 			case "willexpirein3":
 				pageTitle = "Expire in 3 Month";
-				var threeMonthStr = currentMonthDate.AddMonths(3).ToString("yyyyMM");
+				var threeMonthStr = currentMonthDate.AddMonths(3).ExpiryFormat();
 				batchesQuery = batchesQuery.Where(b => 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), threeMonthStr) < 0 && 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
@@ -66,7 +67,7 @@ public class StockController(ApplicationDbContext context) : Controller
 				
 			case "willexpirein6":
 				pageTitle = "Expire in 6 Month";
-				var sixMonthStr = currentMonthDate.AddMonths(6).ToString("yyyyMM");
+				var sixMonthStr = currentMonthDate.AddMonths(6).ExpiryFormat();
 				batchesQuery = batchesQuery.Where(b => 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), sixMonthStr) < 0 && 
 					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);

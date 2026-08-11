@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Mappers;
@@ -84,7 +85,7 @@ public static class BillingMapper
                 tax = "Rs " + mb.Tax.ToString("F2"),
                 discount_value = "Rs " + mb.DiscountValue.ToString("F2"),
                 amount = "Rs " + mb.Amount.ToString("F2"),
-                bill_date = mb.BillDate.ToString("yyyy-MM-dd"),
+                bill_date = mb.BillDate.Format(),
                 action = actionHtml.ToString()
             };
         }).ToList();

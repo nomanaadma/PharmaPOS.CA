@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Mappers;
@@ -82,7 +83,7 @@ public static class PurchaseMapper
                 tax = "Rs " + mp.Tax.ToString("F2"),
                 discount_value = "Rs " + mp.DiscountValue.ToString("F2"),
                 amount = "Rs " + mp.Amount.ToString("F2"),
-                date = mp.Date.ToString("yyyy-MM-dd"),
+                date = mp.Date.Format(),
                 action = actionHtml
             };
         }).ToList();

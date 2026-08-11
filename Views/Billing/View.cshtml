@@ -71,7 +71,7 @@
 										</tr>
 										<tr>
 											<td class="text">Date</td>
-											<td class="text w-min-130">@Model.BillDate.ToString("dd/MM/yyyy")</td>
+											<td class="text w-min-130">@Model.BillDate.Format()</td>
 										</tr>
 										<tr>
 											<td class="text">Payment Method</td>
@@ -106,7 +106,7 @@
 								<tr>
 									<td>@value.MedicineName</td>
 									<td>@value.BatchName</td>
-									<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Expiry)</td>
+									<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ExpiryVisibleFormat() : value.Expiry)</td>
 									<td>@value.Qty.ToString("0.##")</td>
 									<td>@value.SalePrice</td>
 									<td>@value.Gross</td>

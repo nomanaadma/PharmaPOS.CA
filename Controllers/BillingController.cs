@@ -393,7 +393,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[Authorize(Policy = Permissions.Billing.Edit)]
 	public async Task<IActionResult> Edit(int id)
 	{
-		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 		
 		var bill = await context.Bills
 			.Include(mb => mb.Items)

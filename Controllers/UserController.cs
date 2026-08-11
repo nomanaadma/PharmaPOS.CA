@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -129,7 +130,7 @@ public class UserController(
             new(ClaimTypes.GivenName, model.FirstName),
             new(ClaimTypes.Surname, model.LastName),
             new("Gender", model.Gender),
-            new("CreatedDate", model.CreatedDate.ToString("dd/MM/yyyy")),
+            new("CreatedDate", model.CreatedDate.Format()),
         };
         await userManager.AddClaimsAsync(user, claims);
 

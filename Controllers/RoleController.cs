@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Authorization;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Models;
 
@@ -32,7 +33,7 @@ public class RoleController(
             var createdDate = "";
             if (!string.IsNullOrWhiteSpace(createdDateClaim) && DateTime.TryParse(createdDateClaim, out var parsedDate))
             {
-                createdDate = parsedDate.ToString("dd/MM/yyyy");
+                createdDate = parsedDate.Format();
             }
 
             list.Add(new RoleListViewModel

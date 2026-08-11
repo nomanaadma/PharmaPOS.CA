@@ -9,6 +9,7 @@ using System.Text.Json;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.DTOs;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 
 namespace PharmaPOS_MVC.Controllers;
@@ -23,7 +24,7 @@ public class MedicineController(
 	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> Index()
 	{
-		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 
 		var medicines = await context.Medicines
 			.Include(m => m.Category)
@@ -115,7 +116,7 @@ public class MedicineController(
 		var today = DateTime.UtcNow.Date;
 		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
 	
-		var currentMonthStr = currentMonthDate.ToString("yyyyMM");
+		var currentMonthStr = currentMonthDate.ExpiryFormat();
 
 		var batchesQuery = await context.Batches
 			.Where(b => b.MedicineId == id)
@@ -308,7 +309,7 @@ public class MedicineController(
 			return Forbid();
 		}
 		
-		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 
 		var batches = await context.Batches
 			.Where(b => b.MedicineId == id)

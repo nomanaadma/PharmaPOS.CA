@@ -79,7 +79,7 @@
                                 </tr>
                                 <tr>
                                     <td>Created Date</td>
-                                    <td>@Model.Customer.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                    <td>@Model.Customer.CreatedDate?.Format()</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -107,7 +107,7 @@
                                     <tr>
                                         <td class="text-primary">@value.Id.ToString("D5")</td>
                                         <td>Rs @value.Amount.ToString("F2")</td>
-                                        <td>@value.BillDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@value.BillDate.Format()</td>
                                         <td class="table-action">
 	                                        <a 
 		                                        asp-controller="Billing"

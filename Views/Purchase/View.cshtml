@@ -50,7 +50,7 @@
 									</tr>
 									<tr>
 										<td class="text">Purchase Date</td>
-										<td class="text w-min-130">@Model.Date.ToString("dd/MM/yyyy")</td>
+										<td class="text w-min-130">@Model.Date.Format()</td>
 									</tr>
 								</tbody>
 							</table>
@@ -82,7 +82,7 @@
 						<tr>
 							<td>@value.MedicineName</td>
 							<td>@value.BatchName</td>
-							<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ToString("MM-yyyy") : value.Expiry)</td>
+							<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ExpiryVisibleFormat() : value.Expiry)</td>
 							<td>@value.Pqty</td>
 							<td>@value.Qty</td>
 							<td>@value.PurchasePrice</td>

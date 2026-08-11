@@ -65,7 +65,7 @@
 							<td>
 								<span class="label @value.Status.GetCssClass()">@value.Status</span>
 							</td>
-							<td>@value.CreatedDate?.ToString("dd/MM/yyyy")</td>
+							<td>@value.CreatedDate?.Format()</td>
 							@if (canAction)
 							{
 								<td class="table-action">

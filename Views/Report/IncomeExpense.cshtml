@@ -21,7 +21,7 @@
             </div>
             <div class="btn btn-white btn-sm text-left mr-2">
                 <i class="las la-filter text-danger pr-2"></i>
-                <input type="text" class="table-date-range" data-start="@Model.StartDate.ToString("dd/MM/yyyy")" data-end="@Model.EndDate.ToString("dd/MM/yyyy")" data-route="/Reports/IncomeExpense?">
+                <input type="text" class="table-date-range" data-start="@Model.StartDate.Format()" data-end="@Model.EndDate.Format()" data-route="/Reports/IncomeExpense?">
             </div>
         </div>
     </div>

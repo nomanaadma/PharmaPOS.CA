@@ -26,7 +26,7 @@ public class ReportController(ApplicationDbContext context) : Controller
     [Authorize(Policy = Permissions.Reports.View)]
     public async Task<IActionResult> Inventory()
     {
-        var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+        var currentMonth = DateTime.UtcNow.ExpiryFormat();
         
 		var inventoryDto = await context.Medicines
 	        // 1. Order the base query first
