@@ -107,30 +107,30 @@
 									<td>@value.MedicineName</td>
 									<td>@value.BatchName</td>
 									<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ExpiryVisibleFormat() : value.Expiry)</td>
-									<td>@value.Qty.ToString("0.##")</td>
+									<td>@value.Qty.ToZeroHash()</td>
 									<td>@value.SalePrice</td>
 									<td>@value.Gross</td>
-									<td>@value.DiscountValue.ToString("0.##")</td>
-									<td>@value.TaxPrice.ToString("0.##")</td>
-									<td>@value.Price.ToString("0.##")</td>
+									<td>@value.DiscountValue.ToZeroHash()</td>
+									<td>@value.TaxPrice.ToZeroHash()</td>
+									<td>@value.Price.ToZeroHash()</td>
 								</tr>
 							}
 							<tr class="total">
 								<td rowspan="5" colspan="5" class="blank"></td>
 								<td class="title" colspan="2">Sub Total</td>
-								<td class="value" colspan="2">Rs @Model.Subtotal</td>
+								<td class="value" colspan="2">@Model.Subtotal.ToCrF2()</td>
 							</tr>
 							<tr class="total">
 								<td class="title" colspan="2">Discount</td>
-								<td class="value" colspan="2">Rs @Model.DiscountValue</td>
+								<td class="value" colspan="2">@Model.DiscountValue.ToCrF2()</td>
 							</tr>
 							<tr class="total">
 								<td class="title" colspan="2">Tax</td>
-								<td class="value" colspan="2">Rs @Model.Tax</td>
+								<td class="value" colspan="2">@Model.Tax.ToCrF2()</td>
 							</tr>
 							<tr class="total">
 								<td class="title" colspan="2">Amount</td>
-								<td class="value" colspan="2">Rs @Model.Amount</td>
+								<td class="value" colspan="2">@Model.Amount.ToCrF2()</td>
 							</tr>
 						</tbody>
 					</table>

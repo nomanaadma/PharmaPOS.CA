@@ -79,10 +79,10 @@ public static class PurchaseMapper
             {
                 id = mp.Id,
                 name = mp.Supplier.Name,
-                total = "Rs " + mp.Total.ToString("F2"),
-                tax = "Rs " + mp.Tax.ToString("F2"),
-                discount_value = "Rs " + mp.DiscountValue.ToString("F2"),
-                amount = "Rs " + mp.Amount.ToString("F2"),
+                total = mp.Total.ToCrF2(),
+                tax = mp.Tax.ToCrF2(),
+                discount_value = mp.DiscountValue.ToCrF2(),
+                amount = mp.Amount.ToCrF2(),
                 date = mp.Date.Format(),
                 action = actionHtml
             };

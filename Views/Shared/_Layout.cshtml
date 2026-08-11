@@ -24,7 +24,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<script type="text/javascript" src="~/js/admin.js" asp-append-version="true"></script>
 	<script>
-		const common_currency = 'Rs ';
+		const common_currency = "@CurrencyExtensions.Currency";
 		const xsrfToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
 	</script>
 </head>

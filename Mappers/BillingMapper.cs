@@ -81,10 +81,10 @@ public static class BillingMapper
             {
                 id = mb.Id,
                 name = mb.Name,
-                subtotal = "Rs " + mb.Subtotal.ToString("F2"),
-                tax = "Rs " + mb.Tax.ToString("F2"),
-                discount_value = "Rs " + mb.DiscountValue.ToString("F2"),
-                amount = "Rs " + mb.Amount.ToString("F2"),
+                subtotal = mb.Subtotal.ToCrF2(),
+                tax = mb.Tax.ToCrF2(),
+                discount_value = mb.DiscountValue.ToCrF2(),
+                amount = mb.Amount.ToCrF2(),
                 bill_date = mb.BillDate.Format(),
                 action = actionHtml.ToString()
             };

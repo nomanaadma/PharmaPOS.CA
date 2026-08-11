@@ -106,7 +106,7 @@
                                 {
                                     <tr>
                                         <td class="text-primary">@value.Id.ToString("D5")</td>
-                                        <td>Rs @value.Amount.ToString("F2")</td>
+                                        <td>@value.Amount.ToCrF2()</td>
                                         <td>@value.BillDate.Format()</td>
                                         <td class="table-action">
 	                                        <a 

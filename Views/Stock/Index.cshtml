@@ -70,29 +70,29 @@
 						<td class="text-primary medicine">@item.Name</td>
 						<td class="batch">@item.Batch</td>
 						<td class="expiry text-danger">@item.Expiry</td>
-						<td class="purchase">Rs @item.PurchasePrice.ToString("F2")</td>
+						<td class="purchase">@item.PurchasePrice.ToCrF2()</td>
 						<td class="sale">
 							@if (item.SalePrice > 0)
 							{
-								<text>Rs @item.SalePrice.ToString("0.##")</text>
+								<text>@item.SalePrice.ToCrHash()</text>
 							}
 						</td>
-						<td>Rs @item.TotalPurchase.ToString("F2")</td>
+						<td>@item.TotalPurchase.ToCrF2()</td>
 						<td>
 							@if (item.TotalSales > 0)
 							{
-								<text>Rs @item.TotalSales.ToString("0.##")</text>
+								<text>@item.TotalSales.ToCrHash()</text>
 							}
 						</td>
 						<td>
 							@if (item.Profit > 0)
 							{
-								<text>Rs @item.Profit.ToString("0.##")</text>
+								<text>@item.Profit.ToCrHash()</text>
 							}
 						</td>
 						<td class="qty">@item.Qty</td>
 						<td class="sold">@item.Sold</td>
-						<td class="available">@item.Available.ToString("0.##")</td>
+						<td class="available">@item.Available.ToZeroHash()</td>
 						@if (canAction)
 						{
 							<td class="table-action">

@@ -96,19 +96,19 @@
 					<tr class="total">
 						<td rowspan="5" colspan="7" class="blank"></td>
 						<td class="title" colspan="2">Sub Total</td>
-						<td class="value" colspan="2">Rs @Model.Total</td>
+						<td class="value" colspan="2">@Model.Total.ToCrF2()</td>
 					</tr>
 					<tr class="total">
 						<td class="title" colspan="2">Tax</td>
-						<td class="value" colspan="2">Rs @Model.Tax</td>
+						<td class="value" colspan="2">@Model.Tax.ToCrF2()</td>
 					</tr>
 					<tr class="total">
 						<td class="title" colspan="2">Discount</td>
-						<td class="value" colspan="2">Rs @Model.DiscountValue</td>
+						<td class="value" colspan="2">@Model.DiscountValue.ToCrF2()</td>
 					</tr>
 					<tr class="total">
 						<td class="title" colspan="2">Amount</td>
-						<td class="value" colspan="2">Rs @Model.Amount</td>
+						<td class="value" colspan="2">@Model.Amount.ToCrF2()</td>
 					</tr>
 				</tbody>
 			</table>

@@ -133,7 +133,7 @@
 								<td>
 									<div class="input-group">
 										<input type="text" asp-for="Items[i].Qty" asp-format="{0:0.##}" class="form-control item-qty" required>
-										<div class="input-group-prepend"><span class="item-available-qty input-group-text">@availableQuantity.ToString("0.##")</span></div>
+										<div class="input-group-prepend"><span class="item-available-qty input-group-text">@availableQuantity.ToZeroHash()</span></div>
 									</div>
 								</td>
 								<td>

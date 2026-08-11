@@ -159,11 +159,11 @@
                                             <td>@(liveIndex++)</td>
                                             <td class="batch text-primary">@value.Batch</td>
                                             <td class="expiry text-danger">@value.Expiry</td>
-                                            <td>Rs @value.PurchasePrice.ToString("F2")</td>
-                                            <td>Rs @value.SalePrice.ToString("F2")</td>
+                                            <td>@value.PurchasePrice.ToCrF2()</td>
+                                            <td>@value.SalePrice.ToCrF2()</td>
                                             <td class="qty">@value.Qty</td>
                                             <td class="sold">@value.Sold</td>
-                                            <td class="available">@value.Available.ToString("0.##")</td>
+                                            <td class="available">@value.Available.ToZeroHash()</td>
                                             @if (canAction)
                                             {
 	                                            <td class="table-action">
@@ -234,8 +234,8 @@
                                             <td>@(badIndex++)</td>
                                             <td class="batch text-primary">@value.Batch</td>
                                             <td class="expiry text-danger">@value.Expiry</td>
-                                            <td>Rs @value.PurchasePrice.ToString("F2")</td>
-                                            <td>Rs @value.SalePrice.ToString("F2")</td>
+                                            <td>@value.PurchasePrice.ToCrF2()</td>
+                                            <td>@value.SalePrice.ToCrF2()</td>
                                             <td class="qty">@value.Qty</td>
                                             <td class="sold">@value.Sold</td>
                                             @if (canDeleteStock)
