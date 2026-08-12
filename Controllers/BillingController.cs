@@ -16,7 +16,7 @@ namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
 [Route("Medicines/Billing/[action]")]
-public class BillingController(ApplicationDbContext context) : Controller
+public class BillingController(ApplicationDbContext context) : BaseController
 {
 	[HttpGet]
 	[Route("/Medicines/Billing")]
@@ -295,13 +295,13 @@ public class BillingController(ApplicationDbContext context) : Controller
 		
 		if (!ModelState.IsValid)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
+			NotifyError("Please check your inputs.");
 			return View("BillingForm", model);
 		}
 		
 		if (model.Items.Count == 0)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing Bill items." });
+			NotifyError("Missing Bill items.");
 			return View("BillingForm", model);
 		}
 
@@ -378,13 +378,13 @@ public class BillingController(ApplicationDbContext context) : Controller
 			await context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Bill created successfully." });
+			NotifySuccess("Bill created successfully.");
 			return RedirectToAction(nameof(View), new { id = bill.Id });
 		}
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving bill: " + ex.Message });
+			NotifyError("Error saving bill: " + ex.Message);
 			return View("BillingForm", model);
 		}
 	}
@@ -408,7 +408,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 		if (bill == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Bill does not exist in database!" });
+			NotifyWarning("Bill does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -441,7 +441,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 		
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -449,13 +449,13 @@ public class BillingController(ApplicationDbContext context) : Controller
 
 		if (!ModelState.IsValid)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
+			NotifyError("Please check your inputs.");
 			return View("BillingForm", model);
 		}
 		
 		if (model.Items.Count == 0)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			NotifyError("Missing purchase items.");
 			return View("BillingForm", model);
 		}
 
@@ -526,13 +526,13 @@ public class BillingController(ApplicationDbContext context) : Controller
 			await context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Bill updated successfully." });
+			NotifySuccess("Bill updated successfully.");
 			return RedirectToAction(nameof(View), new { id = bill.Id });
 		}
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating bill: " + ex.Message });
+			NotifyError("Error updating bill: " + ex.Message);
 			return View("BillingForm", model);
 		}
 	}
@@ -562,12 +562,12 @@ public class BillingController(ApplicationDbContext context) : Controller
 			await context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Bill deleted successfully." });
+			NotifySuccess("Bill deleted successfully.");
 		}
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting bill: " + ex.Message });
+			NotifyError("Error deleting bill: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

@@ -18,7 +18,7 @@ namespace PharmaPOS_MVC.Controllers;
 public class UserController(
     UserManager<IdentityUser> userManager,
     RoleManager<IdentityRole> roleManager
-) : Controller
+) : BaseController
 {
 
     [HttpGet("/Users")]
@@ -138,7 +138,7 @@ public class UserController(
             await userManager.AddToRoleAsync(user, model.UserRole);
         }
 
-        TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Account created successfully." });
+        NotifySuccess("Account created successfully.");
         return RedirectToAction(nameof(Index));
     }
 
@@ -154,7 +154,7 @@ public class UserController(
         var user = await userManager.FindByIdAsync(id);
         if (user == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "User does not exist in database!" });
+            NotifyWarning("User does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
@@ -192,7 +192,7 @@ public class UserController(
     {
         if (id != model.UserId)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+            NotifyError("Bad Request: ID mismatch.");
             return RedirectToAction(nameof(Index));
         }
         
@@ -206,7 +206,7 @@ public class UserController(
         var user = await userManager.FindByIdAsync(model.UserId);
         if (user == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "User does not exist in database!" });
+            NotifyWarning("User does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
@@ -274,7 +274,7 @@ public class UserController(
             }
         }
 
-        TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Account updated successfully." });
+        NotifySuccess("Account updated successfully.");
         return RedirectToAction(nameof(Index));
     }
 
@@ -285,14 +285,14 @@ public class UserController(
     {
         if (string.IsNullOrWhiteSpace(id))
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "User ID is missing!" });
+            NotifyError("User ID is missing!");
             return RedirectToAction(nameof(Index));
         }
 
         var user = await userManager.FindByIdAsync(id);
         if (user == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "User does not exist in database!" });
+            NotifyWarning("User does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
@@ -300,7 +300,7 @@ public class UserController(
         var currentUserId = userManager.GetUserId(User);
         if (user.Id == currentUserId)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "You cannot delete your own account!" });
+            NotifyError("You cannot delete your own account!");
             return RedirectToAction(nameof(Index));
         }
         
@@ -308,18 +308,18 @@ public class UserController(
 
         if (roleName == Roles.Admin)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Administrator account cannot be deleted!" });
+            NotifyError("Administrator account cannot be deleted!");
             return RedirectToAction(nameof(Index));
         }
 
         var result = await userManager.DeleteAsync(user);
         if (result.Succeeded)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Account deleted successfully." });
+            NotifySuccess("Account deleted successfully.");
         }
         else
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting account: " + string.Join(", ", result.Errors.Select(e => e.Description)) });
+            NotifyError("Error deleting account: " + string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
         return RedirectToAction(nameof(Index));

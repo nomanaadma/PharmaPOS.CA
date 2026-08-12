@@ -13,7 +13,7 @@ namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
 [Route("Medicine/Stock/[action]")]
-public class StockController(ApplicationDbContext context) : Controller
+public class StockController(ApplicationDbContext context) : BaseController
 {
 	[HttpGet("/Medicine/Stock")]
 	[Authorize(Policy = Permissions.Stock.View)]
@@ -138,14 +138,14 @@ public class StockController(ApplicationDbContext context) : Controller
 
 		if (batch == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Stock does not exist in database!" });
+			NotifyWarning("Stock does not exist in database!");
 			return Redirect(refererUrl);
 		}
 
 		batch.UpdateSold(batch.Qty - available);
 		await context.SaveChangesAsync();
 
-		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Stock updated successfully!" });
+		NotifySuccess("Stock updated successfully!");
 		return Redirect(refererUrl);
 	}
 
@@ -162,14 +162,14 @@ public class StockController(ApplicationDbContext context) : Controller
 		
 		if (batch == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Stock does not exist in database!" });
+			NotifyWarning("Stock does not exist in database!");
 			return Redirect(refererUrl);
 		}
 		
 		batch.UpdateStatus(Status.InActive);
 		await context.SaveChangesAsync();
 		
-		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine Stock deleted successfully." });
+		NotifySuccess("Medicine Stock deleted successfully.");
 		return Redirect(refererUrl);
 		
 	}

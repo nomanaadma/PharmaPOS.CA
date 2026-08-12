@@ -11,7 +11,7 @@ namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
 [Route("media")]
-public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbContext) : Controller
+public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbContext) : BaseController
 {
 	[HttpGet]
 	[Route("get")]

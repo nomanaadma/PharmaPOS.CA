@@ -7,7 +7,7 @@ using PharmaPOS_MVC.Models;
 namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
-public class DashboardController : Controller
+public class DashboardController : BaseController
 {
 	[Authorize(Policy = Permissions.Dashboard.View)]
 	public IActionResult Index()

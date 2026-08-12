@@ -18,7 +18,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Medicines/Purchase/[action]")]
 public class PurchaseController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Route("/Medicines/Purchase")]
@@ -290,7 +290,7 @@ public class PurchaseController(
 
 		if (purchase == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
+			NotifyWarning("Purchase record does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -322,13 +322,13 @@ public class PurchaseController(
 		
 		if (!ModelState.IsValid)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
+			NotifyError("Please check your inputs.");
 			return View("PurchaseForm", model);	
 		}
 		
 		if (model.Items.Count == 0)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			NotifyError("Missing purchase items.");
 			return View("PurchaseForm", model);
 		}
 
@@ -375,13 +375,13 @@ public class PurchaseController(
 			await context.SaveChangesAsync();
 			await transaction.CommitAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase created successfully." });
+			NotifySuccess("Purchase created successfully.");
 			return RedirectToAction(nameof(Index));
 		}	
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving purchase: " + ex.Message });
+			NotifyError("Error saving purchase: " + ex.Message);
 			return View("PurchaseForm", model);
 		}
 	}
@@ -398,7 +398,7 @@ public class PurchaseController(
 
 		if (purchase == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Purchase record does not exist in database!" });
+			NotifyWarning("Purchase record does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -416,7 +416,7 @@ public class PurchaseController(
 		
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -425,13 +425,13 @@ public class PurchaseController(
 
 		if (!ModelState.IsValid)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Please check your inputs." });
+			NotifyError("Please check your inputs.");
 			return View("PurchaseForm", model);
 		}
 
 		if (model.Items.Count == 0)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Missing purchase items." });
+			NotifyError("Missing purchase items.");
 			return View("PurchaseForm", model);
 		}
 
@@ -445,7 +445,7 @@ public class PurchaseController(
 
 			if (existingPurchase == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase not found." });
+				NotifyError("Purchase not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
@@ -523,13 +523,13 @@ public class PurchaseController(
 			await transaction.CommitAsync();
 			
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase updated successfully." });
+			NotifySuccess("Purchase updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
 			await transaction.RollbackAsync();
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating purchase: " + ex.Message });
+			NotifyError("Error updating purchase: " + ex.Message);
 			return View("PurchaseForm", model);
 		}
 	}
@@ -544,18 +544,18 @@ public class PurchaseController(
 			var purchase = await context.Purchases.FirstOrDefaultAsync(mp => mp.Id == id);
 			if (purchase == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Purchase record not found." });
+				NotifyError("Purchase record not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.Purchases.Remove(purchase);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Purchase deleted successfully." });
+			NotifySuccess("Purchase deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting purchase: " + ex.Message });
+			NotifyError("Error deleting purchase: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

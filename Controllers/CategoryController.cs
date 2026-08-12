@@ -14,7 +14,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Categories/[action]")]
 public class CategoryController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Route("/Categories")]
@@ -59,12 +59,12 @@ public class CategoryController(
 			context.MedicineCategories.Add(category);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category created successfully." });
+			NotifySuccess("Category created successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving category: " + ex.Message });
+			NotifyError("Error saving category: " + ex.Message);
 			return View("CategoryForm", model);
 		}
 	}
@@ -76,7 +76,7 @@ public class CategoryController(
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
 		if (category == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+			NotifyError("Category not found.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -92,13 +92,13 @@ public class CategoryController(
 	{
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
 		if (!model.Id.HasValue)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category ID is required for editing." });
+			NotifyError("Category ID is required for editing.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -118,19 +118,19 @@ public class CategoryController(
 			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id.Value);
 			if (category == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+				NotifyError("Category not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			category.Update(model.Name);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category updated successfully." });
+			NotifySuccess("Category updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating category: " + ex.Message });
+			NotifyError("Error updating category: " + ex.Message);
 			return View("CategoryForm", model);
 		}
 	}
@@ -145,18 +145,18 @@ public class CategoryController(
 			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
 			if (category == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Category not found." });
+				NotifyError("Category not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.MedicineCategories.Remove(category);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Category deleted successfully." });
+			NotifySuccess("Category deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting category: " + ex.Message });
+			NotifyError("Error deleting category: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

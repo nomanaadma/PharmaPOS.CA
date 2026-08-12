@@ -14,7 +14,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Suppliers/[action]")]
 public class SupplierController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Route("/Suppliers")]
@@ -58,12 +58,12 @@ public class SupplierController(
 			context.Suppliers.Add(supplier);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Supplier created successfully." });
+			NotifySuccess("Supplier created successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving supplier: " + ex.Message });
+			NotifyError("Error saving supplier: " + ex.Message);
 			return View("SupplierForm", model);
 		}
 	}
@@ -75,7 +75,7 @@ public class SupplierController(
 		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
 		if (supplier == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
+			NotifyError("Supplier not found.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -91,13 +91,13 @@ public class SupplierController(
 	{
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
 		if (!model.Id.HasValue)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier ID is required for editing." });
+			NotifyError("Supplier ID is required for editing.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -117,19 +117,19 @@ public class SupplierController(
 			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id.Value);
 			if (supplier == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
+				NotifyError("Supplier not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			supplier.Update(model.Name, model.Email, model.Phone, model.Address);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Supplier updated successfully." });
+			NotifySuccess("Supplier updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating supplier: " + ex.Message });
+			NotifyError("Error updating supplier: " + ex.Message);
 			return View("SupplierForm", model);
 		}
 	}
@@ -144,18 +144,18 @@ public class SupplierController(
 			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
 			if (supplier == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Supplier not found." });
+				NotifyError("Supplier not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.Suppliers.Remove(supplier);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Supplier deleted successfully." });
+			NotifySuccess("Supplier deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting supplier: " + ex.Message });
+			NotifyError("Error deleting supplier: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

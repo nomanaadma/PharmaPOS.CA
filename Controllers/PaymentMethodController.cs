@@ -14,7 +14,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("PaymentMethods/[action]")]
 public class PaymentMethodController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Route("/PaymentMethods")]
@@ -59,12 +59,12 @@ public class PaymentMethodController(
 			context.PaymentMethods.Add(method);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment method created successfully." });
+			NotifySuccess("Payment method created successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving payment method: " + ex.Message });
+			NotifyError("Error saving payment method: " + ex.Message);
 			return View("PaymentMethodForm", model);
 		}
 	}
@@ -76,7 +76,7 @@ public class PaymentMethodController(
 		var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id);
 		if (method == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment method not found." });
+			NotifyError("Payment method not found.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -92,13 +92,13 @@ public class PaymentMethodController(
 	{
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
 		if (!model.Id.HasValue)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment Method ID is required for editing." });
+			NotifyError("Payment Method ID is required for editing.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -118,19 +118,19 @@ public class PaymentMethodController(
 			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == model.Id.Value);
 			if (method == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment method not found." });
+				NotifyError("Payment method not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			method.Update(model.Name, model.Status);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment method updated successfully." });
+			NotifySuccess("Payment method updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating payment method: " + ex.Message });
+			NotifyError("Error updating payment method: " + ex.Message);
 			return View("PaymentMethodForm", model);
 		}
 	}
@@ -145,18 +145,18 @@ public class PaymentMethodController(
 			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id);
 			if (method == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Payment method not found." });
+				NotifyError("Payment method not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.PaymentMethods.Remove(method);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Payment method deleted successfully." });
+			NotifySuccess("Payment method deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting payment method: " + ex.Message });
+			NotifyError("Error deleting payment method: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

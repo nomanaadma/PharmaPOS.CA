@@ -16,7 +16,7 @@ namespace PharmaPOS_MVC.Controllers;
 public class SettingController(
 	ApplicationDbContext context,
 	SiteInfoService siteInfoService
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Info.View)]
@@ -38,7 +38,7 @@ public class SettingController(
 		if (!ModelState.IsValid)
 		{
 			var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Validation failed: " + errors });
+			NotifyError("Validation failed: " + errors);
 			return View("Info", model);
 		}
 
@@ -58,7 +58,7 @@ public class SettingController(
 
 		await context.SaveChangesAsync();
 
-		TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "System settings updated successfully." });
+		NotifySuccess("System settings updated successfully.");
 
 		return RedirectToAction(nameof(Index));
 	}

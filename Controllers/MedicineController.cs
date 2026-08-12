@@ -18,7 +18,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Medicines/[action]")]
 public class MedicineController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet("/Medicines")]
 	[Authorize(Policy = Permissions.Medicine.List)]
@@ -87,12 +87,12 @@ public class MedicineController(
 			context.Medicines.Add(medicine);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine created successfully." });
+			NotifySuccess("Medicine created successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving medicine: " + ex.Message });
+			NotifyError("Error saving medicine: " + ex.Message);
 			model.Categories = await GetMedicineCategoriesAsync();
 			return View("MedicineForm", model);
 		}
@@ -109,7 +109,7 @@ public class MedicineController(
 
 		if (medicine == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Medicine does not exist in database!" });
+			NotifyWarning("Medicine does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -149,7 +149,7 @@ public class MedicineController(
 		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
 		if (medicine == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Medicine does not exist in database!" });
+			NotifyWarning("Medicine does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -167,13 +167,13 @@ public class MedicineController(
 	{
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
 		if (!model.Id.HasValue)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine ID is required for editing." });
+			NotifyError("Medicine ID is required for editing.");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -188,7 +188,7 @@ public class MedicineController(
 			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id.Value);
 			if (medicine == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine not found." });
+				NotifyError("Medicine not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
@@ -208,12 +208,12 @@ public class MedicineController(
 
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine updated successfully." });
+			NotifySuccess("Medicine updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating medicine: " + ex.Message });
+			NotifyError("Error updating medicine: " + ex.Message);
 			model.Categories = await GetMedicineCategoriesAsync();
 			return View("MedicineForm", model);
 		}
@@ -230,18 +230,18 @@ public class MedicineController(
 			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
 			if (medicine == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Medicine not found." });
+				NotifyError("Medicine not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.Medicines.Remove(medicine);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Medicine deleted successfully." });
+			NotifySuccess("Medicine deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting medicine: " + ex.Message });
+			NotifyError("Error deleting medicine: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

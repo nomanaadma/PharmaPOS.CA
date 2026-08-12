@@ -15,7 +15,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Customers/[action]")]
 public class CustomerController(
 	ApplicationDbContext context
-) : Controller
+) : BaseController
 {
 	[HttpGet]
 	[Route("/Customers")]
@@ -60,12 +60,12 @@ public class CustomerController(
 			context.Customers.Add(customer);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Customer created successfully." });
+			NotifySuccess("Customer created successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error saving customer: " + ex.Message });
+			NotifyError("Error saving customer: " + ex.Message);
 			return View("CustomerForm", model);
 		}
 	}
@@ -77,7 +77,7 @@ public class CustomerController(
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 		if (customer == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Customer does not exist in database!" });
+			NotifyWarning("Customer does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -103,7 +103,7 @@ public class CustomerController(
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 		if (customer == null)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Customer does not exist in database!" });
+			NotifyWarning("Customer does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -120,13 +120,13 @@ public class CustomerController(
 		
 		if (id != model.Id)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+			NotifyError("Bad Request: ID mismatch.");
 			return RedirectToAction(nameof(Index));
 		}
 		
 		if (!model.Id.HasValue)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer ID is required for editing." });
+			NotifyError("Customer ID is required for editing.");
 			return RedirectToAction(nameof(Index));
 		}
 		
@@ -146,19 +146,19 @@ public class CustomerController(
 			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 			if (customer == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer not found." });
+				NotifyError("Customer not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			customer.Update(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Customer updated successfully." });
+			NotifySuccess("Customer updated successfully.");
 			return RedirectToAction(nameof(Index));
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error updating customer: " + ex.Message });
+			NotifyError("Error updating customer: " + ex.Message);
 			return View("CustomerForm", model);
 		}
 	}
@@ -173,18 +173,18 @@ public class CustomerController(
 			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 			if (customer == null)
 			{
-				TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Customer not found." });
+				NotifyError("Customer not found.");
 				return RedirectToAction(nameof(Index));
 			}
 
 			context.Customers.Remove(customer);
 			await context.SaveChangesAsync();
 
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "Customer deleted successfully." });
+			NotifySuccess("Customer deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting customer: " + ex.Message });
+			NotifyError("Error deleting customer: " + ex.Message);
 		}
 
 		return RedirectToAction(nameof(Index));

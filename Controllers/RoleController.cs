@@ -15,7 +15,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Roles/[action]")]
 public class RoleController(
     RoleManager<IdentityRole> roleManager
-) : Controller
+) : BaseController
 {
 
     [HttpGet("/Roles")]
@@ -106,7 +106,7 @@ public class RoleController(
             }
         }
 
-        TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "User role created successfully." });
+        NotifySuccess("User role created successfully.");
         return RedirectToAction(nameof(Index));
     }
 
@@ -121,13 +121,13 @@ public class RoleController(
         var role = await roleManager.FindByIdAsync(id);
         if (role == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Role does not exist in database!" });
+            NotifyWarning("Role does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
         if (role.Name == Roles.Admin)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "You can not change Admin role setting." });
+            NotifyWarning("You can not change Admin role setting.");
             return RedirectToAction(nameof(Index));
         }
 
@@ -146,7 +146,7 @@ public class RoleController(
     {
         if (id != model.Id)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Bad Request: ID mismatch." });
+            NotifyError("Bad Request: ID mismatch.");
             return RedirectToAction(nameof(Index));
         }
         
@@ -160,13 +160,13 @@ public class RoleController(
         var role = await roleManager.FindByIdAsync(model.Id);
         if (role == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Role does not exist in database!" });
+            NotifyWarning("Role does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
         if (role.Name == Roles.Admin)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "You can not change Admin role setting." });
+            NotifyWarning("You can not change Admin role setting.");
             return RedirectToAction(nameof(Index));
         }
 
@@ -220,7 +220,7 @@ public class RoleController(
             }
         }
 
-        TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "User role updated successfully." });
+        NotifySuccess("User role updated successfully.");
         return RedirectToAction(nameof(Index));
     }
 
@@ -230,31 +230,31 @@ public class RoleController(
     {
         if (string.IsNullOrWhiteSpace(id))
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Role ID is missing!" });
+            NotifyError("Role ID is missing!");
             return RedirectToAction(nameof(Index));
         }
 
         var role = await roleManager.FindByIdAsync(id);
         if (role == null)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "warning", value = "Role does not exist in database!" });
+            NotifyWarning("Role does not exist in database!");
             return RedirectToAction(nameof(Index));
         }
 
 	    if (role.Name == Roles.Admin)   
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Admin role cannot be deleted!" });
+            NotifyError("Admin role cannot be deleted!");
             return RedirectToAction(nameof(Index));
         }
 
         var result = await roleManager.DeleteAsync(role);
         if (result.Succeeded)
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "success", value = "User Role deleted successfully." });
+            NotifySuccess("User Role deleted successfully.");
         }
         else
         {
-            TempData["Message"] = JsonSerializer.Serialize(new { alert = "error", value = "Error deleting role: " + string.Join(", ", result.Errors.Select(e => e.Description)) });
+            NotifyError("Error deleting role: " + string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
         return RedirectToAction(nameof(Index));

@@ -13,7 +13,7 @@ namespace PharmaPOS_MVC.Controllers;
 
 [Authorize]
 [Route("Reports/[action]")]
-public class ReportController(ApplicationDbContext context) : Controller
+public class ReportController(ApplicationDbContext context) : BaseController
 {
     [HttpGet("/Reports")]
     [Authorize(Policy = Permissions.Reports.View)]
