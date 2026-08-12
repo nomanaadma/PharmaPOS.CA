@@ -1,17 +1,14 @@
-using System.Threading;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using NuGet.Protocol;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Models;
+using PharmaPOS_MVC.Domain.ValueObjects;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -352,20 +349,24 @@ public class PurchaseController(
 			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 			foreach (var item in model.Items)
 			{
-				var batch = new Batch(
-					item.Batch,
-					item.Expiry,
-					item.Pqty,
+				var pricing = new PricingDetails(
 					item.Qty,
 					item.Saleprice,
-					item.Purchaseprice,
 					item.Gross,
 					item.Discounttype,
 					item.Discount,
 					item.Discountvalue,
 					item.Tax,
 					item.Taxprice,
-					item.Price,
+					item.Price
+				);
+
+				var batch = new Batch(
+					item.Batch,
+					item.Expiry,
+					item.Pqty,
+					pricing,
+					item.Purchaseprice,
 					item.MedicineId,
 					purchase.Id
 				);
@@ -476,42 +477,49 @@ public class PurchaseController(
 					// ReSharper disable once UseNullPropagation
 					if (existingBatch != null)
 					{
-						existingBatch.Update(
-							item.Batch,
-							item.Expiry,
-							item.Pqty,
-							item.Qty,
-							item.Saleprice,
-							item.Purchaseprice,
-							item.Gross,
-							item.Discounttype,
-							item.Discount,
-							item.Discountvalue,
-							item.Tax,
-							item.Taxprice,
-							item.Price,
-							item.MedicineId,
-							existingPurchase.Id
-						);
-					}
-					
-				}
-				else
-				{
-					var newBatch = new Batch(
-						item.Batch,
-						item.Expiry,
-						item.Pqty,
+						var pricing = new PricingDetails(
 						item.Qty,
 						item.Saleprice,
-						item.Purchaseprice,
 						item.Gross,
 						item.Discounttype,
 						item.Discount,
 						item.Discountvalue,
 						item.Tax,
 						item.Taxprice,
-						item.Price,
+						item.Price
+					);
+					existingBatch.Update(
+						item.Batch,
+						item.Expiry,
+						item.Pqty,
+						pricing,
+						item.Purchaseprice,
+						item.MedicineId,
+						existingPurchase.Id
+					);
+					}
+					
+				}
+				else
+				{
+					var pricing = new PricingDetails(
+						item.Qty,
+						item.Saleprice,
+						item.Gross,
+						item.Discounttype,
+						item.Discount,
+						item.Discountvalue,
+						item.Tax,
+						item.Taxprice,
+						item.Price
+					);
+
+					var newBatch = new Batch(
+						item.Batch,
+						item.Expiry,
+						item.Pqty,
+						pricing,
+						item.Purchaseprice,
 						item.MedicineId,
 						existingPurchase.Id
 					);

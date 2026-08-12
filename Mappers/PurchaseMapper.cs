@@ -110,16 +110,16 @@ public static class PurchaseMapper
                 Batch = b.BatchName,
                 Expiry = b.Expiry,
                 Pqty = b.Pqty,
-                Qty = b.Qty,
+                Qty = b.Pricing.Qty,
                 Purchaseprice = b.PurchasePrice,
-                Saleprice = b.SalePrice,
-                Gross = b.Gross,
-                Discounttype = b.DiscountType,
-                Discount = b.Discount,
-                Discountvalue = b.DiscountValue,
-                Tax = b.Tax,
-                Taxprice = b.TaxPrice,
-                Price = b.Price
+                Saleprice = b.Pricing.SalePrice,
+                Gross = b.Pricing.Gross,
+                Discounttype = b.Pricing.DiscountType,
+                Discount = b.Pricing.Discount,
+                Discountvalue = b.Pricing.DiscountValue,
+                Tax = b.Pricing.Tax,
+                Taxprice = b.Pricing.TaxPrice,
+                Price = b.Pricing.Price
             }).ToList()
         };
     }
@@ -144,13 +144,13 @@ public static class PurchaseMapper
                 BatchName = b.BatchName,
                 Expiry = b.Expiry,
                 Pqty = b.Pqty,
-                Qty = b.Qty,
+                Qty = b.Pricing.Qty,
                 PurchasePrice = b.PurchasePrice,
-                SalePrice = b.SalePrice,
-                Gross = b.Gross,
-                DiscountValue = b.DiscountValue,
-                TaxPrice = b.TaxPrice,
-                Price = b.Price
+                SalePrice = b.Pricing.SalePrice,
+                Gross = b.Pricing.Gross,
+                DiscountValue = b.Pricing.DiscountValue,
+                TaxPrice = b.Pricing.TaxPrice,
+                Price = b.Pricing.Price
             }).ToList()
         };
     }

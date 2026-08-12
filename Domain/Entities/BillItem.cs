@@ -1,3 +1,5 @@
+using PharmaPOS_MVC.Domain.ValueObjects;
+
 namespace PharmaPOS_MVC.Domain.Entities;
 
 public class BillItem
@@ -9,17 +11,9 @@ public class BillItem
 		int billId,
 		int medicineId,
 		int batchId,
-		decimal qty,
-		decimal salePrice,
-		decimal gross,
-		int discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price)
+		PricingDetails pricing)
 	{
-		Update(billId, medicineId, batchId, qty, salePrice, gross, discountType, discount, discountValue, tax, taxPrice, price);
+		Update(billId, medicineId, batchId, pricing);
 	}
 
 	public int Id { get; private set; }
@@ -29,50 +23,24 @@ public class BillItem
 	public Medicine Medicine { get; private set; } = null!;
 	public int BatchId { get; private set; }
 	public Batch Batch { get; private set; } = null!;
-	public decimal Qty { get; private set; }
-	public decimal SalePrice { get; private set; }
-	public decimal Gross { get; private set; }
-	public int DiscountType { get; private set; }
-	public decimal Discount { get; private set; }
-	public decimal DiscountValue { get; private set; }
-	public decimal Tax { get; private set; }
-	public decimal TaxPrice { get; private set; }
-	public decimal Price { get; private set; }
+	public PricingDetails Pricing { get; private set; } = null!;
 
-	public void Update(
+	private void Update(
 		int billId,
 		int medicineId,
 		int batchId,
-		decimal qty,
-		decimal salePrice,
-		decimal gross,
-		int discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price)
+		PricingDetails pricing)
 	{
 		if (medicineId <= 0)
 			throw new ArgumentException("Valid Medicine is required.", nameof(medicineId));
 		if (batchId <= 0)
 			throw new ArgumentException("Valid Batch is required.", nameof(batchId));
-		if (qty < 0)
-			throw new ArgumentException("Quantity cannot be negative.", nameof(qty));
-		if (salePrice < 0)
-			throw new ArgumentException("Sale Price cannot be negative.", nameof(salePrice));
+		if (pricing == null)
+			throw new ArgumentNullException(nameof(pricing));
 
 		BillId = billId;
 		MedicineId = medicineId;
 		BatchId = batchId;
-		Qty = qty;
-		SalePrice = salePrice;
-		Gross = gross;
-		DiscountType = discountType;
-		Discount = discount;
-		DiscountValue = discountValue;
-		Tax = tax;
-		TaxPrice = taxPrice;
-		Price = price;
+		Pricing = pricing;
 	}
 }

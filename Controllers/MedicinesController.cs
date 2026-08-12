@@ -35,7 +35,7 @@ public class MedicinesController(
 				// The SQL aggregation
 				LiveStock: m.Batches
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m
+					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
 			))
 			.ToListAsync(ct);
 
@@ -129,7 +129,7 @@ public class MedicinesController(
 		
 		var badBatches = batchesQuery.Where(b => 
 				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
-			.Where(b => b.Qty > b.Sold);
+			.Where(b => b.Pricing.Qty > b.Sold);
 		
 		var model = new MedicineViewPageModel
 		{
@@ -318,7 +318,7 @@ public class MedicinesController(
 		var batches = await context.Batches
 			.Where(b => b.MedicineId == id)
 			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-			.Where(b => (b.Qty - b.Sold) > 0)
+			.Where(b => (b.Pricing.Qty - b.Sold) > 0)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.Expiry)
 			.ToListAsync(ct);
@@ -361,8 +361,8 @@ public class MedicinesController(
 		var result = new
 		{
 			expiry = mBatch.Expiry,
-			available_quantity = mBatch.Qty - mBatch.Sold,
-			saleprice = mBatch.SalePrice
+			available_quantity = mBatch.Pricing.Qty - mBatch.Sold,
+			saleprice = mBatch.Pricing.SalePrice
 		};
 
 		return Json(new { error = false, result = result });

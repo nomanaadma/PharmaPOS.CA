@@ -37,17 +37,17 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 	        (
 		        m,
 		        m.Batches
-			        .Where(b => b.Qty > 0)
-			        .Sum(b => (decimal?)((b.Price / b.Qty) * b.Sold)) ?? 0,
+			        .Where(b => b.Pricing.Qty > 0)
+			        .Sum(b => (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold)) ?? 0,
             
 		        context.BillItems
 			        .Where(bi => bi.MedicineId == m.Id)
-			        .Sum(bi => (decimal?)bi.Price) ?? 0,
+			        .Sum(bi => (decimal?)bi.Pricing.Price) ?? 0,
             
 		        m.Batches
 			        .Where(b => b.Status == Status.Active && 
 			                    string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-			        .Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0
+			        .Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0
 	        ))
 	        .ToListAsync(ct);
 
@@ -88,10 +88,10 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 	        .GroupBy(bi => 1)
 	        .Select(g => new
 	        {
-		        SalesAmount = g.Sum(bi => (decimal?)bi.Price) ?? 0m,
-		        Quantity = g.Sum(bi => (decimal?)bi.Qty) ?? 0m,
-		        TaxAmount = g.Sum(bi => (decimal?)bi.TaxPrice) ?? 0m,
-		        DiscountAmount = g.Sum(bi => (decimal?)bi.DiscountValue) ?? 0m
+		        SalesAmount = g.Sum(bi => (decimal?)bi.Pricing.Price) ?? 0m,
+		        Quantity = g.Sum(bi => (decimal?)bi.Pricing.Qty) ?? 0m,
+		        TaxAmount = g.Sum(bi => (decimal?)bi.Pricing.TaxPrice) ?? 0m,
+		        DiscountAmount = g.Sum(bi => (decimal?)bi.Pricing.DiscountValue) ?? 0m
 	        })
 	        .FirstOrDefaultAsync(ct);
 
@@ -107,8 +107,8 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 		        .GroupBy(b => 1) 
 		        .Select(g => new 
 		        {
-			        TotalQty = g.Sum(b => (decimal?)b.Qty) ?? 0m,
-			        TotalPrice = g.Sum(b => (decimal?)b.Price) ?? 0m,
+			        TotalQty = g.Sum(b => (decimal?)b.Pricing.Qty) ?? 0m,
+			        TotalPrice = g.Sum(b => (decimal?)b.Pricing.Price) ?? 0m,
 			        TotalSold = g.Sum(b => (decimal?)b.Sold) ?? 0m
 		        })
 		        .FirstOrDefaultAsync(ct);

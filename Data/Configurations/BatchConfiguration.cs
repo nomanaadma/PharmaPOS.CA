@@ -30,52 +30,55 @@ public class BatchConfiguration : IEntityTypeConfiguration<Batch>
 			.HasColumnName("pqty")
 			.HasMaxLength(10);
 
-		builder.Property(mb => mb.Qty)
-			.HasColumnName("qty")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+		builder.OwnsOne(mb => mb.Pricing, p =>
+		{
+			p.Property(x => x.Qty)
+				.HasColumnName("qty")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(mb => mb.SalePrice)
-			.HasColumnName("saleprice")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.SalePrice)
+				.HasColumnName("saleprice")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.Gross)
+				.HasColumnName("gross")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.DiscountType)
+				.HasColumnName("discounttype")
+				.IsRequired();
+
+			p.Property(x => x.Discount)
+				.HasColumnName("discount")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.DiscountValue)
+				.HasColumnName("discountvalue")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.Tax)
+				.HasColumnName("tax")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.TaxPrice)
+				.HasColumnName("taxprice")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+
+			p.Property(x => x.Price)
+				.HasColumnName("price")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+		});
 
 		builder.Property(mb => mb.PurchasePrice)
 			.HasColumnName("purchaseprice")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.Gross)
-			.HasColumnName("gross")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.DiscountType)
-			.HasColumnName("discounttype")
-			.IsRequired();
-
-		builder.Property(mb => mb.Discount)
-			.HasColumnName("discount")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.DiscountValue)
-			.HasColumnName("discountvalue")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.Tax)
-			.HasColumnName("tax")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.TaxPrice)
-			.HasColumnName("taxprice")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
-
-		builder.Property(mb => mb.Price)
-			.HasColumnName("price")
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();
 

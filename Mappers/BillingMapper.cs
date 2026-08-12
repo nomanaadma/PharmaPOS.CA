@@ -116,19 +116,19 @@ public static class BillingMapper
                 Batch = bi.BatchId,
                 BatchName = bi.Batch.BatchName,
                 Expiry = bi.Batch.Expiry,
-                Qty = bi.Qty,
-                Saleprice = bi.SalePrice,
-                Gross = bi.Gross,
-                Discounttype = bi.DiscountType,
-                Discount = bi.Discount,
-                Discountvalue = bi.DiscountValue,
-                Tax = bi.Tax,
-                Taxprice = bi.TaxPrice,
-                Price = bi.Price,
+                Qty = bi.Pricing.Qty,
+                Saleprice = bi.Pricing.SalePrice,
+                Gross = bi.Pricing.Gross,
+                Discounttype = bi.Pricing.DiscountType,
+                Discount = bi.Pricing.Discount,
+                Discountvalue = bi.Pricing.DiscountValue,
+                Tax = bi.Pricing.Tax,
+                Taxprice = bi.Pricing.TaxPrice,
+                Price = bi.Pricing.Price,
                 Batches = bi.Medicine.Batches.Select(mb => new BillingItemBatchesFormModel
                 {
                     Id = mb.Id,
-                    Qty = mb.Qty,
+                    Qty = mb.Pricing.Qty,
                     Batch = mb.BatchName,
                     Sold = mb.Sold
                 }).ToList()
@@ -156,12 +156,12 @@ public static class BillingMapper
                 MedicineName = i.Medicine?.Name ?? "",
                 BatchName = i.Batch?.BatchName ?? "",
                 Expiry = i.Batch?.Expiry ?? "",
-                Qty = i.Qty,
-                SalePrice = i.SalePrice,
-                Gross = i.Gross,
-                DiscountValue = i.DiscountValue,
-                TaxPrice = i.TaxPrice,
-                Price = i.Price
+                Qty = i.Pricing.Qty,
+                SalePrice = i.Pricing.SalePrice,
+                Gross = i.Pricing.Gross,
+                DiscountValue = i.Pricing.DiscountValue,
+                TaxPrice = i.Pricing.TaxPrice,
+                Price = i.Pricing.Price
             }).ToList()
         };
     }

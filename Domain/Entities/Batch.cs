@@ -1,5 +1,6 @@
 using System;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Domain.ValueObjects;
 
 namespace PharmaPOS_MVC.Domain.Entities;
 
@@ -12,20 +13,12 @@ public class Batch
 		string batch,
 		string expiry,
 		string? pqty,
-		decimal qty,
-		decimal salePrice,
+		PricingDetails pricing,
 		decimal purchasePrice,
-		decimal gross,
-		int discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price,
 		int medicineId,
 		int purchaseId)
 	{
-		Update(batch, expiry, pqty, qty, salePrice, purchasePrice, gross, discountType, discount, discountValue, tax, taxPrice, price, medicineId, purchaseId);
+		Update(batch, expiry, pqty, pricing, purchasePrice, medicineId, purchaseId);
 		CreatedDate = DateTime.UtcNow;
 		Sold = 0;
 		Status = Status.Active;
@@ -35,16 +28,8 @@ public class Batch
 	public string BatchName { get; private set; } = null!;
 	public string Expiry { get; private set; } = null!;
 	public string? Pqty { get; private set; }
-	public decimal Qty { get; private set; }
-	public decimal SalePrice { get; private set; }
+	public PricingDetails Pricing { get; private set; } = null!;
 	public decimal PurchasePrice { get; private set; }
-	public decimal Gross { get; private set; }
-	public int DiscountType { get; private set; }
-	public decimal Discount { get; private set; }
-	public decimal DiscountValue { get; private set; }
-	public decimal Tax { get; private set; }
-	public decimal TaxPrice { get; private set; }
-	public decimal Price { get; private set; }
 	public decimal Sold { get; private set; }
 	public int MedicineId { get; private set; }
 	public Medicine Medicine { get; private set; } = null!;
@@ -57,16 +42,8 @@ public class Batch
 		string batch,
 		string expiry,
 		string? pqty,
-		decimal qty,
-		decimal salePrice,
+		PricingDetails pricing,
 		decimal purchasePrice,
-		decimal gross,
-		int discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price,
 		int medicineId,
 		int purchaseId)
 	{
@@ -74,10 +51,8 @@ public class Batch
 			throw new ArgumentException("Batch No is required.", nameof(batch));
 		if (string.IsNullOrWhiteSpace(expiry))
 			throw new ArgumentException("Expiry Date is required.", nameof(expiry));
-		if (qty < 0)
-			throw new ArgumentException("Quantity cannot be negative.", nameof(qty));
-		if (salePrice < 0)
-			throw new ArgumentException("Sale Price cannot be negative.", nameof(salePrice));
+		if (pricing == null)
+			throw new ArgumentNullException(nameof(pricing));
 		if (purchasePrice < 0)
 			throw new ArgumentException("Purchase Price cannot be negative.", nameof(purchasePrice));
 		if (medicineId <= 0)
@@ -86,16 +61,8 @@ public class Batch
 		BatchName = batch;
 		Expiry = expiry;
 		Pqty = pqty;
-		Qty = qty;
-		SalePrice = salePrice;
+		Pricing = pricing;
 		PurchasePrice = purchasePrice;
-		Gross = gross;
-		DiscountType = discountType;
-		Discount = discount;
-		DiscountValue = discountValue;
-		Tax = tax;
-		TaxPrice = taxPrice;
-		Price = price;
 		MedicineId = medicineId;
 		PurchaseId = purchaseId;
 	}

@@ -29,15 +29,15 @@ public static class StockMapper
 		    Name = batch.Medicine.Name,
 		    Batch = batch.BatchName,
 		    Expiry = batch.Expiry,
-		    Qty = batch.Qty,
+		    Qty = batch.Pricing.Qty,
 		    Sold = batch.Sold,
-		    Available = batch.Qty - batch.Sold
+		    Available = batch.Pricing.Qty - batch.Sold
 	    };
 
 	    if (single == true)
 	    {
 		    stockViewModel.PurchasePrice = batch.PurchasePrice;
-		    stockViewModel.SalePrice = batch.SalePrice;
+		    stockViewModel.SalePrice = batch.Pricing.SalePrice;
 	    }
 	    else
 	    {

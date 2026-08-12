@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS_MVC.Domain.ValueObjects;
 using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Mappers;
@@ -352,10 +352,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 			foreach (var item in model.Items)
 			{
-				var billItem = new BillItem(
-					bill.Id,
-					item.MedicineId,
-					item.Batch,
+				var pricing = new PricingDetails(
 					item.Qty,
 					item.Saleprice,
 					item.Gross,
@@ -365,6 +362,13 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					item.Tax,
 					item.Taxprice,
 					item.Price
+				);
+
+				var billItem = new BillItem(
+					bill.Id,
+					item.MedicineId,
+					item.Batch,
+					pricing
 				);
 				context.BillItems.Add(billItem);
 
@@ -504,7 +508,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					
 					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId, ct);
 				
-				batch?.UpdateSold(batch.Sold - oldItem.Qty);
+				batch?.UpdateSold(batch.Sold - oldItem.Pricing.Qty);
 			}
 
 			context.BillItems.RemoveRange(bill.Items);
@@ -513,7 +517,9 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			// Add new items and update sold quantities
 			foreach (var item in model.Items)
 			{
-				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, item.Qty, item.Saleprice, item.Gross, item.Discounttype, item.Discount, item.Discountvalue, item.Tax, item.Taxprice, item.Price);
+				var pricing = new PricingDetails(
+					item.Qty, item.Saleprice, item.Gross, item.Discounttype, item.Discount, item.Discountvalue, item.Tax, item.Taxprice, item.Price);
+				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, pricing);
 				context.BillItems.Add(billItem);
 				
 				var batch = await context.Batches
@@ -555,7 +561,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					
 					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId, ct);
 				
-				batch?.UpdateSold(batch.Sold - item.Qty);
+				batch?.UpdateSold(batch.Sold - item.Pricing.Qty);
 			}
 
 			context.Bills.Remove(bill);

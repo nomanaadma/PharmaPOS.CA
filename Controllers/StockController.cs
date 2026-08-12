@@ -95,7 +95,7 @@ public class StockController(ApplicationDbContext context) : BaseController
 			var totalSales = 0m;
 			var profit = 0m;
 			
-			var unitPurchasePrice = Math.Round(b.Price / b.Qty, 2);
+			var unitPurchasePrice = Math.Round(b.Pricing.Price / b.Pricing.Qty, 2);
 			var totalPurchase = Math.Round(unitPurchasePrice * b.Sold, 2);
 
 			var batchBillItesm = billItems.Where(bi => bi.BatchId == b.Id).Where(bi => bi.MedicineId == b.MedicineId).ToList();
@@ -105,8 +105,8 @@ public class StockController(ApplicationDbContext context) : BaseController
 			
 			foreach (var billItem in batchBillItesm)
 			{
-				medicineSalePrice += billItem.Price;
-				medicineSaleQty += billItem.Qty;
+				medicineSalePrice += billItem.Pricing.Price;
+				medicineSaleQty += billItem.Pricing.Qty;
 			}
 
 			if (medicineSalePrice != 0 && medicineSaleQty != 0)
@@ -143,7 +143,7 @@ public class StockController(ApplicationDbContext context) : BaseController
 			return Redirect(refererUrl);
 		}
 
-		batch.UpdateSold(batch.Qty - available);
+		batch.UpdateSold(batch.Pricing.Qty - available);
 		await context.SaveChangesAsync(ct);
 
 		NotifySuccess("Stock updated successfully!");

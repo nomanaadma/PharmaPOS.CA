@@ -27,49 +27,52 @@ public class BillItemConfiguration : IEntityTypeConfiguration<BillItem>
 			.HasColumnName("batch")
 			.IsRequired();
 
-		builder.Property(bi => bi.Qty)
-			.HasColumnName("qty")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+		builder.OwnsOne(bi => bi.Pricing, p =>
+		{
+			p.Property(x => x.Qty)
+				.HasColumnName("qty")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.SalePrice)
-			.HasColumnName("saleprice")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.SalePrice)
+				.HasColumnName("saleprice")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.Gross)
-			.HasColumnName("gross")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.Gross)
+				.HasColumnName("gross")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.DiscountType)
-			.HasColumnName("discounttype")
-			.IsRequired();
+			p.Property(x => x.DiscountType)
+				.HasColumnName("discounttype")
+				.IsRequired();
 
-		builder.Property(bi => bi.Discount)
-			.HasColumnName("discount")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.Discount)
+				.HasColumnName("discount")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.DiscountValue)
-			.HasColumnName("discountvalue")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.DiscountValue)
+				.HasColumnName("discountvalue")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.Tax)
-			.HasColumnName("tax")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.Tax)
+				.HasColumnName("tax")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.TaxPrice)
-			.HasColumnName("taxprice")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.TaxPrice)
+				.HasColumnName("taxprice")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
 
-		builder.Property(bi => bi.Price)
-			.HasColumnName("price")
-			.HasColumnType("decimal(10, 2)")
-			.IsRequired();
+			p.Property(x => x.Price)
+				.HasColumnName("price")
+				.HasColumnType("decimal(10, 2)")
+				.IsRequired();
+		});
 
 		builder.HasOne(bi => bi.Bill)
 			.WithMany(mb => mb.Items)
