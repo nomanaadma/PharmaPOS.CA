@@ -20,8 +20,7 @@ public class PurchaseController(
 	ApplicationDbContext context
 ) : BaseController
 {
-	[HttpGet]
-	[Route("/Medicines/Purchase")]
+	[HttpGet("/Medicines/Purchase")]
 	[Authorize(Policy = Permissions.Purchase.List)]
 	public IActionResult Index()
 	{

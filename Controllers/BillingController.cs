@@ -18,8 +18,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("Medicines/Billing/[action]")]
 public class BillingController(ApplicationDbContext context) : BaseController
 {
-	[HttpGet]
-	[Route("/Medicines/Billing")]
+	[HttpGet("/Medicines/Billing")]
 	[Authorize(Policy = Permissions.Billing.List)]
 	public IActionResult Index()
 	{

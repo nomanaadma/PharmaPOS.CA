@@ -46,7 +46,7 @@
 			@if (User.HasPermission(Permissions.Customer.List))
 			{
 				<li class="@IsActive("Customer")">
-					<a asp-controller="Customer" asp-action="Index">
+					<a asp-controller="Customers" asp-action="Index">
 						<i class="las la-user-md"></i>
 						<span>Customers</span>
 					</a>
@@ -83,7 +83,7 @@
 			@if (User.HasPermission(Permissions.Medicine.List))
 			{
 				<li class="@IsActive("Medicine")">
-					<a asp-controller="Medicine" asp-action="Index">
+					<a asp-controller="Medicines" asp-action="Index">
 						<i class="las la-pills"></i>
 						<span>Medicines</span>
 					</a>
@@ -93,7 +93,7 @@
 			@if (User.HasPermission(Permissions.Reports.View))
 			{
 				<li class="@IsActive("Report")">
-					<a asp-controller="Report" asp-action="Index">
+					<a asp-controller="Reports" asp-action="Index">
 						<i class="las la-chalkboard-teacher"></i>
 						<span>Report</span>
 					</a>
@@ -107,11 +107,11 @@
 				<li class="has-sub @subActive[0]">
 					<a><i class="las la-users"></i><span>Users</span><i class="arrow @subActive[1]"></i></a>
 					<ul class="sub-menu" @Html.Raw(subActive[2])>
-						<li class="@IsActive("User")"><a asp-controller="User" asp-action="Index"><span>Users List</span></a></li>
+						<li class="@IsActive("User")"><a asp-controller="Users" asp-action="Index"><span>Users List</span></a></li>
 						
 						@if (User.IsInRole(Roles.Admin))
 						{
-							<li class="@IsActive("Role")"><a asp-controller="Role" asp-action="Index"><span>User Role</span></a></li>
+							<li class="@IsActive("Role")"><a asp-controller="Roles" asp-action="Index"><span>User Role</span></a></li>
 						}
 					</ul>
 				</li>
@@ -136,15 +136,15 @@
 						}
 						
 						@if(canViewCategory) {
-							<li class="@IsActive("Category")"><a asp-controller="Category" asp-action="Index"><span>Medicine Category</span></a></li>
+							<li class="@IsActive("Category")"><a asp-controller="Categories" asp-action="Index"><span>Medicine Category</span></a></li>
 						}
 						
 						@if(canViewMethod) {
-							<li class="@IsActive("PaymentMethod")"><a asp-controller="PaymentMethod" asp-action="Index"><span>Payment Methods</span></a></li>
+							<li class="@IsActive("PaymentMethod")"><a asp-controller="PaymentMethods" asp-action="Index"><span>Payment Methods</span></a></li>
 						}
 						
 						@if(canViewSupplier) {
-							<li class="@IsActive("Supplier")"><a asp-controller="Supplier" asp-action="Index"><span>Suppliers</span></a></li>
+							<li class="@IsActive("Supplier")"><a asp-controller="Suppliers" asp-action="Index"><span>Suppliers</span></a></li>
 						}
 					</ul>
 				</li>

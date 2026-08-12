@@ -13,8 +13,7 @@ namespace PharmaPOS_MVC.Controllers;
 [Route("media")]
 public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbContext) : BaseController
 {
-	[HttpGet]
-	[Route("get")]
+	[HttpGet("get")]
 	[Authorize(Policy = Permissions.Media.List)]
 	public async Task<IActionResult> Get()
 	{
@@ -43,8 +42,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 		return Content(html, "text/html");
 	}
 
-	[HttpPost]
-	[Route("upload")]
+	[HttpPost("upload")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Media.Upload)]
 	public async Task<IActionResult> Upload(IFormFile? file)
@@ -93,8 +91,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 		return Json(new { error = false, name = fileName, id = media.Id, media = mediaHtml });
 	}
 
-	[HttpPost]
-	[Route("delete")]
+	[HttpPost("delete")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Media.Delete)]
 	public async Task<IActionResult> Delete(string name, int id)
