@@ -173,7 +173,7 @@
 				                                            <ul class="dropdown-menu dropdown-menu-right">
 					                                            @if(canEditStock)
 					                                            {
-					                                                <li><a class="edit-stock" data-id="@value.Id" data-medicineid="@value.MedicineId"><i class="las la-pen-nib pr-2"></i>Update Stock</a></li>
+					                                                <li><a class="edit-stock" data-id="@value.Id" data-medicineid="@value.MedicineId" data-medicine="@value.Name"><i class="las la-pen-nib pr-2"></i>Update Stock</a></li>
 					                                            }
 					                                            @if(canViewPurchase)
 					                                            {
@@ -258,54 +258,7 @@
 
 @if (canEditStock)
 {
-	<div class="modal fade" id="editstock-modal">
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Stock Adjustment</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<form asp-controller="Stock" asp-action="Update" method="post">
-					@Html.AntiForgeryToken()
-					<input type="hidden" name="id" value="">
-					<input type="hidden" name="medicineId" value="">
-					<div class="modal-body">
-						<div class="form-group">
-							<label>Available in Store <span class="form-required">*</span></label>
-							<div class="input-group">
-								<div class="input-group-prepend"><span class="input-group-text"><i class="las la-warehouse"></i></span></div>
-								<input type="text" name="available" class="form-control" required>
-							</div>
-							<span class="form-text">Sold quantity will be updated => Sold = Total - Available in store. <br>If you want to change qunatity or other info please click on edit link.</span>
-						</div>
-						<table class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th>Batch</th>
-								<th>Expiry</th>
-								<th>Qty</th>
-								<th>Sold</th>
-							</tr>
-							</thead>
-							<tbody>
-							<tr>
-								<td class="batch">Batch</td>
-								<td class="expiry">Expiry</td>
-								<td class="qty">Qty</td>
-								<td class="sold">Sold</td>
-							</tr>
-							</tbody>
-						</table>
-					</div>
-					<div class="modal-footer">
-						<button type="submit" name="submit" class="btn btn-primary">Update Stock</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
+	<partial name="Partials/_EditStockModal" />
 }
 
 @if (canDeleteStock)

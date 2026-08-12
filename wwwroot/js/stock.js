@@ -7,7 +7,7 @@ $(function () {
         $('#editstock-modal input[name="available"]').val(ele_parent.find('.available').text());
         $('#editstock-modal input[name="id"]').val(data.id);
         $('#editstock-modal input[name="medicineId"]').val(data.medicineid);
-        $('#editstock-modal .medicine').html(ele_parent.find('.medicine').text());
+        $('#editstock-modal .medicine').html(data.medicine);
         $('#editstock-modal .batch').html(ele_parent.find('.batch').text());
         $('#editstock-modal .expiry').html(ele_parent.find('.expiry').text());
         $('#editstock-modal .qty').html(ele_parent.find('.qty').text());
