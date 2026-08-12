@@ -119,6 +119,7 @@ public class StockController(ApplicationDbContext context) : Controller
 			
 		}).ToList();
 		
+		ViewData["DeleteMsg"] = "Stock will be removed from Inventory.";
 		ViewData["Title"] = pageTitle;
 		
 		return View(result);

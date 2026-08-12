@@ -23,6 +23,7 @@ public class BillingController(ApplicationDbContext context) : Controller
 	[Authorize(Policy = Permissions.Billing.List)]
 	public IActionResult Index()
 	{
+		ViewData["DeleteMsg"] = "Inventory will be updated and those Stock will be added in Inventory.";
 		return View();
 	}
 	
