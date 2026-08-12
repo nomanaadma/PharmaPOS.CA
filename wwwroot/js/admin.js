@@ -29,53 +29,6 @@
         ele.addClass('menu-close');
     });
 
-    if($('.medicine_report_name').length) {
-
-        $(".medicine_report_name").on('input', function() {
-            $(this).next().val('');
-        });
-
-        $(".medicine_report_name").autocomplete({
-            source: ('/getmedicine'),
-            minLength: 2,
-            focus: function() {return false;},
-            select: function( event, ui ) {
-                $('.medicine_report_name').val(ui.item.label);
-                $('.item-medicine-id').val(ui.item.id);
-                return false;
-            }
-        }).autocomplete( "instance" )._renderItem = function( ul, item ) {
-            return $( "<li>" )
-            .append('<div>' + item.label + '</div>')
-            .appendTo( ul );
-        };
-
-    }
-
-    if ($('.customer-name').length) {
-
-        $(".customer-name").on('input', function() {
-            $(this).next().val('');
-        });
-
-        $(".customer-name").autocomplete({
-            source: ('/getcustomer'),
-            minLength: 2,
-            focus: function() {return false;},
-            select: function( event, ui ) {
-                $('.customer-id').val(ui.item.id);
-                $('.customer-name').val(ui.item.label);
-                $('.customer-mail').val(ui.item.email);
-                $('.customer-mobile').val(ui.item.mobile);
-                return false;
-            }
-        }).autocomplete( "instance" )._renderItem = function( ul, item ) {
-            return $( "<li>" )
-            .append('<div>' + item.label + '<div class="font-12"> ( ' + item.email + ' )</div><div class="font-12"> ( ' + item.mobile + ' )</div></div>')
-            .appendTo( ul );
-        };
-    }
-
     $('body').on('click', 'li.has-sub > a', function () {
         var ele = $(this), target = ele.parent('li.has-sub').find('ul.sub-menu:first');
         ele.parent('li.has-sub').siblings('li').find('a .arrow').removeClass('rotate');
@@ -124,104 +77,6 @@
         $('.delete-card-button input.delete-id').val('');
     });
 
-    $('#media-upload').on('show.bs.modal', function (e) {
-        var uploaded = $('#media-upload .uploaded');
-        if (uploaded.val() === '0') {
-            $.ajax({
-                type: 'get',
-                url: '/media/get',
-                data: { name: 'media' },
-                success: function (response) {
-                    $('#media-upload .media-all').append(response);
-                    uploaded.val('1');
-                }
-            });
-        }
-        $('#media-upload .media-all').addClass('media-modal-open');
-    });
-
-    $('.image-upload').click(function () {
-        $(this).parent().addClass('image-upload-progress');
-        $("#media-upload").modal('show');
-    });
-
-    $("#media-upload").on('hidden.bs.modal', function () {
-        $(this).parent().find('.image-upload-progress').removeClass('image-upload-progress');
-        $('#media-upload .media-all').removeClass('media-modal-open');
-    });
-
-    $("#media-dropzone").dropzone({
-        addRemoveLinks: false,
-        acceptedFiles: "image/*",
-        maxFilesize: 5,
-        autoProcessQueue: true,
-        dictDefaultMessage: 'Drop files here or click here to upload <br /><br /> Only Image',
-        init: function() {
-            var reportDropzone = this;
-            reportDropzone.on("sending", function(file, xhr, formData) {
-                formData.append("__RequestVerificationToken", xsrfToken);
-            });
-
-            reportDropzone.on("success", function(file, response) {
-                if (response.error === false) {
-                    $('.media-all').prepend(response.media);
-                    toastr.success('Uploaded Succefully', 'Media Uploaded Succefully.');
-                } else {
-                    toastr.error('Error', response.message);
-                }
-                reportDropzone.removeFile(file);
-            });
-
-            reportDropzone.on("error", function(file, message) { 
-                toastr.error('Error', message);
-                reportDropzone.removeFile(file); 
-            });
-        },
-    });
-
-    $('#media-upload').on('click', '.media-modal-open .picture', function () {
-        var image = $(this).find('input').val();
-        $('.image-upload-progress .saved-picture').append('<img src="/uploads/' + image + '" alt="">');
-        $('.image-upload-progress .saved-picture input[type=hidden]').val(image);
-        $('.image-upload-progress .saved-picture').show();
-        $('.image-upload-progress .image-upload').hide();
-        $('.image-upload-progress .saved-picture-delete').show();
-        $('.content-input').removeClass('image-upload-progress');
-        $('#media-upload').modal('hide');
-    });
-
-    // Image Delete 
-    $('.media-all').on('click', '.block .remove', function () {
-        var ele = $(this), ele_par = ele.parent(),
-        media = ele_par.find('.picture input').val(),
-        id = ele_par.find('.block-id').val();
-        $.ajax({
-            method: "POST",
-            url: ('/media/delete'),
-            data: { page: 'media', name: media, id: id, __RequestVerificationToken: xsrfToken },
-            error: function () {
-                alert('Sorry Try Again!');
-            },
-            success: function (response) {
-                if (response.error === false) {
-                    ele.parents('.block').remove();
-                    toastr.success('Deleted', 'File deleted Succefully.');
-                } else {
-                    toastr.success('Wanrning', 'File could not be deleted!.');
-                }
-            }
-        });
-    });
-
-    $('.saved-picture-delete').click(function () {
-        $(this).siblings('.saved-picture').find('img').remove();
-        $(this).siblings('.saved-picture').find('input').val('');
-        $(this).siblings('.saved-picture').hide();
-        $(this).siblings('.image-upload').show();
-        $(this).hide();
-    });
-
-
     $('.menu-dropdown').click(function () {
         var ele = $(this);
         if (ele.siblings('.sub-menu').css('display') === 'none') {
@@ -250,14 +105,6 @@
             ele.parents('.theme-accordion').find('.theme-accordion-bdy').slideUp();
         }
     });
-
-    // Image Live Preview
-    $('.adm-add-img p').click(function () {
-        $('.adm-add-img img').remove();
-        $('.adm-add-img').hide();
-        $('#picture_container input[type=hidden]').val("");
-        $('.picture').show();
-    });
     
     const dateFormat = "dd/mm/yy";
 
@@ -270,44 +117,7 @@
     $('.date').datepicker({
         dateFormat: dateFormat
     });
-
-    if ($('.table-date-range').length) {
-        var tabledate_data = $('.table-date-range').data();
-        $('.table-date-range').daterangepicker({
-            autoApply: false,
-            alwaysShowCalendars: true,
-            opens: 'left',
-            applyButtonClasses: 'btn-danger',
-            cancelClass: 'btn-white',
-            locale: {
-                format: "DD/MM/YYYY",
-                separator: " => ",
-            },
-            startDate: tabledate_data.start,
-            endDate: tabledate_data.end,
-            ranges: {
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-                'This Year': [moment().startOf('year'), moment().endOf('year')],
-                'All Time': [moment('2015-01-01'), moment().add(1, 'days')],
-            },
-        });
-
-        $('.table-date-range').on('apply.daterangepicker', function(ev, picker) {
-            window.location.replace(tabledate_data.route+'start='+picker.startDate.format('YYYY-MM-DD')+'&end='+picker.endDate.format('YYYY-MM-DD')+'&medicineId='+$('.item-medicine-id').val()+'&medicineName='+$('.medicine_report_name').val());
-        });
-    }
-
-
-    $("#uploadmedicine-modal").on('change', '#medicinefile', function(e) {
-        if (e.target.files.length > 0) {
-            $(this).siblings('label').text(e.target.files[0].name);
-        }
-    });
+    
 
     var dataTable = $('.datatable-table').DataTable({
         aLengthMenu: [[10, 25, 50, 75, -1], [10, 25, 50, 75, "All"]],

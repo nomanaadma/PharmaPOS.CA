@@ -335,4 +335,28 @@ $(document).ready(function () {
 
 	});
 
+    if ($('.customer-name').length) {
+
+        $(".customer-name").on('input', function() {
+            $(this).next().val('');
+        });
+
+        $(".customer-name").autocomplete({
+            source: ('/getcustomer'),
+            minLength: 2,
+            focus: function() {return false;},
+            select: function( event, ui ) {
+                $('.customer-id').val(ui.item.id);
+                $('.customer-name').val(ui.item.label);
+                $('.customer-mail').val(ui.item.email);
+                $('.customer-mobile').val(ui.item.mobile);
+                return false;
+            }
+        }).autocomplete( "instance" )._renderItem = function( ul, item ) {
+            return $( "<li>" )
+                .append('<div>' + item.label + '<div class="font-12"> ( ' + item.email + ' )</div><div class="font-12"> ( ' + item.mobile + ' )</div></div>')
+                .appendTo( ul );
+        };
+    }
+
 });

@@ -37,7 +37,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Logo) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Logo))
 											{
-												<img class="img-thumbnail" src="@Model.Logo" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.Logo" alt="">
 											}
 											<input type="hidden" asp-for="Logo">
 										</div>
@@ -61,7 +61,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LogoIcon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LogoIcon))
 											{
-												<img class="img-thumbnail" src="@Model.LogoIcon" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.LogoIcon" alt="">
 											}
 											<input type="hidden" asp-for="LogoIcon">
 										</div>
@@ -85,7 +85,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.LgBackground) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.LgBackground))
 											{
-												<img class="img-thumbnail" src="@Model.LgBackground" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.LgBackground" alt="">
 											}
 											<input type="hidden" asp-for="LgBackground">
 										</div>
@@ -109,7 +109,7 @@
 										<div class="saved-picture" style="@(string.IsNullOrEmpty(Model.Favicon) ? "display:none" : "")">
 											@if (!string.IsNullOrEmpty(Model.Favicon))
 											{
-												<img class="img-thumbnail" src="@Model.Favicon" alt="">
+												<img class="img-thumbnail" src="/uploads/@Model.Favicon" alt="">
 											}
 											<input type="hidden" asp-for="Favicon">
 										</div>
@@ -236,6 +236,34 @@
 	</div>
 </form>
 
+@if (User.HasPermission(Permissions.Media.List))
+{
+	<!-- Media Modal -->
+	<div id="media-upload" class="modal fade">
+		<div class="modal-dialog modal-xl">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="media-hdr">
+						<p>Media <span>(Click On Image To Select)</span></p></div>
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+				<div class="modal-body">
+					@if (User.HasPermission(Permissions.Media.Upload))
+					{
+						<div class="media-upload-container">
+							<form asp-controller="Upload" asp-action="Upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data">
+								<div class="fallback"><input name="file" type="file"/></div></form>
+						</div>
+						<div class="media-all pt-3"></div>
+						<input type="hidden" class="uploaded" value="0">
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
 @section Scripts {
 	<partial name="_ValidationScriptsPartial" />
+	<script type="text/javascript" src="~/js/media.js"></script>
 }

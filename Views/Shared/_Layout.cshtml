@@ -34,33 +34,6 @@
 	    <!-- Main Container -->
 	    <div id="main-wrapper">
 		    
-		    @if (User.HasPermission(Permissions.Media.List))
-		    {
-			    <!-- Media Modal -->
-			    <div id="media-upload" class="modal fade">
-				    <div class="modal-dialog modal-xl">
-					    <div class="modal-content">
-						    <div class="modal-header">
-							    <div class="media-hdr">
-								    <p>Media <span>(Click On Image To Select)</span></p></div>
-							    <button type="button" class="close" data-dismiss="modal">&times;</button>
-						    </div>
-						    <div class="modal-body">
-							    @if (User.HasPermission(Permissions.Media.Upload))
-							    {
-								    <div class="media-upload-container">
-									    <form asp-action="/media/upload" class="dropzone" id="media-dropzone" method="post" enctype="multipart/form-data">
-										    <div class="fallback"><input name="file" type="file"/></div></form>
-								    </div>
-								    <div class="media-all pt-3"></div>
-								    <input type="hidden" class="uploaded" value="0">
-							    }
-						    </div>
-					    </div>
-				    </div>
-			    </div>
-		    }
-
 		    <partial name="Partials/_Menu.cshtml"/>
 		    <partial name="Partials/_Topbar.cshtml" model="@siteInfo" />
 		    
