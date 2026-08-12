@@ -8,7 +8,7 @@
 		
 		if (match && a != null)
 		{
-			match = currentAction.Contains(a, StringComparison.OrdinalIgnoreCase);
+			match = string.Equals(currentAction, a, StringComparison.OrdinalIgnoreCase);
 		}
 		
 		return match ? "active" : "";
@@ -126,7 +126,7 @@
 			
 			@if (canViewInfo || canViewCategory || canViewMethod || canViewSupplier)
 			{
-				var subActive = IsHasSubActive("Setting");
+				var subActive = IsHasSubActive("Setting", "Category", "PaymentMethod", "Supplier");
 				
 				<li class="has-sub @subActive[0]">
 					<a><i class="las la-cog"></i><span>Setting</span><i class="arrow @subActive[1]"></i></a>
@@ -136,15 +136,15 @@
 						}
 						
 						@if(canViewCategory) {
-							<li class="@IsActive("Setting", "Categories")"><a asp-controller="Setting" asp-action="Categories"><span>Medicine Category</span></a></li>
+							<li class="@IsActive("Category")"><a asp-controller="Category" asp-action="Index"><span>Medicine Category</span></a></li>
 						}
 						
 						@if(canViewMethod) {
-							<li class="@IsActive("Setting", "PaymentMethods")"><a asp-controller="Setting" asp-action="PaymentMethods"><span>Payment Methods</span></a></li>
+							<li class="@IsActive("PaymentMethod")"><a asp-controller="PaymentMethod" asp-action="Index"><span>Payment Methods</span></a></li>
 						}
 						
 						@if(canViewSupplier) {
-							<li class="@IsActive("Setting", "Suppliers")"><a asp-controller="Setting" asp-action="Suppliers"><span>Suppliers</span></a></li>
+							<li class="@IsActive("Supplier")"><a asp-controller="Supplier" asp-action="Index"><span>Suppliers</span></a></li>
 						}
 					</ul>
 				</li>

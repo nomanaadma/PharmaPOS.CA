@@ -261,7 +261,6 @@ public class BillingController(ApplicationDbContext context) : Controller
 		var canView = User.HasPermission(Permissions.Billing.View);
 		var canEdit = User.HasPermission(Permissions.Billing.Edit);
 		var canDelete = User.HasPermission(Permissions.Billing.Delete);
-		var canAction = canView || canEdit || canDelete;
 		
 		var formattedData = BillingMapper.MapToBills(rawData, canView, canEdit, canDelete);
 
