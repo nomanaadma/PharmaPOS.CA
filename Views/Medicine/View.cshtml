@@ -1,6 +1,8 @@
 @model PharmaPOS_MVC.Models.MedicineViewPageModel
 @{
-    ViewData["Title"] = "Medicine View";
+    const string pageTitle = "Medicine View";
+    ViewData["Title"] = pageTitle;
+
     var canEdit = User.HasPermission(Permissions.Medicine.Edit);
     var canViewPurchase = User.HasPermission(Permissions.Purchase.View);
 	var canEditPurchase = User.HasPermission(Permissions.Purchase.Edit);
@@ -13,13 +15,10 @@
     <div class="row align-items-center">
         <div class="col-sm-12">
             <h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-            <div class="breadcrumbs d-inline-block">
-                <ul>
-                    <li><a href="/">Dashboard</a></li>
-                    <li><a asp-controller="Medicine" asp-action="Index">Medicine</a></li>
-                    <li>@ViewData["Title"]</li>
-                </ul>
-            </div>
+            <partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("Medicine", Url.Action("Index", "Medicine")),
+				new(pageTitle) 
+			}' />
         </div>
     </div>
 </div>

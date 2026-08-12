@@ -1,6 +1,7 @@
 @model IEnumerable<PharmaPOS_MVC.Models.SupplierViewModel>
 @{
-	ViewData["Title"] = "Suppliers";
+	const string pageTitle = "Suppliers";
+	ViewData["Title"] = pageTitle;
 	
 	var canAdd = User.HasPermission(Permissions.Suppliers.Add);
 	var canEdit = User.HasPermission(Permissions.Suppliers.Edit);
@@ -13,12 +14,9 @@
 	<div class="row align-items-center">
 		<div class="col-sm-4">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new(pageTitle) 
+			}' />
 		</div>
 		<div class="col-sm-8 text-right">
 			@if (canAdd)

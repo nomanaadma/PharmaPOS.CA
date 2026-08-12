@@ -3,20 +3,19 @@
 	var isEdit = !string.IsNullOrEmpty(Model.UserId);
 	var pageType = isEdit ? "Edit" : "Add";
 	
-	ViewData["Title"] = pageType + " User";
+	var pageTitle = pageType + " User";
+	ViewData["Title"] = pageTitle;
+
 }
 
 <div class="page-title">
 	<div class="row align-items-center">
 		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li><a asp-controller="User" asp-action="Index">Users</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("Users", Url.Action("Index", "User")),
+				new(pageTitle) 
+			}' />
 		</div>
 	</div>
 </div>

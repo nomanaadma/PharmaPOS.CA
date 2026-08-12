@@ -14,12 +14,9 @@
     <div class="row align-items-center">
         <div class="col-sm-4">
             <h2 class="page-title-text d-inline-block">@pageTitle</h2>
-            <div class="breadcrumbs d-inline-block">
-                <ul>
-                    <li><a href="/">Dashboard</a></li>
-                    <li>@pageTitle</li>
-                </ul>
-            </div>
+            <partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("@pageTitle") 
+			}' />
         </div>
         <div class="col-sm-8 text-right">
             <a asp-controller="Stock" asp-action="Index" asp-route-type="live" class="btn btn-white btn-sm mr-2"><i class="las la-calendar text-success mr-2"></i> Live Stock</a>

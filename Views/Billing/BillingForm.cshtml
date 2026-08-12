@@ -1,7 +1,9 @@
 @model PharmaPOS_MVC.Models.BillingFormModel
 @{
 	var isEdit = Model?.Id.HasValue ?? false;
-	ViewData["Title"] = isEdit ? "Edit" : "New" + " Bill";
+	var pageTitle = isEdit ? "Edit" : "New" + " Bill";
+	
+	ViewData["Title"] = pageTitle; 
 	
 	var actionType = isEdit ? "Edit" : "Add";
 }
@@ -10,13 +12,10 @@
 	<div class="row align-items-center">
 		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li><a asp-controller="Billing" asp-action="Index">POS/Bill</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("POS/Bill", Url.Action("Index", "Billing")),
+				new(pageTitle) 
+			}' />
 		</div>
 	</div>
 </div>

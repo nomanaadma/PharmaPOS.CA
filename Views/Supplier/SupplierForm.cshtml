@@ -3,7 +3,8 @@
 	var isEdit = Model?.Id.HasValue ?? false;
 	var pageType = isEdit ? "Edit" : "Add";
 	
-	ViewData["Title"] = pageType + " Supplier";
+	var pageTitle = pageType + " Supplier";
+	ViewData["Title"] = pageTitle;
 	
 }
 
@@ -11,13 +12,10 @@
 	<div class="row align-items-center">
 		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li><a asp-controller="Supplier" asp-action="Index">Suppliers</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("Suppliers", Url.Action("Index", "Supplier")),
+				new(pageTitle) 
+			}' />
 		</div>
 	</div>
 </div>

@@ -1,5 +1,4 @@
 @model PharmaPOS_MVC.Models.MedicineCategoryViewModel
-@using PharmaPOS_MVC.Models;
 @{
 	var isEdit = Model?.Id.HasValue ?? false;
 	var pageType = isEdit ? "Edit" : "Add";
@@ -13,9 +12,9 @@
 		<div class="col-sm-12">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
 			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
-				new("Medicine Categories", Url.Action("Index", "Category")), 
-				new(pageTitle) 
-			}' />
+		         new("Medicine Categories", Url.Action("Index", "Category")), 
+		         new(pageTitle) 
+	        }' />
 		</div>
 	</div>
 </div>

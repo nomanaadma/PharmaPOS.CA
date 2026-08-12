@@ -1,6 +1,7 @@
 @model PharmaPOS_MVC.Models.BillingViewModel
 @{
-	ViewData["Title"] = "Bill View";
+	const string pageTitle = "Bill View";
+	ViewData["Title"] = pageTitle;
 	var siteInfo = await SiteInfo.GetSettingsAsync();
 	
 	var canEdit = User.HasPermission(Permissions.Billing.Edit);
@@ -11,13 +12,10 @@
 	<div class="row align-items-center">
 		<div class="col-sm-7">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li><a asp-controller="Billing" asp-action="Index">POS/Bill</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model='new BreadcrumbItem[] { 
+				new("POS/Bill", Url.Action("Index", "Billing")),
+				new(pageTitle) 
+			}' />
 		</div>
 		<div class="col-sm-5 text-right">
 			@if (canEdit)

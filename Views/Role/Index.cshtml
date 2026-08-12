@@ -1,18 +1,16 @@
 @model IEnumerable<PharmaPOS_MVC.Models.RoleListViewModel>
 @{
-	ViewData["Title"] = "User Roles";
+	const string pageTitle = "User Roles";
+	ViewData["Title"] = pageTitle;
 }
 
 <div class="page-title">
 	<div class="row align-items-center">
 		<div class="col-sm-4">
 			<h2 class="page-title-text d-inline-block">@ViewData["Title"]</h2>
-			<div class="breadcrumbs d-inline-block">
-				<ul>
-					<li><a href="/">Dashboard</a></li>
-					<li>@ViewData["Title"]</li>
-				</ul>
-			</div>
+			<partial name="Partials/_Breadcrumb" model="new BreadcrumbItem[] { 
+				new(pageTitle) 
+			}" />
 		</div>
 		<div class="col-sm-8 text-right">
 			<a asp-controller="Role" asp-action="Add" class="btn btn-primary btn-sm">
