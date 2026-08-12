@@ -1,4 +1,10 @@
 @model PharmaPOS_MVC.Models.RoleFormViewModel
+@{
+	var isEdit = !string.IsNullOrEmpty(Model.Id);
+	var pageType = isEdit ? "Edit" : "Add";
+	
+	ViewData["Title"] = pageType + " User Role";
+}
 
 <div class="page-title">
 	<div class="row align-items-center">
@@ -15,7 +21,7 @@
 	</div>
 </div>
 
-<form asp-controller="Role" asp-action="@(string.IsNullOrEmpty(Model.Id) ? "Add" : "Edit")" method="post">
+<form asp-controller="Role" asp-action="@pageType" method="post">
 	@Html.AntiForgeryToken()
 	@if (!string.IsNullOrEmpty(Model.Id))
 	{

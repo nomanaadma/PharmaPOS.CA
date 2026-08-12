@@ -1,4 +1,11 @@
 @model PharmaPOS_MVC.Models.UserFormViewModel
+@{
+	var isEdit = !string.IsNullOrEmpty(Model.UserId);
+	var pageType = isEdit ? "Edit" : "Add";
+	
+	ViewData["Title"] = pageType + " User";
+}
+
 <div class="page-title">
 	<div class="row align-items-center">
 		<div class="col-sm-12">
@@ -14,7 +21,7 @@
 	</div>
 </div>
 
-<form asp-controller="User" asp-action="@(string.IsNullOrEmpty(Model.UserId) ? "Add" : "Edit")" method="post">
+<form asp-controller="User" asp-action="@pageType" method="post">
 	@Html.AntiForgeryToken()
 	<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 

@@ -69,7 +69,6 @@ public class UserController(
             Roles = await GetRolesSelectListAsync()
         };
 
-        ViewData["Title"] = "Add User";
         return View("UserForm", model);
     }
 
@@ -78,7 +77,6 @@ public class UserController(
     [Authorize(Policy = Permissions.User.Add)]
     public async Task<IActionResult> Add(UserFormViewModel model)
     {
-        ViewData["Title"] = "Add User";
 	    
         model.Roles = await GetRolesSelectListAsync();
         
@@ -184,7 +182,6 @@ public class UserController(
             Roles = await GetRolesSelectListAsync()
         };
 
-        ViewData["Title"] = "Edit User";
         return View("UserForm", model);
     }
 
@@ -199,7 +196,6 @@ public class UserController(
             return RedirectToAction(nameof(Index));
         }
         
-        ViewData["Title"] = "Edit User";
         model.Roles = await GetRolesSelectListAsync();
 
         if (string.IsNullOrWhiteSpace(model.UserId))

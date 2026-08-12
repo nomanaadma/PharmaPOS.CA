@@ -45,8 +45,7 @@ public class RoleController(
             });
             
         }
-
-        ViewData["Title"] = "User Roles";
+        
         return View(list);
     }
 
@@ -58,7 +57,6 @@ public class RoleController(
             PermissionsGroup = Permissions.GetPermissionsTemplate()
         };
 
-        ViewData["Title"] = "New User Role";
         return View("RoleForm", model);
     }
 
@@ -67,7 +65,6 @@ public class RoleController(
     public async Task<IActionResult> Add(RoleFormViewModel model)
     {
         model.PermissionsGroup = Permissions.GetPermissionsTemplate();
-        ViewData["Title"] = "New User Role";
         
 
         if (!ModelState.IsValid)
@@ -140,7 +137,6 @@ public class RoleController(
 
         var model = RoleMapper.MapToRoleForm(role, description, selectedPermissions);
 
-        ViewData["Title"] = "Edit User Role";
         return View("RoleForm", model);
     }
 
@@ -155,7 +151,6 @@ public class RoleController(
         }
         
         model.PermissionsGroup = Permissions.GetPermissionsTemplate();
-        ViewData["Title"] = "Edit User Role";
 
         if (string.IsNullOrWhiteSpace(model.Id))
         {
