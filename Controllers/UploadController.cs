@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +16,9 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 {
 	[HttpGet("get")]
 	[Authorize(Policy = Permissions.Media.List)]
-	public async Task<IActionResult> Get()
+	public async Task<IActionResult> Get(CancellationToken ct = default)
 	{
-		var result = await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync();
+		var result = await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync(ct);
 		var html = "";
 		
 		foreach (var value in result)
@@ -45,7 +46,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	[HttpPost("upload")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Media.Upload)]
-	public async Task<IActionResult> Upload(IFormFile? file)
+	public async Task<IActionResult> Upload(IFormFile? file, CancellationToken ct = default)
 	{
 		if (file == null || file.Length == 0)
 		{
@@ -60,12 +61,12 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 
 		await using (var stream = new FileStream(filePath, FileMode.Create))
 		{
-			await file.CopyToAsync(stream);
+			await file.CopyToAsync(stream, ct);
 		}
 
 		var media = new Media(fileName, ext, DateTime.UtcNow);
 		dbContext.Media.Add(media);
-		await dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync(ct);
 
 		var (width, height) = GetImageDimensions(filePath);
 		
@@ -94,14 +95,14 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 	[HttpPost("delete")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Media.Delete)]
-	public async Task<IActionResult> Delete(string name, int id)
+	public async Task<IActionResult> Delete(string name, int id, CancellationToken ct = default)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
 			return Json(new { error = true, message = "File name is wrong or does not exist." });
 		}
 
-		var media = await dbContext.Media.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name);
+		var media = await dbContext.Media.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name, ct);
 		if (media == null)
 		{
 			return Json(new { error = true, message = "File is wrong or does not exist." });
@@ -121,7 +122,7 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 		}
 
 		dbContext.Media.Remove(media);
-		await dbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync(ct);
 
 		return Json(new { error = false, message = "File deleted successfully." });
 	}

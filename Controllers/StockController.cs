@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ public class StockController(ApplicationDbContext context) : BaseController
 {
 	[HttpGet("/Medicine/Stock")]
 	[Authorize(Policy = Permissions.Stock.View)]
-	public async Task<IActionResult> Index(string? type)
+	public async Task<IActionResult> Index(string? type, CancellationToken ct = default)
 	{
 		var batchesQuery = context.Batches
 			.Include(b => b.Medicine)
@@ -80,13 +81,13 @@ public class StockController(ApplicationDbContext context) : BaseController
 				break;
 		}
 		
-		var batches = await batchesQuery.ToListAsync();
+		var batches = await batchesQuery.ToListAsync(ct);
 		
 		var batchIds = batches.Select(b => b.Id).ToList();
 		
 		var billItems = await context.BillItems
 			.Where(bi => batchIds.Contains(bi.BatchId))
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 		var result = batches.Select(b =>
 		{
@@ -128,11 +129,11 @@ public class StockController(ApplicationDbContext context) : BaseController
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Stock.View)]
-	public async Task<IActionResult> Update(int id, int medicineId, decimal available)
+	public async Task<IActionResult> Update(int id, int medicineId, decimal available, CancellationToken ct = default)
 	{
 		var batch = await context.Batches
 			
-			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId);
+			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId, ct);
 
 		var refererUrl = Request.Headers.Referer.ToString();
 
@@ -143,7 +144,7 @@ public class StockController(ApplicationDbContext context) : BaseController
 		}
 
 		batch.UpdateSold(batch.Qty - available);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(ct);
 
 		NotifySuccess("Stock updated successfully!");
 		return Redirect(refererUrl);
@@ -152,11 +153,11 @@ public class StockController(ApplicationDbContext context) : BaseController
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Stock.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		var batch = await context.Batches
 			
-			.FirstOrDefaultAsync(b => b.Id == id);
+			.FirstOrDefaultAsync(b => b.Id == id, ct);
 		
 		var refererUrl = Request.Headers.Referer.ToString();
 		
@@ -167,7 +168,7 @@ public class StockController(ApplicationDbContext context) : BaseController
 		}
 		
 		batch.UpdateStatus(Status.InActive);
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(ct);
 		
 		NotifySuccess("Medicine Stock deleted successfully.");
 		return Redirect(refererUrl);

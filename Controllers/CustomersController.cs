@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,11 @@ public class CustomersController(
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.List)]
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
 		var customersQuery = await context.Customers
 			.OrderByDescending(c => c.CreatedDate)
-			.ToListAsync();
+			.ToListAsync(ct);
 
 		var customers = CustomerMapper.MapToCustomers(customersQuery);
 
@@ -38,14 +39,14 @@ public class CustomersController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Customer.Add)]
-	public async Task<IActionResult> Add(CustomerViewModel model)
+	public async Task<IActionResult> Add(CustomerViewModel model, CancellationToken ct = default)
 	{
 		if (!ModelState.IsValid)
 		{
 			return View("CustomerForm", model);
 		}
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email))
+		if (await context.Customers.AnyAsync(c => c.Email == model.Email, ct))
 		{
 			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
 			return View("CustomerForm", model);
@@ -55,7 +56,7 @@ public class CustomersController(
 		{
 			var customer = new Customer(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
 			context.Customers.Add(customer);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Customer created successfully.");
 			return RedirectToAction(nameof(Index));
@@ -69,9 +70,9 @@ public class CustomersController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.View)]
-	public async Task<IActionResult> View(int id)
+	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 		{
 			NotifyWarning("Customer does not exist in database!");
@@ -82,7 +83,7 @@ public class CustomersController(
 			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
 			.OrderByDescending(b => b.BillDate)
 			.Take(20)
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 		var model = new CustomerViewPageModel
 		{
@@ -95,9 +96,9 @@ public class CustomersController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.Edit)]
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 		{
 			NotifyWarning("Customer does not exist in database!");
@@ -112,7 +113,7 @@ public class CustomersController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Customer.Edit)]
-	public async Task<IActionResult> Edit(int id, CustomerViewModel model)
+	public async Task<IActionResult> Edit(int id, CustomerViewModel model, CancellationToken ct = default)
 	{
 		
 		if (id != model.Id)
@@ -132,7 +133,7 @@ public class CustomersController(
 			return View("CustomerForm", model);
 		}
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id))
+		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id, ct))
 		{
 			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
 			return View("CustomerForm", model);
@@ -140,7 +141,7 @@ public class CustomersController(
 
 		try
 		{
-			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
 			if (customer == null)
 			{
 				NotifyError("Customer not found.");
@@ -148,7 +149,7 @@ public class CustomersController(
 			}
 
 			customer.Update(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Customer updated successfully.");
 			return RedirectToAction(nameof(Index));
@@ -163,11 +164,11 @@ public class CustomersController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Customer.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		try
 		{
-			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
 			if (customer == null)
 			{
 				NotifyError("Customer not found.");
@@ -175,7 +176,7 @@ public class CustomersController(
 			}
 
 			context.Customers.Remove(customer);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Customer deleted successfully.");
 		}
@@ -189,7 +190,7 @@ public class CustomersController(
 
 	[HttpGet("/getcustomer")]
 	[Authorize(Policy = Permissions.Medicine.List)]
-	public async Task<IActionResult> SearchCustomer(string term)
+	public async Task<IActionResult> SearchCustomer(string term, CancellationToken ct = default)
 	{
 		
 		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
@@ -217,7 +218,7 @@ public class CustomersController(
 				email = c.Email,
 				mobile = c.Mobile
 			})
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 		return Json(results);
 	}

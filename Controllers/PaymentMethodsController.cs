@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,11 @@ public class PaymentMethodsController(
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.PaymentMethod.List)]
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
 		var methodsQuery = await context.PaymentMethods
 			.OrderBy(p => p.Id)
-			.ToListAsync();
+			.ToListAsync(ct);
 
 		var methods = SettingMapper.MapToPaymentMethods(methodsQuery);
 		
@@ -38,14 +39,14 @@ public class PaymentMethodsController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Add)]
-	public async Task<IActionResult> Add(PaymentMethodViewModel model)
+	public async Task<IActionResult> Add(PaymentMethodViewModel model, CancellationToken ct = default)
 	{
 		if (!ModelState.IsValid)
 		{
 			return View("PaymentMethodForm", model);
 		}
 
-		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name))
+		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Payment Method Name must be unique.");
 			return View("PaymentMethodForm", model);
@@ -55,7 +56,7 @@ public class PaymentMethodsController(
 		{
 			var method = new PaymentMethod(model.Name, model.Status);
 			context.PaymentMethods.Add(method);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Payment method created successfully.");
 			return RedirectToAction(nameof(Index));
@@ -69,9 +70,9 @@ public class PaymentMethodsController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id);
+		var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id, ct);
 		if (method == null)
 		{
 			NotifyError("Payment method not found.");
@@ -86,7 +87,7 @@ public class PaymentMethodsController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Edit)]
-	public async Task<IActionResult> Edit(int id, PaymentMethodViewModel model)
+	public async Task<IActionResult> Edit(int id, PaymentMethodViewModel model, CancellationToken ct = default)
 	{
 		if (id != model.Id)
 		{
@@ -105,7 +106,7 @@ public class PaymentMethodsController(
 			return View("PaymentMethodForm", model);
 		}
 
-		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name && p.Id != model.Id.Value))
+		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name && p.Id != model.Id.Value, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Payment Method Name must be unique.");
 			return View("PaymentMethodForm", model);
@@ -113,7 +114,7 @@ public class PaymentMethodsController(
 
 		try
 		{
-			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == model.Id.Value);
+			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == model.Id.Value, ct);
 			if (method == null)
 			{
 				NotifyError("Payment method not found.");
@@ -121,7 +122,7 @@ public class PaymentMethodsController(
 			}
 
 			method.Update(model.Name, model.Status);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Payment method updated successfully.");
 			return RedirectToAction(nameof(Index));
@@ -136,11 +137,11 @@ public class PaymentMethodsController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.PaymentMethod.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		try
 		{
-			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id);
+			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id, ct);
 			if (method == null)
 			{
 				NotifyError("Payment method not found.");
@@ -148,7 +149,7 @@ public class PaymentMethodsController(
 			}
 
 			context.PaymentMethods.Remove(method);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Payment method deleted successfully.");
 		}

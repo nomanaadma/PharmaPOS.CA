@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Billing.List)]
-	public async Task<IActionResult> Filter()
+	public async Task<IActionResult> Filter(CancellationToken ct = default)
 	{
 		var draw = Convert.ToInt32(Request.Form["draw"].FirstOrDefault() ?? "1");
 		var start = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
@@ -42,7 +43,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			.AsQueryable();
 
 		// Total count
-		var totalRecords = await query.CountAsync();
+		var totalRecords = await query.CountAsync(ct);
 
 		// Apply search
 		if (!string.IsNullOrWhiteSpace(searchValue))
@@ -202,7 +203,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		}
 
 		// Filtered count
-		var filteredRecords = await query.CountAsync();
+		var filteredRecords = await query.CountAsync(ct);
 		
 		// Apply sorting
 		if (!string.IsNullOrEmpty(sortColumnIndex))
@@ -256,7 +257,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			pagedQuery = pagedQuery.Take(length);
 		}
 
-		var rawData = await pagedQuery.ToListAsync();
+		var rawData = await pagedQuery.ToListAsync(ct);
 		
 		var canView = User.HasPermission(Permissions.Billing.View);
 		var canEdit = User.HasPermission(Permissions.Billing.Edit);
@@ -275,11 +276,11 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Billing.Add)]
-	public async Task<IActionResult> Add()
+	public async Task<IActionResult> Add(CancellationToken ct = default)
 	{
 		var model = new BillingFormModel
 		{
-			PaymentMethods = await GetPaymentMethodsAsync()
+			PaymentMethods = await GetPaymentMethodsAsync(ct)
 		};
 		return View("BillingForm", model);
 	}
@@ -287,10 +288,10 @@ public class BillingController(ApplicationDbContext context) : BaseController
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Billing.Add)]
-	public async Task<IActionResult> Add(BillingFormModel model)
+	public async Task<IActionResult> Add(BillingFormModel model, CancellationToken ct = default)
 	{
 		
-		model.PaymentMethods = await GetPaymentMethodsAsync();
+		model.PaymentMethods = await GetPaymentMethodsAsync(ct);
 		
 		if (!ModelState.IsValid)
 		{
@@ -304,7 +305,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			return View("BillingForm", model);
 		}
 
-		await using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 		try
 		{
 			var customerId = model.CustomerId ?? 0;
@@ -328,7 +329,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				);
 				
 				context.Customers.Add(newCustomer);
-				await context.SaveChangesAsync();
+				await context.SaveChangesAsync(ct);
 				customerId = newCustomer.Id;
 			}
 
@@ -347,7 +348,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			);
 
 			context.Bills.Add(bill);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			foreach (var item in model.Items)
 			{
@@ -369,20 +370,20 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 				var batch = await context.Batches
 					
-					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId );
+					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId, ct);
 			
 				batch?.UpdateSold(batch.Sold + item.Qty);
 			}
 
-			await context.SaveChangesAsync();
-			await transaction.CommitAsync();
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
 
 			NotifySuccess("Bill created successfully.");
 			return RedirectToAction(nameof(View), new { id = bill.Id });
 		}
 		catch (Exception ex)
 		{
-			await transaction.RollbackAsync();
+			await transaction.RollbackAsync(ct);
 			NotifyError("Error saving bill: " + ex.Message);
 			return View("BillingForm", model);
 		}
@@ -390,7 +391,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Billing.Edit)]
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 		
@@ -403,7 +404,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
 			.AsSplitQuery()
-			.FirstOrDefaultAsync(mb => mb.Id == id);
+			.FirstOrDefaultAsync(mb => mb.Id == id, ct);
 
 		if (bill == null)
 		{
@@ -417,7 +418,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		
 			if (batchAlreadyLoaded) continue;
 			
-			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId);
+			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId, ct);
 		
 			if (activeBatch != null)
 			{
@@ -426,7 +427,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		
 		}
 		
-		var paymentMethods = await GetPaymentMethodsAsync();
+		var paymentMethods = await GetPaymentMethodsAsync(ct);
 		var model = BillingMapper.MapToBillingForm(bill, paymentMethods);
 
 		return View("BillingForm", model);
@@ -435,7 +436,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Billing.Edit)]
-	public async Task<IActionResult> Edit(int id, BillingFormModel model)
+	public async Task<IActionResult> Edit(int id, BillingFormModel model, CancellationToken ct = default)
 	{
 		
 		if (id != model.Id)
@@ -444,7 +445,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			return RedirectToAction(nameof(Index));
 		}
 		
-		model.PaymentMethods = await GetPaymentMethodsAsync();
+		model.PaymentMethods = await GetPaymentMethodsAsync(ct);
 
 		if (!ModelState.IsValid)
 		{
@@ -458,13 +459,13 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			return View("BillingForm", model);
 		}
 
-		await using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 		try
 		{
 			var bill = await context.Bills
 				.Include(mb => mb.Items)
 				
-				.FirstOrDefaultAsync(mb => mb.Id == id);
+				.FirstOrDefaultAsync(mb => mb.Id == id, ct);
 
 			if (bill == null) return NotFound();
 
@@ -490,7 +491,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				);
 				
 				context.Customers.Add(newCustomer);
-				await context.SaveChangesAsync();
+				await context.SaveChangesAsync(ct);
 				customerId = newCustomer.Id;
 			}
 
@@ -501,13 +502,13 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			{
 				var batch = await context.Batches
 					
-					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId);
+					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId, ct);
 				
 				batch?.UpdateSold(batch.Sold - oldItem.Qty);
 			}
 
 			context.BillItems.RemoveRange(bill.Items);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			// Add new items and update sold quantities
 			foreach (var item in model.Items)
@@ -517,20 +518,20 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				
 				var batch = await context.Batches
 					
-					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId);
+					.FirstOrDefaultAsync(mb => mb.Id == item.Batch && mb.MedicineId == item.MedicineId, ct);
 
 				batch?.UpdateSold(batch.Sold + item.Qty);
 			}
 
-			await context.SaveChangesAsync();
-			await transaction.CommitAsync();
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
 
 			NotifySuccess("Bill updated successfully.");
 			return RedirectToAction(nameof(View), new { id = bill.Id });
 		}
 		catch (Exception ex)
 		{
-			await transaction.RollbackAsync();
+			await transaction.RollbackAsync(ct);
 			NotifyError("Error updating bill: " + ex.Message);
 			return View("BillingForm", model);
 		}
@@ -539,12 +540,12 @@ public class BillingController(ApplicationDbContext context) : BaseController
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Billing.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		await using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 		try
 		{
-			var bill = await context.Bills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id);
+			var bill = await context.Bills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id, ct);
 			if (bill == null) return RedirectToAction(nameof(Index));
 
 			// Revert sold quantities
@@ -552,20 +553,20 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			{
 				var batch = await context.Batches
 					
-					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId);
+					.FirstOrDefaultAsync(mb => mb.Id == item.BatchId && mb.MedicineId == item.MedicineId, ct);
 				
 				batch?.UpdateSold(batch.Sold - item.Qty);
 			}
 
 			context.Bills.Remove(bill);
-			await context.SaveChangesAsync();
-			await transaction.CommitAsync();
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
 
 			NotifySuccess("Bill deleted successfully.");
 		}
 		catch (Exception ex)
 		{
-			await transaction.RollbackAsync();
+			await transaction.RollbackAsync(ct);
 			NotifyError("Error deleting bill: " + ex.Message);
 		}
 
@@ -574,7 +575,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Billing.View)]
-	public async Task<IActionResult> View(int id)
+	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
 		var bill = await context.Bills
 			.Include(mb => mb.PaymentMethod)
@@ -583,7 +584,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			.Include(mb => mb.Items)
 				.ThenInclude(bi => bi.Batch)
 			.AsSplitQuery()
-			.FirstOrDefaultAsync(mb => mb.Id == id);
+			.FirstOrDefaultAsync(mb => mb.Id == id, ct);
 
 		if (bill == null) return NotFound();
 
@@ -592,7 +593,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		return View(model);
 	}
 
-	private async Task<IEnumerable<SelectListItem>> GetPaymentMethodsAsync()
+	private async Task<IEnumerable<SelectListItem>> GetPaymentMethodsAsync(CancellationToken ct = default)
 	{
 		return await context.PaymentMethods
 			.Where(pm => pm.Status == Status.Active)
@@ -602,6 +603,6 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					Value = pm.Id.ToString(), 
 					Text = pm.Name
 				})
-			.ToListAsync();
+			.ToListAsync(ct);
 	}
 }

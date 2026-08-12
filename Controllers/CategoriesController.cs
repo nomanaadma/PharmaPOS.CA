@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,11 @@ public class CategoriesController(
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.List)]
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
 		var categoriesQuery = await context.MedicineCategories
 			.OrderBy(c => c.Id)
-			.ToListAsync();
+			.ToListAsync(ct);
 
 		var categories = SettingMapper.MapToMedicineCategories(categoriesQuery);
 		
@@ -37,14 +38,14 @@ public class CategoriesController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Add)]
-	public async Task<IActionResult> Add(MedicineCategoryViewModel model)
+	public async Task<IActionResult> Add(MedicineCategoryViewModel model, CancellationToken ct = default)
 	{
 		if (!ModelState.IsValid)
 		{
 			return View("CategoryForm", model);
 		}
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name))
+		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
 			return View("CategoryForm", model);
@@ -54,7 +55,7 @@ public class CategoriesController(
 		{
 			var category = new MedicineCategory(model.Name);
 			context.MedicineCategories.Add(category);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Category created successfully.");
 			return RedirectToAction(nameof(Index));
@@ -68,9 +69,9 @@ public class CategoriesController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.Edit)]
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
+		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
 		{
 			NotifyError("Category not found.");
@@ -85,7 +86,7 @@ public class CategoriesController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Edit)]
-	public async Task<IActionResult> Edit(int id, MedicineCategoryViewModel model)
+	public async Task<IActionResult> Edit(int id, MedicineCategoryViewModel model, CancellationToken ct = default)
 	{
 		if (id != model.Id)
 		{
@@ -104,7 +105,7 @@ public class CategoriesController(
 			return View("CategoryForm", model);
 		}
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id.Value))
+		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id.Value, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
 			return View("CategoryForm", model);
@@ -112,7 +113,7 @@ public class CategoriesController(
 
 		try
 		{
-			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id.Value);
+			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id.Value, ct);
 			if (category == null)
 			{
 				NotifyError("Category not found.");
@@ -120,7 +121,7 @@ public class CategoriesController(
 			}
 
 			category.Update(model.Name);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Category updated successfully.");
 			return RedirectToAction(nameof(Index));
@@ -135,11 +136,11 @@ public class CategoriesController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Category.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		try
 		{
-			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id);
+			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
 			if (category == null)
 			{
 				NotifyError("Category not found.");
@@ -147,7 +148,7 @@ public class CategoriesController(
 			}
 
 			context.MedicineCategories.Remove(category);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Category deleted successfully.");
 		}

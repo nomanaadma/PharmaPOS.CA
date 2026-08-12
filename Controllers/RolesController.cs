@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
@@ -18,9 +19,9 @@ public class RolesController(
 {
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken ct = default)
     {
-        var roles = await roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+        var roles = await roleManager.Roles.OrderBy(r => r.Name).ToListAsync(ct);
         var list = new List<RoleListViewModel>();
 
         foreach (var role in roles)
@@ -61,7 +62,7 @@ public class RolesController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(RoleFormViewModel model)
+    public async Task<IActionResult> Add(RoleFormViewModel model, CancellationToken ct = default)
     {
         model.PermissionsGroup = Permissions.GetPermissionsTemplate();
         
@@ -110,7 +111,7 @@ public class RolesController(
     }
 
     [HttpGet]
-    public async Task<IActionResult> Edit(string id)
+    public async Task<IActionResult> Edit(string id, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -141,7 +142,7 @@ public class RolesController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string id, RoleFormViewModel model)
+    public async Task<IActionResult> Edit(string id, RoleFormViewModel model, CancellationToken ct = default)
     {
         if (id != model.Id)
         {
@@ -225,7 +226,7 @@ public class RolesController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(string id)
+    public async Task<IActionResult> Delete(string id, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {

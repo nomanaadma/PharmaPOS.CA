@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,10 +21,10 @@ public class SettingController(
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Info.View)]
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
 		var siteInfo = await siteInfoService.GetSettingsAsync();
-		var rawSetting = await context.Settings.FirstOrDefaultAsync();
+		var rawSetting = await context.Settings.FirstOrDefaultAsync(ct);
 
 		var model = SettingMapper.MapToSystemInfo(rawSetting, siteInfo);
 		
@@ -33,7 +34,7 @@ public class SettingController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Info.View)]
-	public async Task<IActionResult> Index(SystemInfoViewModel model)
+	public async Task<IActionResult> Index(SystemInfoViewModel model, CancellationToken ct = default)
 	{
 		if (!ModelState.IsValid)
 		{
@@ -42,7 +43,7 @@ public class SettingController(
 			return View("Info", model);
 		}
 
-		var settings = await context.Settings.FirstOrDefaultAsync();
+		var settings = await context.Settings.FirstOrDefaultAsync(ct);
 		if (settings == null)
 		{
 			settings = new Setting(model.Name, model.LegalName, model.Mail, model.Phone);
@@ -56,7 +57,7 @@ public class SettingController(
 		settings.UpdateImages(model.Logo, model.LogoIcon, model.LgBackground, model.Favicon);
 		settings.UpdateAddress(new Address(model.AddressLine1, model.AddressLine2, model.City, model.Country, model.Postal));
 
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(ct);
 
 		NotifySuccess("System settings updated successfully.");
 

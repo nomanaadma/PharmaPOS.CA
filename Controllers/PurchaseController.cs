@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ public class PurchaseController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Purchase.List)]
-	public async Task<IActionResult> Filter()
+	public async Task<IActionResult> Filter(CancellationToken ct = default)
 	{
 		var draw = Convert.ToInt32(Request.Form["draw"].FirstOrDefault() ?? "1");
 		var start = Convert.ToInt32(Request.Form["start"].FirstOrDefault() ?? "0");
@@ -44,7 +45,7 @@ public class PurchaseController(
 			.AsQueryable();
 
 		// Total count
-		var totalRecords = await query.CountAsync();
+		var totalRecords = await query.CountAsync(ct);
 
 		// Apply search
 		if (!string.IsNullOrWhiteSpace(searchValue))
@@ -204,7 +205,7 @@ public class PurchaseController(
 		}
 
 		// Filtered count
-		var filteredRecords = await query.CountAsync();
+		var filteredRecords = await query.CountAsync(ct);
 
 		// Apply sorting
 		if (!string.IsNullOrEmpty(sortColumnIndex))
@@ -258,7 +259,7 @@ public class PurchaseController(
 			pagedQuery = pagedQuery.Take(length);
 		}
 
-		var rawData = await pagedQuery.ToListAsync();
+		var rawData = await pagedQuery.ToListAsync(ct);
 
 		var canView = User.HasPermission(Permissions.Purchase.View);
 		var canEdit = User.HasPermission(Permissions.Purchase.Edit);
@@ -278,13 +279,13 @@ public class PurchaseController(
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Purchase.View)]
-	public async Task<IActionResult> View(int id)
+	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
 			.Include(mp => mp.Batches)
 				.ThenInclude(b => b.Medicine)
-			.FirstOrDefaultAsync(mp => mp.Id == id);
+			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 
 		if (purchase == null)
@@ -301,11 +302,11 @@ public class PurchaseController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Purchase.Add)]
-	public async Task<IActionResult> Add()
+	public async Task<IActionResult> Add(CancellationToken ct = default)
 	{
 		var medicineViewModel = new PurchaseFormModel
 		{
-			Suppliers = await GetSuppliersAsync()
+			Suppliers = await GetSuppliersAsync(ct)
 		};
 		
 		return View("PurchaseForm", medicineViewModel);
@@ -314,10 +315,10 @@ public class PurchaseController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Purchase.Add)]
-	public async Task<IActionResult> Add(PurchaseFormModel model)
+	public async Task<IActionResult> Add(PurchaseFormModel model, CancellationToken ct = default)
 	{
 		
-		model.Suppliers = await GetSuppliersAsync();
+		model.Suppliers = await GetSuppliersAsync(ct);
 		
 		if (!ModelState.IsValid)
 		{
@@ -331,7 +332,7 @@ public class PurchaseController(
 			return View("PurchaseForm", model);
 		}
 
-		await using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 		try
 		{
 
@@ -346,7 +347,7 @@ public class PurchaseController(
 			);
 
 			context.Purchases.Add(purchase);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 			foreach (var item in model.Items)
@@ -371,15 +372,15 @@ public class PurchaseController(
 				purchase.AddBatch(batch);
 			}
 
-			await context.SaveChangesAsync();
-			await transaction.CommitAsync();
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
 
 			NotifySuccess("Purchase created successfully.");
 			return RedirectToAction(nameof(Index));
 		}	
 		catch (Exception ex)
 		{
-			await transaction.RollbackAsync();
+			await transaction.RollbackAsync(ct);
 			NotifyError("Error saving purchase: " + ex.Message);
 			return View("PurchaseForm", model);
 		}
@@ -387,13 +388,13 @@ public class PurchaseController(
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Purchase.Edit)]
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
 			.Include(mp => mp.Batches)
 				.ThenInclude(b => b.Medicine)
-			.FirstOrDefaultAsync(mp => mp.Id == id);
+			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 		if (purchase == null)
 		{
@@ -401,7 +402,7 @@ public class PurchaseController(
 			return RedirectToAction(nameof(Index));
 		}
 		
-		var suppliers = await GetSuppliersAsync();
+		var suppliers = await GetSuppliersAsync(ct);
 		var model = PurchaseMapper.MapToPurchaseForm(purchase, suppliers);
 
 		return View("PurchaseForm", model);
@@ -410,7 +411,7 @@ public class PurchaseController(
 	[HttpPost("{id:int}")]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Purchase.Edit)]
-	public async Task<IActionResult> Edit(int id, PurchaseFormModel model)
+	public async Task<IActionResult> Edit(int id, PurchaseFormModel model, CancellationToken ct = default)
 	{
 		
 		if (id != model.Id)
@@ -420,7 +421,7 @@ public class PurchaseController(
 		}
 		
 		
-		model.Suppliers = await GetSuppliersAsync();
+		model.Suppliers = await GetSuppliersAsync(ct);
 
 		if (!ModelState.IsValid)
 		{
@@ -434,13 +435,13 @@ public class PurchaseController(
 			return View("PurchaseForm", model);
 		}
 
-		await using var transaction = await context.Database.BeginTransactionAsync();
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 		try
 		{
 			var existingPurchase = await context.Purchases
 				.Include(mp => mp.Batches)
 				
-				.FirstOrDefaultAsync(mp => mp.Id == id);
+				.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 			if (existingPurchase == null)
 			{
@@ -518,8 +519,8 @@ public class PurchaseController(
 				}
 			}
 
-			await context.SaveChangesAsync();
-			await transaction.CommitAsync();
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
 			
 
 			NotifySuccess("Purchase updated successfully.");
@@ -527,7 +528,7 @@ public class PurchaseController(
 		}
 		catch (Exception ex)
 		{
-			await transaction.RollbackAsync();
+			await transaction.RollbackAsync(ct);
 			NotifyError("Error updating purchase: " + ex.Message);
 			return View("PurchaseForm", model);
 		}
@@ -536,11 +537,11 @@ public class PurchaseController(
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Purchase.Delete)]
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		try
 		{
-			var purchase = await context.Purchases.FirstOrDefaultAsync(mp => mp.Id == id);
+			var purchase = await context.Purchases.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 			if (purchase == null)
 			{
 				NotifyError("Purchase record not found.");
@@ -548,7 +549,7 @@ public class PurchaseController(
 			}
 
 			context.Purchases.Remove(purchase);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Purchase deleted successfully.");
 		}
@@ -560,7 +561,7 @@ public class PurchaseController(
 		return RedirectToAction(nameof(Index));
 	}
 	
-	private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync()
+	private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync(CancellationToken ct = default)
 	{
 		return await context.Suppliers.OrderBy(s => s.Name)
 			.Select(s => new SelectListItem
@@ -568,6 +569,6 @@ public class PurchaseController(
 				Value = s.Id.ToString(),
 				Text = s.Name
 			})
-			.ToListAsync();
+			.ToListAsync(ct);
 	}
 }

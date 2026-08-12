@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -21,7 +22,7 @@ public class MedicinesController(
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.List)]
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 
@@ -36,7 +37,7 @@ public class MedicinesController(
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0m
 			))
-			.ToListAsync();
+			.ToListAsync(ct);
 
 		var medicineResponse = MedicineMapper.MapToMedicinesWithStock(medicines);
 		
@@ -45,11 +46,11 @@ public class MedicinesController(
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.Add)]
-	public async Task<IActionResult> Add()
+	public async Task<IActionResult> Add(CancellationToken ct = default)
 	{
 		var medicineViewModel = new MedicineViewModel
 		{
-			Categories = await GetMedicineCategoriesAsync()
+			Categories = await GetMedicineCategoriesAsync(ct)
 		};
 		
 		return View("MedicineForm", medicineViewModel);
@@ -59,11 +60,11 @@ public class MedicinesController(
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Medicine.Add)]
 	
-	public async Task<IActionResult> Add(MedicineViewModel model)
+	public async Task<IActionResult> Add(MedicineViewModel model, CancellationToken ct = default)
 	{
 		if (!ModelState.IsValid)
 		{
-			model.Categories = await GetMedicineCategoriesAsync();
+			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);	
 		}
 
@@ -84,7 +85,7 @@ public class MedicinesController(
 			);
 
 			context.Medicines.Add(medicine);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Medicine created successfully.");
 			return RedirectToAction(nameof(Index));
@@ -92,7 +93,7 @@ public class MedicinesController(
 		catch (Exception ex)
 		{
 			NotifyError("Error saving medicine: " + ex.Message);
-			model.Categories = await GetMedicineCategoriesAsync();
+			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);
 		}
 	}
@@ -100,11 +101,11 @@ public class MedicinesController(
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.View)]
 	
-	public async Task<IActionResult> View(int id)
+	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
 		var medicine = await context.Medicines
 			.Include(m => m.Category)
-			.FirstOrDefaultAsync(m => m.Id == id);
+			.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 		{
@@ -121,7 +122,7 @@ public class MedicinesController(
 			.Where(b => b.MedicineId == id)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.MedicineId)
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 		var liveBatches = batchesQuery.Where(b => 
 				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
@@ -143,16 +144,16 @@ public class MedicinesController(
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.Edit)]
 	
-	public async Task<IActionResult> Edit(int id)
+	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
+		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
 		if (medicine == null)
 		{
 			NotifyWarning("Medicine does not exist in database!");
 			return RedirectToAction(nameof(Index));
 		}
 		
-		var medicineCategories =  await GetMedicineCategoriesAsync();
+		var medicineCategories =  await GetMedicineCategoriesAsync(ct);
 		var model = MedicineMapper.MapToMedicine(medicine, medicineCategories);
 		
 		return View("MedicineForm", model);
@@ -162,7 +163,7 @@ public class MedicinesController(
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Medicine.Edit)]
 	
-	public async Task<IActionResult> Edit(int id, MedicineViewModel model)
+	public async Task<IActionResult> Edit(int id, MedicineViewModel model, CancellationToken ct = default)
 	{
 		if (id != model.Id)
 		{
@@ -178,13 +179,13 @@ public class MedicinesController(
 
 		if (!ModelState.IsValid)
 		{
-			model.Categories = await GetMedicineCategoriesAsync();
+			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);
 		}
 
 		try
 		{
-			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id.Value);
+			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id.Value, ct);
 			if (medicine == null)
 			{
 				NotifyError("Medicine not found.");
@@ -205,7 +206,7 @@ public class MedicinesController(
 				model.Note
 			);
 
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Medicine updated successfully.");
 			return RedirectToAction(nameof(Index));
@@ -213,7 +214,7 @@ public class MedicinesController(
 		catch (Exception ex)
 		{
 			NotifyError("Error updating medicine: " + ex.Message);
-			model.Categories = await GetMedicineCategoriesAsync();
+			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);
 		}
 	}
@@ -222,11 +223,11 @@ public class MedicinesController(
 	[ValidateAntiForgeryToken]
 	[Authorize(Policy = Permissions.Medicine.Delete)]
 	
-	public async Task<IActionResult> Delete(int id)
+	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
 		try
 		{
-			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id);
+			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
 			if (medicine == null)
 			{
 				NotifyError("Medicine not found.");
@@ -234,7 +235,7 @@ public class MedicinesController(
 			}
 
 			context.Medicines.Remove(medicine);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Medicine deleted successfully.");
 		}
@@ -246,7 +247,7 @@ public class MedicinesController(
 		return RedirectToAction(nameof(Index));
 	}
 
-	private async Task<IEnumerable<SelectListItem>> GetMedicineCategoriesAsync()
+	private async Task<IEnumerable<SelectListItem>> GetMedicineCategoriesAsync(CancellationToken ct = default)
 	{
 		return await context.MedicineCategories
 			.OrderBy(c => c.Name)
@@ -255,12 +256,12 @@ public class MedicinesController(
 				Value = c.Id.ToString(),
 				Text = c.Name
 			})
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 	}
 
 	[HttpGet("/getmedicine")]
-	public async Task<IActionResult> GetMedicine(string term)
+	public async Task<IActionResult> GetMedicine(string term, CancellationToken ct = default)
 	{
 		
 		var canBillingAdd = User.HasClaim("Permission", Permissions.Billing.Add);
@@ -294,14 +295,14 @@ public class MedicinesController(
 				label = m.Name,
 				Generic = m.Generic
 			})
-			.ToListAsync();
+			.ToListAsync(ct);
 
 		return Json(results);
 	}
 
 	[HttpPost("/getbatch")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> GetBatch(int id)
+	public async Task<IActionResult> GetBatch(int id, CancellationToken ct = default)
 	{
 		
 		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
@@ -320,7 +321,7 @@ public class MedicinesController(
 			.Where(b => (b.Qty - b.Sold) > 0)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.Expiry)
-			.ToListAsync();
+			.ToListAsync(ct);
 		
 		if (batches.Count == 0)
 		{
@@ -338,7 +339,7 @@ public class MedicinesController(
 
 	[HttpPost("/getbatchdata")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> GetBatchData(int medicine, int batch)
+	public async Task<IActionResult> GetBatchData(int medicine, int batch, CancellationToken ct = default)
 	{
 		
 		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
@@ -350,7 +351,7 @@ public class MedicinesController(
 		}
 		
 		var mBatch = await context.Batches
-			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch);
+			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch, ct);
 
 		if (mBatch == null)
 		{

@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 
     [HttpGet]
     [Authorize(Policy = Permissions.Reports.View)]
-    public async Task<IActionResult> Inventory()
+    public async Task<IActionResult> Inventory(CancellationToken ct = default)
     {
         var currentMonth = DateTime.UtcNow.ExpiryFormat();
         
@@ -48,7 +49,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 			                    string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 			        .Sum(b => (decimal?)(b.Qty - b.Sold)) ?? 0
 	        ))
-	        .ToListAsync();
+	        .ToListAsync(ct);
 
 		var inventory = ReportMapper.MapToInventoryReport(inventoryDto);
 
@@ -57,7 +58,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 
     [HttpGet]
     [Authorize(Policy = Permissions.Reports.View)]
-    public async Task<IActionResult> IncomeExpense(DateTime? start, DateTime? end, int? medicineId, string? medicineName)
+    public async Task<IActionResult> IncomeExpense(DateTime? start, DateTime? end, int? medicineId, string? medicineName, CancellationToken ct = default)
     {
         
         if (start.HasValue && end.HasValue)
@@ -92,7 +93,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 		        TaxAmount = g.Sum(bi => (decimal?)bi.TaxPrice) ?? 0m,
 		        DiscountAmount = g.Sum(bi => (decimal?)bi.DiscountValue) ?? 0m
 	        })
-	        .FirstOrDefaultAsync();
+	        .FirstOrDefaultAsync(ct);
 
         decimal purchaseAmount;
         var salesQty = 0m; 
@@ -110,7 +111,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
 			        TotalPrice = g.Sum(b => (decimal?)b.Price) ?? 0m,
 			        TotalSold = g.Sum(b => (decimal?)b.Sold) ?? 0m
 		        })
-		        .FirstOrDefaultAsync();
+		        .FirstOrDefaultAsync(ct);
 	        
 	        // Safely extract values (default to 0 if null)
 	        var totalQty = batchTotals?.TotalQty ?? 0m;
@@ -131,7 +132,7 @@ public class ReportsController(ApplicationDbContext context) : BaseController
                 {
                     PurchaseAmount = g.Sum(p => p.Amount)
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(ct);
 
             purchaseAmount = purchaseStats?.PurchaseAmount ?? 0;
 

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
@@ -22,9 +23,9 @@ public class UsersController(
 
     [HttpGet]
     [Authorize(Policy = Permissions.User.List)]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken ct = default)
     {
-        var users = await userManager.Users.ToListAsync();
+        var users = await userManager.Users.ToListAsync(ct);
         var userList = new List<UserListViewModel>();
 
         foreach (var user in users)
@@ -61,11 +62,11 @@ public class UsersController(
 
     [HttpGet]
     [Authorize(Policy = Permissions.User.Add)]
-    public async Task<IActionResult> Add()
+    public async Task<IActionResult> Add(CancellationToken ct = default)
     {
         var model = new UserFormViewModel
         {
-            Roles = await GetRolesSelectListAsync()
+            Roles = await GetRolesSelectListAsync(ct)
         };
 
         return View("UserForm", model);
@@ -74,10 +75,10 @@ public class UsersController(
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = Permissions.User.Add)]
-    public async Task<IActionResult> Add(UserFormViewModel model)
+    public async Task<IActionResult> Add(UserFormViewModel model, CancellationToken ct = default)
     {
 	    
-        model.Roles = await GetRolesSelectListAsync();
+        model.Roles = await GetRolesSelectListAsync(ct);
         
         if (string.IsNullOrWhiteSpace(model.Password))
         {
@@ -143,7 +144,7 @@ public class UsersController(
 
     [HttpGet]
     [Authorize(Policy = Permissions.User.Edit)]
-    public async Task<IActionResult> Edit(string id)
+    public async Task<IActionResult> Edit(string id, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -178,7 +179,7 @@ public class UsersController(
             Status = status,
             UserRole = roleName,
             UserName = user.UserName ?? "",
-            Roles = await GetRolesSelectListAsync()
+            Roles = await GetRolesSelectListAsync(ct)
         };
 
         return View("UserForm", model);
@@ -187,7 +188,7 @@ public class UsersController(
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = Permissions.User.Edit)]
-    public async Task<IActionResult> Edit(string id, UserFormViewModel model)
+    public async Task<IActionResult> Edit(string id, UserFormViewModel model, CancellationToken ct = default)
     {
         if (id != model.UserId)
         {
@@ -195,7 +196,7 @@ public class UsersController(
             return RedirectToAction(nameof(Index));
         }
         
-        model.Roles = await GetRolesSelectListAsync();
+        model.Roles = await GetRolesSelectListAsync(ct);
 
         if (string.IsNullOrWhiteSpace(model.UserId))
         {
@@ -280,7 +281,7 @@ public class UsersController(
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = Permissions.User.Delete)]
-    public async Task<IActionResult> Delete(string id)
+    public async Task<IActionResult> Delete(string id, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -324,9 +325,9 @@ public class UsersController(
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<IEnumerable<SelectListItem>> GetRolesSelectListAsync()
+    private async Task<IEnumerable<SelectListItem>> GetRolesSelectListAsync(CancellationToken ct = default)
     {
-        var roles = await roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+        var roles = await roleManager.Roles.OrderBy(r => r.Name).ToListAsync(ct);
         return roles.Select(r => new SelectListItem
         {
             Value = r.Name,
