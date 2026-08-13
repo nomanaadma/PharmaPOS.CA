@@ -1,4 +1,5 @@
 using System;
+using PharmaPOS_MVC.Domain.Enums;
 
 namespace PharmaPOS_MVC.Domain.ValueObjects;
 
@@ -11,7 +12,7 @@ public record PricingDetails
 		decimal qty,
 		decimal salePrice,
 		decimal gross,
-		int discountType,
+		DiscountType discountType,
 		decimal discount,
 		decimal discountValue,
 		decimal tax,
@@ -37,7 +38,7 @@ public record PricingDetails
 	public decimal Qty { get; private set; }
 	public decimal SalePrice { get; private set; }
 	public decimal Gross { get; private set; }
-	public int DiscountType { get; private set; }
+	public DiscountType DiscountType { get; private set; }
 	public decimal Discount { get; private set; }
 	public decimal DiscountValue { get; private set; }
 	public decimal Tax { get; private set; }

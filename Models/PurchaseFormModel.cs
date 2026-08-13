@@ -26,22 +26,9 @@ public class PurchaseFormModel
 	public IEnumerable<SelectListItem> Suppliers { get; set; } = [];
 }
 
-public class PurchaseItemFormModel
+public class PurchaseItemFormModel : PricingDetailModel
 {
-	public int? Id { get; init; }
-	public int MedicineId { get; init; }
-	public string Name { get; init; } = null!;
 	public string Batch { get; init; } = null!;
-	public string Expiry { get; init; } = null!;
 	public string? Pqty { get; init; }
-	public decimal Qty { get; init; }
 	public decimal Purchaseprice { get; init; }
-	public decimal Saleprice { get; init; }
-	public decimal Gross { get; init; }
-	public int Discounttype { get; init; }
-	public decimal Discount { get; init; }
-	public decimal Discountvalue { get; init; }
-	public decimal Tax { get; init; }
-	public decimal Taxprice { get; init; }
-	public decimal Price { get; init; }
 }

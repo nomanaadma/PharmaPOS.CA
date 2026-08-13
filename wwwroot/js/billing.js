@@ -177,6 +177,8 @@ function initAutocomplete() {
 	});
 }
 
+var discountTypeOptionsHtml;
+
 function itemHtml(count) {
 	var item_html = '<tr class="item-row">'+
 	'<td>'+
@@ -205,9 +207,8 @@ function itemHtml(count) {
 	'<td class="">'+
     '<div class="row no-gutters">'+
     '<div class="col">'+
-    '<select name="Items['+count+'].Discounttype" class="custom-select border-light item-discounttype">'+
-    '<option value="1">%</option>'+
-    '<option value="2">Flat</option>'+
+    '<select name="Items['+count+'].Discounttype" class="custom-select border-light item-discounttype">'
+        + discountTypeOptionsHtml +
     '</select>'+
     '</div>'+
     '<div class="col">'+
@@ -237,6 +238,12 @@ function itemHtml(count) {
 
 $(document).ready(function () {
 	"use strict";
+
+    const discountTypeOptions = $('.item-discounttype option');
+
+    discountTypeOptionsHtml = discountTypeOptions.map(function() {
+        return this.outerHTML; // 'this' refers to the raw DOM element
+    }).get().join('').replace(/ selected="selected"/gi, '').replace(/ selected/gi, '');
 
 	$('.billing-items').on('keyup', '.item-qty', function () {
 		var ele = $(this), value = ele.val(),
@@ -291,6 +298,7 @@ $(document).ready(function () {
 		ethis.addClass('ui-state-error');
 	});
 
+    
 	$('.billing-items').on('click', '.add-items', function () {
 		if($(".item-row").length === 0) {
 			itemHtml(0);

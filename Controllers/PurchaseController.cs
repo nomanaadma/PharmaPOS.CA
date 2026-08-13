@@ -5,10 +5,12 @@ using PharmaPOS_MVC.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Authorization;
 using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Domain.ValueObjects;
+using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Controllers;
 
@@ -349,17 +351,8 @@ public class PurchaseController(
 			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 			foreach (var item in model.Items)
 			{
-				var pricing = new PricingDetails(
-					item.Qty,
-					item.Saleprice,
-					item.Gross,
-					item.Discounttype,
-					item.Discount,
-					item.Discountvalue,
-					item.Tax,
-					item.Taxprice,
-					item.Price
-				);
+				
+				var pricing = PricingHelper.PricingDetails(item);
 
 				var batch = new Batch(
 					item.Batch,
@@ -470,6 +463,9 @@ public class PurchaseController(
 
 			foreach (var item in model.Items)
 			{
+				
+				var pricing = PricingHelper.PricingDetails(item);
+				
 				if (item.Id.HasValue)
 				{
 					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id.Value);
@@ -477,42 +473,20 @@ public class PurchaseController(
 					// ReSharper disable once UseNullPropagation
 					if (existingBatch != null)
 					{
-						var pricing = new PricingDetails(
-						item.Qty,
-						item.Saleprice,
-						item.Gross,
-						item.Discounttype,
-						item.Discount,
-						item.Discountvalue,
-						item.Tax,
-						item.Taxprice,
-						item.Price
-					);
-					existingBatch.Update(
-						item.Batch,
-						item.Expiry,
-						item.Pqty,
-						pricing,
-						item.Purchaseprice,
-						item.MedicineId,
-						existingPurchase.Id
-					);
+						existingBatch.Update(
+							item.Batch,
+							item.Expiry,
+							item.Pqty,
+							pricing,
+							item.Purchaseprice,
+							item.MedicineId,
+							existingPurchase.Id
+						);
 					}
 					
 				}
 				else
 				{
-					var pricing = new PricingDetails(
-						item.Qty,
-						item.Saleprice,
-						item.Gross,
-						item.Discounttype,
-						item.Discount,
-						item.Discountvalue,
-						item.Tax,
-						item.Taxprice,
-						item.Price
-					);
 
 					var newBatch = new Batch(
 						item.Batch,

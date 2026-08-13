@@ -10,6 +10,7 @@ using PharmaPOS_MVC.Domain.Entities;
 using PharmaPOS_MVC.Domain.Enums;
 using PharmaPOS_MVC.Domain.ValueObjects;
 using PharmaPOS_MVC.Extensions;
+using PharmaPOS_MVC.Helpers;
 using PharmaPOS_MVC.Models;
 using PharmaPOS_MVC.Mappers;
 
@@ -352,17 +353,8 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 			foreach (var item in model.Items)
 			{
-				var pricing = new PricingDetails(
-					item.Qty,
-					item.Saleprice,
-					item.Gross,
-					item.Discounttype,
-					item.Discount,
-					item.Discountvalue,
-					item.Tax,
-					item.Taxprice,
-					item.Price
-				);
+				
+				var pricing = PricingHelper.PricingDetails(item);
 
 				var billItem = new BillItem(
 					bill.Id,
@@ -521,8 +513,9 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			// Add new items and update sold quantities
 			foreach (var item in model.Items)
 			{
-				var pricing = new PricingDetails(
-					item.Qty, item.Saleprice, item.Gross, item.Discounttype, item.Discount, item.Discountvalue, item.Tax, item.Taxprice, item.Price);
+
+				var pricing = PricingHelper.PricingDetails(item);
+				
 				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, pricing);
 				context.BillItems.Add(billItem);
 				

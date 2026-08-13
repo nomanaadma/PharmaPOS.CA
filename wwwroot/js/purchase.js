@@ -158,6 +158,8 @@ function initAutocomplete() {
 	});
 }
 
+var discountTypeOptionsHtml;
+
 function item_html(count) {
 	var item_html = '<tr class="item-row">' +
 		'<td>' +
@@ -189,9 +191,8 @@ function item_html(count) {
 		'<td class="">' +
 		'<div class="row no-gutters">' +
 		'<div class="col">' +
-		'<select name="Items[' + count + '].Discounttype" class="custom-select border-light item-discounttype">' +
-		'<option value="1">%</option>' +
-		'<option value="2">Flat</option>' +
+		'<select name="Items[' + count + '].Discounttype" class="custom-select border-light item-discounttype">'
+            + discountTypeOptionsHtml +
 		'</select>' +
 		'</div>' +
 		'<div class="col">' +
@@ -221,6 +222,12 @@ function item_html(count) {
 
 $(document).ready(function () {
 	"use strict";
+
+    const discountTypeOptions = $('.item-discounttype option');
+
+    discountTypeOptionsHtml = discountTypeOptions.map(function() {
+        return this.outerHTML; // 'this' refers to the raw DOM element
+    }).get().join('').replace(/ selected="selected"/gi, '').replace(/ selected/gi, '');
 
 	$('.purchase-items').on('click', '.add-items', function () {
 		if ($(".item-row").length === 0) {
