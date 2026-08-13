@@ -2,7 +2,7 @@ using System;
 
 namespace PharmaPOS_MVC.Domain.ValueObjects;
 
-public class PricingDetails
+public record PricingDetails
 {
 	// EF Core parameterless constructor
 	private PricingDetails() { }
