@@ -413,7 +413,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		if (bill == null)
 		{
 			NotifyWarning("Bill does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		foreach (var item in bill.Items)
@@ -446,7 +446,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		model.PaymentMethods = await GetPaymentMethodsAsync(ct);
@@ -471,7 +471,11 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				
 				.FirstOrDefaultAsync(mb => mb.Id == id, ct);
 
-			if (bill == null) return NotFound();
+			if (bill == null)
+			{
+				NotifyWarning("Bill does not exist in database!");
+				return NotFound();
+			}
 
 			var customerId = model.CustomerId ?? bill.CustomerId;
 			
@@ -552,8 +556,13 @@ public class BillingController(ApplicationDbContext context) : BaseController
 		try
 		{
 			var bill = await context.Bills.Include(mb => mb.Items).FirstOrDefaultAsync(mb => mb.Id == id, ct);
-			if (bill == null) return RedirectToAction(nameof(Index));
-
+			
+			if (bill == null)
+			{
+				NotifyWarning("Bill does not exist in database!");
+				return NotFound();
+			}
+			
 			// Revert sold quantities
 			foreach (var item in bill.Items)
 			{
@@ -592,7 +601,11 @@ public class BillingController(ApplicationDbContext context) : BaseController
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(mb => mb.Id == id, ct);
 
-		if (bill == null) return NotFound();
+		if (bill == null)
+		{
+			NotifyWarning("Bill does not exist in database!");
+			return NotFound();
+		}
 
 		var model = BillingMapper.MapToBillDetailsViewModel(bill);
 

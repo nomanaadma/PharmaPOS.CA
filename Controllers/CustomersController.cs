@@ -1,4 +1,3 @@
-using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +75,7 @@ public class CustomersController(
 		if (customer == null)
 		{
 			NotifyWarning("Customer does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var recentBills = await context.Bills
@@ -102,7 +101,7 @@ public class CustomersController(
 		if (customer == null)
 		{
 			NotifyWarning("Customer does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var model = CustomerMapper.MapToCustomer(customer);
@@ -119,13 +118,13 @@ public class CustomersController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!model.Id.HasValue)
 		{
 			NotifyError("Customer ID is required for editing.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!ModelState.IsValid)
@@ -145,7 +144,7 @@ public class CustomersController(
 			if (customer == null)
 			{
 				NotifyError("Customer not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			customer.Update(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
@@ -172,7 +171,7 @@ public class CustomersController(
 			if (customer == null)
 			{
 				NotifyError("Customer not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.Customers.Remove(customer);

@@ -271,27 +271,34 @@
         column.visible(!column.visible());
     });
 
-    if ($('.alert-message').length) {
-        var alert_message = JSON.parse($('.alert-message').val());
-        toastr.options = {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": false,
-            "progressBar": false,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "10000",
-            "hideDuration": "10000",
-            "timeOut": "2000",
-            "extendedTimeOut": "800",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        }
-        toastr[alert_message.alert](alert_message.value, alert_message.alert);
-    }
+     if ($('.alert-message').length) {
+         const $alertInput = $('.alert-message'); // Store reference to the element
+         const alert_message = JSON.parse($alertInput.val());
+
+         toastr.options = {
+             "closeButton": true,
+             "debug": false,
+             "newestOnTop": false,
+             "progressBar": false,
+             "positionClass": "toast-top-right",
+             "preventDuplicates": false,
+             "onclick": null,
+             "showDuration": "10000",
+             "hideDuration": "10000",
+             "timeOut": "2000",
+             "extendedTimeOut": "800",
+             "showEasing": "swing",
+             "hideEasing": "linear",
+             "showMethod": "fadeIn",
+             "hideMethod": "fadeOut"
+         }
+
+         toastr[alert_message.alert](alert_message.value, alert_message.alert);
+
+         // Remove the input from the DOM so it doesn't trigger on browser back
+         $alertInput.remove();
+     }
+     
 });
 
 

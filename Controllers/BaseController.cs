@@ -7,7 +7,8 @@ public abstract class BaseController : Controller
 {
 	private void Notify(string alert, string message )
 	{
-		TempData["Message"] = JsonSerializer.Serialize(new { alert = alert, value = message });
+		var msg = JsonSerializer.Serialize(new { alert, value = message });
+		HttpContext.Items["NotifyMessage"] = msg;
 	}
 	
     protected void NotifySuccess(string message)

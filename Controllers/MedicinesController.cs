@@ -110,7 +110,7 @@ public class MedicinesController(
 		if (medicine == null)
 		{
 			NotifyWarning("Medicine does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 		
 		var today = DateTime.UtcNow.Date;
@@ -150,7 +150,7 @@ public class MedicinesController(
 		if (medicine == null)
 		{
 			NotifyWarning("Medicine does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 		
 		var medicineCategories =  await GetMedicineCategoriesAsync(ct);
@@ -168,13 +168,13 @@ public class MedicinesController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!model.Id.HasValue)
 		{
 			NotifyError("Medicine ID is required for editing.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 
 		if (!ModelState.IsValid)
@@ -189,7 +189,7 @@ public class MedicinesController(
 			if (medicine == null)
 			{
 				NotifyError("Medicine not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			medicine.Update(
@@ -231,7 +231,7 @@ public class MedicinesController(
 			if (medicine == null)
 			{
 				NotifyError("Medicine not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.Medicines.Remove(medicine);

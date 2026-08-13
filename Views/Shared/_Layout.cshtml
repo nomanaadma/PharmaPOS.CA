@@ -42,9 +42,9 @@
 
 				    @RenderBody()
 
-				    @if (TempData["Message"] != null)
+				    @if (Context.Items["NotifyMessage"] != null)
 				    {
-					    <input type="hidden" class="alert-message" value="@TempData["Message"]">
+					    <input type="hidden" class="alert-message" value="@(Context.Items["NotifyMessage"])">
 				    }
 
 			    </div>

@@ -155,7 +155,7 @@ public class UsersController(
         if (user == null)
         {
             NotifyWarning("User does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         var claims = await userManager.GetClaimsAsync(user);
@@ -193,7 +193,7 @@ public class UsersController(
         if (id != model.UserId)
         {
             NotifyError("Bad Request: ID mismatch.");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
         
         model.Roles = await GetRolesSelectListAsync(ct);
@@ -207,7 +207,7 @@ public class UsersController(
         if (user == null)
         {
             NotifyWarning("User does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         if (!ModelState.IsValid)
@@ -286,14 +286,14 @@ public class UsersController(
         if (string.IsNullOrWhiteSpace(id))
         {
             NotifyError("User ID is missing!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         var user = await userManager.FindByIdAsync(id);
         if (user == null)
         {
             NotifyWarning("User does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         // Prevent deleting Primary Admin or Self
@@ -301,7 +301,7 @@ public class UsersController(
         if (user.Id == currentUserId)
         {
             NotifyError("You cannot delete your own account!");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
         
         var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
@@ -309,7 +309,7 @@ public class UsersController(
         if (roleName == Roles.Admin)
         {
             NotifyError("Administrator account cannot be deleted!");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
 
         var result = await userManager.DeleteAsync(user);

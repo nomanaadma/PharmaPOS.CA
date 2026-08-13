@@ -74,7 +74,7 @@ public class SuppliersController(
 		if (supplier == null)
 		{
 			NotifyError("Supplier not found.");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var model = SettingMapper.MapToSupplier(supplier);
@@ -90,13 +90,13 @@ public class SuppliersController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!model.Id.HasValue)
 		{
 			NotifyError("Supplier ID is required for editing.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 
 		if (!ModelState.IsValid)
@@ -116,7 +116,7 @@ public class SuppliersController(
 			if (supplier == null)
 			{
 				NotifyError("Supplier not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			supplier.Update(model.Name, model.Email, model.Phone, model.Address);
@@ -143,7 +143,7 @@ public class SuppliersController(
 			if (supplier == null)
 			{
 				NotifyError("Supplier not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.Suppliers.Remove(supplier);

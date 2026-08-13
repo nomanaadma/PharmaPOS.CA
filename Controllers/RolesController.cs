@@ -122,13 +122,13 @@ public class RolesController(
         if (role == null)
         {
             NotifyWarning("Role does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         if (role.Name == Roles.Admin)
         {
             NotifyWarning("You can not change Admin role setting.");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
 
         var claims = await roleManager.GetClaimsAsync(role);
@@ -147,7 +147,7 @@ public class RolesController(
         if (id != model.Id)
         {
             NotifyError("Bad Request: ID mismatch.");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
         
         model.PermissionsGroup = Permissions.GetPermissionsTemplate();
@@ -161,13 +161,13 @@ public class RolesController(
         if (role == null)
         {
             NotifyWarning("Role does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         if (role.Name == Roles.Admin)
         {
             NotifyWarning("You can not change Admin role setting.");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
 
         if (!ModelState.IsValid)
@@ -231,20 +231,20 @@ public class RolesController(
         if (string.IsNullOrWhiteSpace(id))
         {
             NotifyError("Role ID is missing!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         var role = await roleManager.FindByIdAsync(id);
         if (role == null)
         {
             NotifyWarning("Role does not exist in database!");
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
 	    if (role.Name == Roles.Admin)   
         {
             NotifyError("Admin role cannot be deleted!");
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
 
         var result = await roleManager.DeleteAsync(role);

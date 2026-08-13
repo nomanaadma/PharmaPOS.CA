@@ -76,7 +76,7 @@ public class PaymentMethodsController(
 		if (method == null)
 		{
 			NotifyError("Payment method not found.");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var model = SettingMapper.MapToPaymentMethod(method);
@@ -92,13 +92,13 @@ public class PaymentMethodsController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!model.Id.HasValue)
 		{
 			NotifyError("Payment Method ID is required for editing.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 
 		if (!ModelState.IsValid)
@@ -118,7 +118,7 @@ public class PaymentMethodsController(
 			if (method == null)
 			{
 				NotifyError("Payment method not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			method.Update(model.Name, model.Status);
@@ -145,7 +145,7 @@ public class PaymentMethodsController(
 			if (method == null)
 			{
 				NotifyError("Payment method not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.PaymentMethods.Remove(method);

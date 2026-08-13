@@ -21418,3 +21418,7 @@ body[data-reports="False"] tfoot
 .no-event {
     pointer-events: none;
 }
+
+.status-container {
+    max-width: 523px;
+}

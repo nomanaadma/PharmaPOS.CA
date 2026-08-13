@@ -59,6 +59,7 @@ else
 	app.UseHsts();
 }
 
+app.UseStatusCodePagesWithReExecute("/Dashboard/Status", "?code={0}");
 app.UseHttpsRedirection();
 app.UseRouting();
 

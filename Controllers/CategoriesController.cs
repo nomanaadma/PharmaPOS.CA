@@ -75,7 +75,7 @@ public class CategoriesController(
 		if (category == null)
 		{
 			NotifyError("Category not found.");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var model = SettingMapper.MapToMedicineCategory(category);
@@ -91,13 +91,13 @@ public class CategoriesController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		if (!model.Id.HasValue)
 		{
 			NotifyError("Category ID is required for editing.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 
 		if (!ModelState.IsValid)
@@ -117,7 +117,7 @@ public class CategoriesController(
 			if (category == null)
 			{
 				NotifyError("Category not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			category.Update(model.Name);
@@ -144,7 +144,7 @@ public class CategoriesController(
 			if (category == null)
 			{
 				NotifyError("Category not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.MedicineCategories.Remove(category);

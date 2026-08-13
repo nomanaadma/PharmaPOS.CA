@@ -288,7 +288,7 @@ public class PurchaseController(
 		if (purchase == null)
 		{
 			NotifyWarning("Purchase record does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 
 		var model = PurchaseMapper.MapToPurchaseView(purchase);
@@ -400,7 +400,7 @@ public class PurchaseController(
 		if (purchase == null)
 		{
 			NotifyWarning("Purchase record does not exist in database!");
-			return RedirectToAction(nameof(Index));
+			return NotFound();
 		}
 		
 		var suppliers = await GetSuppliersAsync(ct);
@@ -418,7 +418,7 @@ public class PurchaseController(
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
-			return RedirectToAction(nameof(Index));
+			return BadRequest();
 		}
 		
 		
@@ -447,7 +447,7 @@ public class PurchaseController(
 			if (existingPurchase == null)
 			{
 				NotifyError("Purchase not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			existingPurchase.Update(
@@ -553,7 +553,7 @@ public class PurchaseController(
 			if (purchase == null)
 			{
 				NotifyError("Purchase record not found.");
-				return RedirectToAction(nameof(Index));
+				return NotFound();
 			}
 
 			context.Purchases.Remove(purchase);
