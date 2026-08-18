@@ -5,7 +5,7 @@ namespace PharmaPOS_MVC.Mappers;
 
 public static class SettingMapper
 {
-    public static SystemInfoViewModel MapToSystemInfo(Setting? rawSetting, dynamic siteInfo)
+    public static SystemInfoViewModel MapToSystemInfo(Setting? rawSetting, Setting siteInfo)
     {
         return new SystemInfoViewModel
         {
