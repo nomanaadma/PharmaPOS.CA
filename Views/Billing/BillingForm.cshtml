@@ -1,12 +1,11 @@
 @using PharmaPOS_MVC.Domain.Enums
 @model PharmaPOS_MVC.Models.BillingFormModel
 @{
+	
 	var isEdit = Model?.Id.HasValue ?? false;
-	var pageTitle = isEdit ? "Edit" : "New" + " Bill";
-	
-	ViewData["Title"] = pageTitle; 
-	
-	var actionType = isEdit ? "Edit" : "Add";
+	var pageType = isEdit ? "Edit" : "Add";
+	var pageTitle = pageType + " Bill";
+	ViewData["Title"] = pageTitle;
 }
 
 <div class="page-title">
@@ -21,7 +20,7 @@
 	</div>
 </div>
 
-<form method="post" class="billing_form" asp-action="@actionType">
+<form method="post" class="billing_form" asp-action="@pageType">
 	@Html.AntiForgeryToken()
 	@if (isEdit)
 	{
@@ -151,6 +150,10 @@
 											        asp-items="Html.GetEnumSelectList<DiscountType>()">
 											</select>
 										</div>
+										<div class="col">
+											<textarea asp-for="Items[i].Discount" class="item-discount"></textarea>
+											<input asp-for="Items[i].Discountvalue" type="text" class="item-discountvalue" readonly/>
+										</div>
 									</div>
 								</td>
 								<td class="invoice-tax">
@@ -195,13 +198,13 @@
 							<td class="">
 								<div class="row no-gutters">
 									<div class="col">
-										<select asp-for="Items[0].Discounttype" class="custom-select border-light item-discounttype" 
+										<select name="Items[0].Discounttype" class="custom-select border-light item-discounttype" 
 										        asp-items="Html.GetEnumSelectList<DiscountType>()">
 										</select>
 									</div>
 									<div class="col">
-										<textarea type="text" name="Items[0].Discount" class="item-discount">0</textarea>
-										<input type="text" readonly name="Items[0].Discountvalue" class="item-discountvalue" value="0">
+										<textarea name="Items[0].Discount" class="item-discount">0</textarea>
+										<input type="text" name="Items[0].Discountvalue" class="item-discountvalue" value="0" readonly/>
 									</div>
 								</div>
 							</td>

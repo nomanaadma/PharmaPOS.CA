@@ -32,11 +32,10 @@ public class UsersController(
         {
             var claims = await userManager.GetClaimsAsync(user);
             var roleName = (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
-
-            var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
-            var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
-
-            var createdDate = claims.FirstOrDefault(c => c.Type == "CreatedDate")?.Value ?? "";
+            
+            var fullName = claims.GetClaim(ClaimTypes.GivenName) + " " +  claims.GetClaim(ClaimTypes.Surname);
+            
+            var createdDate = claims.GetClaim("CreatedDate");
             
             var isLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
             
@@ -45,7 +44,7 @@ public class UsersController(
             userList.Add(new UserListViewModel
             {
                 Id = user.Id,
-                FullName = firstName + " " + lastName, 
+                FullName = fullName, 
                 Email = user.Email ?? "",
                 Mobile = user.PhoneNumber ?? "",
                 UserName = user.UserName ?? "",
@@ -164,9 +163,9 @@ public class UsersController(
         var isLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
         var status = (isLockedOut) ? Status.InActive : Status.Active;
         
-        var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
-        var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
-        var gender = claims.FirstOrDefault(c => c.Type == "Gender")?.Value ?? "Male";
+        var firstName = claims.GetClaim(ClaimTypes.GivenName);
+        var lastName = claims.GetClaim(ClaimTypes.Surname);
+        var gender = claims.GetClaim(ClaimTypes.Surname, "Male");
 
         var model = new UserFormViewModel
         {

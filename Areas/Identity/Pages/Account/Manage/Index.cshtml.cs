@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
+using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
@@ -77,9 +78,9 @@ namespace PharmaPOS_MVC.Areas.Identity.Pages.Account.Manage
             Username = userName;
 
             var claims = await _userManager.GetClaimsAsync(user);
-            var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
-            var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
-
+            var firstName = claims.GetClaim(ClaimTypes.GivenName);
+            var lastName = claims.GetClaim(ClaimTypes.Surname);
+            
             Input = new InputModel
             {
                 PhoneNumber = phoneNumber,

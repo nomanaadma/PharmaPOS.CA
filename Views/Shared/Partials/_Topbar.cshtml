@@ -4,10 +4,11 @@
 	
 	var userName = User.Identity?.Name?.Split('@').FirstOrDefault() ?? "Guest";
 	
-	var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "No Role";
+	var userRole = User.Claims.GetClaim(ClaimTypes.Role, "No Role");
 	
-	var firstName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
-	var lastName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
+	var firstName = User.Claims.GetClaim(ClaimTypes.GivenName);
+
+	var lastName = User.Claims.GetClaim(ClaimTypes.Surname);
 	
 	var displayName = (!string.IsNullOrEmpty(firstName) || !string.IsNullOrEmpty(lastName)) 
 		? $"{firstName} {lastName}".Trim() 

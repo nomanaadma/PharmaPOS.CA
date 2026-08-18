@@ -27,8 +27,9 @@ public class RolesController(
         foreach (var role in roles)
         {
             var claims = await roleManager.GetClaimsAsync(role);
-            var description = claims.FirstOrDefault(c => c.Type == "Description")?.Value ?? "";
-            var createdDateClaim = claims.FirstOrDefault(c => c.Type == "CreatedDate")?.Value;
+            var description = claims.GetClaim("Description");
+
+            var createdDateClaim = claims.GetClaim("CreatedDate");
             
             var createdDate = "";
             if (!string.IsNullOrWhiteSpace(createdDateClaim) && DateTime.TryParse(createdDateClaim, out var parsedDate))
@@ -132,7 +133,7 @@ public class RolesController(
         }
 
         var claims = await roleManager.GetClaimsAsync(role);
-        var description = claims.FirstOrDefault(c => c.Type == "Description")?.Value ?? "";
+        var description = claims.GetClaim("Description");
         var selectedPermissions = claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
 
         var model = RoleMapper.MapToRoleForm(role, description, selectedPermissions);
