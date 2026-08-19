@@ -1,10 +1,10 @@
 namespace PharmaPOS_MVC.Services;
 
-using Domain.ValueObjects;
+using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.ValueObjects;
 using Extensions;
 using Microsoft.EntityFrameworkCore;
 using Data;
-using Domain.Entities;
 
 public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment env)
 {

@@ -1,4 +1,4 @@
-namespace PharmaPOS_MVC.Domain.Entities;
+namespace PharmaPOS.Domain.Entities;
 
 public class Bill
 {

@@ -226,7 +226,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Media", b =>
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Media", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -256,7 +256,7 @@ namespace PharmaPOS_MVC.Migrations
                     b.ToTable("media", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS_MVC.Domain.Entities.Setting", b =>
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Setting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -309,7 +309,7 @@ namespace PharmaPOS_MVC.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("phone");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "PharmaPOS_MVC.Domain.Entities.Setting.Address#Address", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "PharmaPOS.Domain.Entities.Setting.Address#Address", b1 =>
                         {
                             b1.IsRequired();
 

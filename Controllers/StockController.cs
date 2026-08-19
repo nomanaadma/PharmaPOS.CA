@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
-using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS.Domain.Enums;
 using PharmaPOS_MVC.Models;
 using System.Text.Json;
 using PharmaPOS_MVC.Authorization;

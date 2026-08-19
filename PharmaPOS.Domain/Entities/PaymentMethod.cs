@@ -1,6 +1,6 @@
-using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS.Domain.Enums;
 
-namespace PharmaPOS_MVC.Domain.Entities;
+namespace PharmaPOS.Domain.Entities;
 
 public class PaymentMethod
 {

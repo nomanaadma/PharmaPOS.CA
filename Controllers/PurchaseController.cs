@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS_MVC.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS_MVC.Authorization;
-using PharmaPOS_MVC.Domain.Entities;
-using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.Enums;
 using PharmaPOS_MVC.Extensions;
 using PharmaPOS_MVC.Mappers;
 using PharmaPOS_MVC.Models;
-using PharmaPOS_MVC.Domain.ValueObjects;
+using PharmaPOS.Domain.ValueObjects;
 using PharmaPOS_MVC.Helpers;
 
 namespace PharmaPOS_MVC.Controllers;

@@ -1,5 +1,5 @@
-﻿using PharmaPOS_MVC.Domain.Enums;
-using PharmaPOS_MVC.Domain.ValueObjects;
+﻿using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.ValueObjects;
 using PharmaPOS_MVC.Models;
 
 namespace PharmaPOS_MVC.Helpers;

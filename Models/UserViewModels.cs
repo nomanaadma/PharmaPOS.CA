@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS_MVC.Domain.Enums;
+using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS_MVC.Models;
 

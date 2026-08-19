@@ -1,6 +1,6 @@
-using PharmaPOS_MVC.Domain.ValueObjects;
+using PharmaPOS.Domain.ValueObjects;
 
-namespace PharmaPOS_MVC.Domain.Entities;
+namespace PharmaPOS.Domain.Entities;
 
 public class BillItem
 {

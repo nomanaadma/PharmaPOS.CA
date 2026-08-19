@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS_MVC.Domain.Entities;
+using PharmaPOS.Domain.Entities;
 using PharmaPOS_MVC.DTOs;
 using PharmaPOS_MVC.Models;
 

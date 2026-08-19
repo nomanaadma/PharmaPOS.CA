@@ -1,8 +1,8 @@
 using System;
-using PharmaPOS_MVC.Domain.Enums;
-using PharmaPOS_MVC.Domain.ValueObjects;
+using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.ValueObjects;
 
-namespace PharmaPOS_MVC.Domain.Entities;
+namespace PharmaPOS.Domain.Entities;
 
 public class Batch
 {
