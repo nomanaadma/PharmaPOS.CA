@@ -1,0 +1,57 @@
+namespace PharmaPOS.MVC.Services;
+
+using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.ValueObjects;
+using Extensions;
+using Microsoft.EntityFrameworkCore;
+using Data;
+
+public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment env)
+{
+	public async Task<Setting> GetSettingsAsync()
+	{
+		
+		var settings = await dbContext.Settings.AsNoTracking().OrderBy(s => s.Id).FirstOrDefaultAsync();
+	
+		// 1. If records are not found, create a new Setting and Address object with default values
+		if (settings == null)
+		{
+			settings = new Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+			settings.UpdateAddress(Address.Empty);
+		}
+		
+		var logo = "/images/logo.png";
+		
+		if (!string.IsNullOrEmpty(settings.Logo) && File.Exists( env.UploadsFilePath(settings.Logo) ))
+		{
+			logo = $"/uploads/{settings.Logo}";
+		}
+		
+		
+		var logoIcon = "/images/icon.png";
+
+		if (!string.IsNullOrEmpty(settings.LogoIcon) && File.Exists( env.UploadsFilePath(settings.LogoIcon) ))
+		{
+			logoIcon = $"/uploads/{settings.LogoIcon}";
+		}
+		
+		var favicon = "/images/favicon.png";
+
+		if (!string.IsNullOrEmpty(settings.Favicon) && File.Exists( env.UploadsFilePath(settings.Favicon) ))
+		{
+			favicon = $"/uploads/{settings.Favicon}";
+		}
+		
+		var lgBackground = "/images/login-bg.jpg";
+
+		if (!string.IsNullOrEmpty(settings.LgBackground) && File.Exists( env.UploadsFilePath(settings.LgBackground) ))
+		{
+			lgBackground = $"/uploads/{settings.LgBackground}";
+		}
+		
+		settings.UpdateImages(logo, logoIcon, lgBackground, favicon);
+		
+		return settings;
+		
+	}
+}

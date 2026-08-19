@@ -1,0 +1,17 @@
+﻿namespace PharmaPOS.MVC.Extensions;
+
+public static class WebHostExtensions
+{
+	extension(IWebHostEnvironment webHost)
+	{
+		private string UploadsDir()
+		{
+			return Path.Combine(webHost.WebRootPath, "uploads");
+		}
+
+		public string UploadsFilePath(string fileName)
+		{
+			return Path.Combine(webHost.UploadsDir(), fileName);
+		}
+	}
+}

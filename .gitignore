@@ -1,6 +1,7 @@
-bin/
-obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
 notes.txt
+/bin/
+/obj/
+/PharmaPOS.Domain/bin/
+/PharmaPOS.Domain/obj/
+/PharmaPOS.MVC/bin/
+/PharmaPOS.MVC/obj/

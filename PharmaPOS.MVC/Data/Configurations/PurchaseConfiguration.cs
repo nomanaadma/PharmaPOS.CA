@@ -1,0 +1,65 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PharmaPOS.Domain.Entities;
+
+namespace PharmaPOS.MVC.Data.Configurations;
+
+public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
+{
+	public void Configure(EntityTypeBuilder<Purchase> builder)
+	{
+		builder.ToTable("medicine_purchase");
+
+		builder.HasKey(mp => mp.Id);
+
+		builder.Property(mp => mp.Id)
+			.HasColumnName("id");
+
+		builder.Property(mp => mp.SupplierId)
+			.HasColumnName("supplier")
+			.IsRequired();
+
+		builder.Property(mp => mp.Date)
+			.HasColumnName("date")
+			.HasColumnType("date")
+			.IsRequired();
+
+		builder.Property(mp => mp.Total)
+			.HasColumnName("total")
+			.HasColumnType("decimal(10, 2)")
+			.IsRequired();
+
+		builder.Property(mp => mp.Tax)
+			.HasColumnName("tax")
+			.HasColumnType("decimal(10, 2)")
+			.IsRequired();
+
+		builder.Property(mp => mp.DiscountValue)
+			.HasColumnName("discount_value")
+			.HasColumnType("decimal(10, 2)")
+			.IsRequired();
+
+		builder.Property(mp => mp.Amount)
+			.HasColumnName("amount")
+			.HasColumnType("decimal(10, 2)")
+			.IsRequired();
+
+		builder.Property(mp => mp.Note)
+			.HasColumnName("note")
+			.HasColumnType("text");
+
+		builder.Property(mp => mp.CreatedDate)
+			.HasColumnName("created_date")
+			.IsRequired();
+
+		builder.HasOne(mp => mp.Supplier)
+			.WithMany()
+			.HasForeignKey(mp => mp.SupplierId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.HasMany(mp => mp.Batches)
+			.WithOne(mb => mb.Purchase)
+			.HasForeignKey(mb => mb.PurchaseId)
+			.OnDelete(DeleteBehavior.Cascade);
+	}
+}

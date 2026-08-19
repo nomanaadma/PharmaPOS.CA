@@ -1,0 +1,22 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using PharmaPOS.MVC.Authorization;
+using PharmaPOS.MVC.Models;
+
+namespace PharmaPOS.MVC.Mappers;
+
+public static class RoleMapper
+{
+	
+    public static RoleFormViewModel MapToRoleForm(IdentityRole role, string description, List<string> selectedPermissions)
+    {
+        return new RoleFormViewModel
+        {
+            Id = role.Id,
+            Name = role.Name ?? "",
+            Description = description,
+            SelectedPermissions = selectedPermissions,
+            PermissionsGroup = Permissions.GetPermissionsTemplate()
+        };
+    }
+}
