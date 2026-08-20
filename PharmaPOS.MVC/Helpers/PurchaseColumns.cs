@@ -21,7 +21,7 @@ public static class PurchaseColumns
 				(mp.Note != null &&
 				 EF.Functions.ILike(mp.Note, $"%{search}%")) ||
 
-				EF.Functions.ILike(mp.Total.ToString(), $"%{search}%") ||
+				EF.Functions.ILike(mp.Subtotal.ToString(), $"%{search}%") ||
 				EF.Functions.ILike(mp.Tax.ToString(), $"%{search}%") ||
 				EF.Functions.ILike(mp.DiscountValue.ToString(), $"%{search}%") ||
 				EF.Functions.ILike(mp.Amount.ToString(), $"%{search}%")
@@ -39,7 +39,7 @@ public static class PurchaseColumns
 			["total"] = new()
 			{
 				Type = ColumnType.Decimal,
-				DecimalSelector = mp => mp.Total
+				DecimalSelector = mp => mp.Subtotal
 			},
 			["tax"] = new()
 			{
@@ -66,7 +66,7 @@ public static class PurchaseColumns
 		SortColumns = new Dictionary<string, Expression<Func<Purchase, object>>>
 		{
 			["1"] = mp => mp.Supplier.Name,
-			["2"] = mp => mp.Total,
+			["2"] = mp => mp.Subtotal,
 			["3"] = mp => mp.Tax,
 			["4"] = mp => mp.DiscountValue,
 			["5"] = mp => mp.Amount,

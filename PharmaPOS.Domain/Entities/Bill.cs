@@ -1,6 +1,6 @@
 namespace PharmaPOS.Domain.Entities;
 
-public class Bill
+public class Bill : OrderDetails
 {
 	private readonly List<BillItem> _items = [];
 
@@ -13,7 +13,6 @@ public class Bill
 		CreatedDate = DateTime.UtcNow;
 	}
 
-	public int Id { get; private set; }
 	public int CustomerId { get; private set; }
 	public Customer Customer { get; private set; } = null!;
 	public string Name { get; private set; } = null!;
@@ -21,15 +20,6 @@ public class Bill
 	public string? Mobile { get; private set; }
 	public int MethodId { get; private set; }
 	public PaymentMethod PaymentMethod { get; private set; } = null!;
-	public DateTime BillDate { get; private set; }
-	public decimal Subtotal { get; private set; }
-	public decimal Tax { get; private set; }
-	public decimal DiscountValue { get; private set; }
-	public decimal Amount { get; private set; }
-	
-	// ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
-	public string? Note { get; private set; }
-	public DateTime CreatedDate { get; private set; }
 
 	public IReadOnlyCollection<BillItem> Items => _items.AsReadOnly();
 
@@ -55,7 +45,7 @@ public class Bill
 		Email = email;
 		Mobile = mobile;
 		MethodId = methodId;
-		BillDate = billDate;
+		Date = billDate;
 		Subtotal = subtotal;
 		Tax = tax;
 		DiscountValue = discountValue;

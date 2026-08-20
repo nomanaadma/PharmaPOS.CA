@@ -2,7 +2,7 @@ using System;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class MedicineCategory
+public class MedicineCategory : Entity
 {
 	// EF Core parameterless constructor
 	private MedicineCategory() { }
@@ -12,7 +12,6 @@ public class MedicineCategory
 		Update(name);
 	}
 
-	public int Id { get; private set; }
 	public string Name { get; private set; } = null!;
 
 	public void Update(string name)

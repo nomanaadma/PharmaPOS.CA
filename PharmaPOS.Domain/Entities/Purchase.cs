@@ -1,6 +1,6 @@
 namespace PharmaPOS.Domain.Entities;
 
-public class Purchase
+public class Purchase : OrderDetails
 {
 	private readonly List<Batch> _batches = [];
 
@@ -13,18 +13,8 @@ public class Purchase
 		CreatedDate = DateTime.UtcNow;
 	}
 
-	public int Id { get; private set; }
 	public int SupplierId { get; private set; }
 	public Supplier Supplier { get; private set; } = null!;
-	public DateTime Date { get; private set; }
-	public decimal Total { get; private set; }
-	public decimal Tax { get; private set; }
-	public decimal DiscountValue { get; private set; }
-	public decimal Amount { get; private set; }
-	
-	// ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
-	public string? Note { get; private set; }
-	public DateTime CreatedDate { get; private set; }
 
 	public IReadOnlyCollection<Batch> Batches => _batches.AsReadOnly();
 
@@ -43,7 +33,7 @@ public class Purchase
 
 		SupplierId = supplierId;
 		Date = date;
-		Total = total;
+		Subtotal = total;
 		Tax = tax;
 		DiscountValue = discountValue;
 		Amount = amount;

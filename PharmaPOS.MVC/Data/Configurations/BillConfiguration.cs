@@ -36,7 +36,7 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 			.HasColumnName("method")
 			.IsRequired();
 
-		builder.Property(mb => mb.BillDate)
+		builder.Property(mb => mb.Date)
 			.HasColumnName("bill_date")
 			.HasColumnType("date")
 			.IsRequired();

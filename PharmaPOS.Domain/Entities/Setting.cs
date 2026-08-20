@@ -2,7 +2,7 @@ using PharmaPOS.Domain.ValueObjects;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Setting
+public class Setting : Entity
 {
 	// EF Core parameterless constructor
 	private Setting() { }
@@ -13,7 +13,6 @@ public class Setting
 		Address = Address.Empty;
 	}
 
-	public int Id { get; private set; }
 	public string? Logo { get; private set; }
 	public string? LogoIcon { get; private set; }
 	public string? LgBackground { get; private set; }

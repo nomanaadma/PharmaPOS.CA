@@ -80,7 +80,7 @@ public class CustomersController(
 
 		var recentBills = await context.Bills
 			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
-			.OrderByDescending(b => b.BillDate)
+			.OrderByDescending(b => b.Date)
 			.Take(20)
 			.ToListAsync(ct);
 		

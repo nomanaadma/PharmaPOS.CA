@@ -2,7 +2,7 @@ using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Customer
+public class Customer : Entity
 {
 	// EF Core parameterless constructor
 	private Customer() { }
@@ -12,8 +12,7 @@ public class Customer
 		Update(firstName, lastName, email, mobile, gender, status);
 		CreatedDate = DateTime.UtcNow;
 	}
-
-	public int Id { get; private set; }
+	
 	public string FirstName { get; private set; } = null!;
 	public string LastName { get; private set; } = null!;
 	public string Email { get; private set; } = null!;

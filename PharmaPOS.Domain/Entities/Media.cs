@@ -1,6 +1,6 @@
 namespace PharmaPOS.Domain.Entities;
 
-public class Media
+public class Media : Entity
 {
 	// EF Core parameterless constructor
 	private Media() { }
@@ -17,7 +17,6 @@ public class Media
 		CreatedDate = createdDate;
 	}
 
-	public int Id { get; private set; }
 	public string Filename { get; private set; } = null!;
 	public string Ext { get; private set; } = null!;
 	public DateTime CreatedDate { get; private set; }

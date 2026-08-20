@@ -85,8 +85,8 @@ public static class BillingMapper
                 tax = mb.Tax.ToCrF2(),
                 discount_value = mb.DiscountValue.ToCrF2(),
                 amount = mb.Amount.ToCrF2(),
-                bill_date = mb.BillDate.Format(),
-                action = actionHtml.ToString()
+                bill_date = mb.Date.Format(),
+                action = actionHtml
             };
         }).ToList();
     }
@@ -101,7 +101,7 @@ public static class BillingMapper
             Email = bill.Email,
             Mobile = bill.Mobile,
             Method = bill.MethodId,
-            BillDate = bill.BillDate,
+            BillDate = bill.Date,
             Subtotal = bill.Subtotal,
             Tax = bill.Tax,
             DiscountValue = bill.DiscountValue,
@@ -144,7 +144,7 @@ public static class BillingMapper
             Name = bill.Name,
             Email = bill.Email,
             Mobile = bill.Mobile,
-            BillDate = bill.BillDate,
+            BillDate = bill.Date,
             PaymentMethodName = bill.PaymentMethod?.Name,
             Subtotal = bill.Subtotal,
             DiscountValue = bill.DiscountValue,

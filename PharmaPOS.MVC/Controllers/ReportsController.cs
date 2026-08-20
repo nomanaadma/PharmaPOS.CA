@@ -83,8 +83,8 @@ public class ReportsController(ApplicationDbContext context) : BaseController
         var medicineStats = await context.BillItems
 	        .IdOrNullWhere(medicineId ?? 0)
 	        .Where(bi => 
-		        bi.Bill.BillDate >= start.Value && 
-		        bi.Bill.BillDate <= end.Value)
+		        bi.Bill.Date >= start.Value && 
+		        bi.Bill.Date <= end.Value)
 	        .GroupBy(bi => 1)
 	        .Select(g => new
 	        {

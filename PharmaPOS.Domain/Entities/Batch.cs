@@ -4,7 +4,7 @@ using PharmaPOS.Domain.ValueObjects;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Batch
+public class Batch : Entity
 {
 	// EF Core parameterless constructor
 	private Batch() { }
@@ -24,7 +24,6 @@ public class Batch
 		Status = Status.Active;
 	}
 
-	public int Id { get; private set; }
 	public string BatchName { get; private set; } = null!;
 	public string Expiry { get; private set; } = null!;
 	public string? Pqty { get; private set; }

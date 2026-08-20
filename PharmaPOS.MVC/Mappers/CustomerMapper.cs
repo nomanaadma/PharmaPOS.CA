@@ -32,7 +32,7 @@ public static class CustomerMapper
 	    {
 		    Id = b.Id,
 		    Amount = b.Amount,
-		    BillDate = b.BillDate
+		    BillDate = b.Date
 	    });
     }
 }

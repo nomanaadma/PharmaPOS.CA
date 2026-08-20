@@ -2,7 +2,7 @@ using PharmaPOS.Domain.ValueObjects;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class BillItem
+public class BillItem : Entity
 {
 	// EF Core parameterless constructor
 	private BillItem() { }
@@ -16,7 +16,6 @@ public class BillItem
 		Update(billId, medicineId, batchId, pricing);
 	}
 
-	public int Id { get; private set; }
 	public int BillId { get; private set; }
 	public Bill Bill { get; private set; } = null!;
 	public int MedicineId { get; private set; }

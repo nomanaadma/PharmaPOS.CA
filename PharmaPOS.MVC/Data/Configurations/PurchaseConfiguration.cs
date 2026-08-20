@@ -24,7 +24,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 			.HasColumnType("date")
 			.IsRequired();
 
-		builder.Property(mp => mp.Total)
+		builder.Property(mp => mp.Subtotal)
 			.HasColumnName("total")
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();

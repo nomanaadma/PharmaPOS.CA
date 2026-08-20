@@ -2,7 +2,7 @@ using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class PaymentMethod
+public class PaymentMethod : Entity
 {
 	// EF Core parameterless constructor
 	private PaymentMethod() { }
@@ -13,7 +13,6 @@ public class PaymentMethod
 		CreatedDate = DateTime.UtcNow;
 	}
 
-	public int Id { get; private set; }
 	public string Name { get; private set; } = null!;
 	public Status Status { get; private set; }
 	public DateTime CreatedDate { get; private set; }

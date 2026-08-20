@@ -58,7 +58,7 @@ public static class BillColumns
 			["bill_date"] = new()
 			{
 				Type = ColumnType.DateTime,
-				DateTimeSelector = mb => mb.BillDate
+				DateTimeSelector = mb => mb.Date
 			}
 		},
 
@@ -69,7 +69,7 @@ public static class BillColumns
 			["3"] = mb => mb.Tax,
 			["4"] = mb => mb.DiscountValue,
 			["5"] = mb => mb.Amount,
-			["6"] = mb => mb.BillDate
+			["6"] = mb => mb.Date
 		},
 
 		DefaultSort = mb => mb.Id
