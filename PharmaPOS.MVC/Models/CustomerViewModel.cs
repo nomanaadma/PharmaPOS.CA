@@ -3,9 +3,8 @@ using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.MVC.Models;
 
-public class CustomerViewModel
+public class CustomerViewModel : Model
 {
-	public int? Id { get; init; }
 
 	[Required(ErrorMessage = "First Name is required.")]
 	[StringLength(100, ErrorMessage = "First Name cannot exceed 100 characters.")]

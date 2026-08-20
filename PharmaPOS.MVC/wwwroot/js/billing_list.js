@@ -7,9 +7,9 @@ $(function () {
         { data: "name" },
         { data: "subtotal", type: 'num' },
         { data: "tax", type: 'num' },
-        { data: "discount_value", type: 'num' },
+        { data: "discount", type: 'num' },
         { data: "amount", type: 'num' },
-        { data: "bill_date", type: 'date' },
+        { data: "date", type: 'date' },
     ];
 
     if(dtc.find('.action-th').length) {

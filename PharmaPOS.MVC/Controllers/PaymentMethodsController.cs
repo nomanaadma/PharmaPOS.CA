@@ -95,7 +95,7 @@ public class PaymentMethodsController(
 			return BadRequest();
 		}
 		
-		if (!model.Id.HasValue)
+		if (model.Id == 0)
 		{
 			NotifyError("Payment Method ID is required for editing.");
 			return BadRequest();
@@ -106,7 +106,7 @@ public class PaymentMethodsController(
 			return View("PaymentMethodForm", model);
 		}
 
-		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name && p.Id != model.Id.Value, ct))
+		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name && p.Id != model.Id, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Payment Method Name must be unique.");
 			return View("PaymentMethodForm", model);
@@ -114,7 +114,7 @@ public class PaymentMethodsController(
 
 		try
 		{
-			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == model.Id.Value, ct);
+			var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == model.Id, ct);
 			if (method == null)
 			{
 				NotifyError("Payment method not found.");

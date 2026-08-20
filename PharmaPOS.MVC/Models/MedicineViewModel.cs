@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PharmaPOS.MVC.Models;
 
-public class MedicineViewModel
+public class MedicineViewModel : Model
 {
-	public int? Id { get; init; }
 
 	[Required(ErrorMessage = "Medicine Name is required.")]
 	[StringLength(255, ErrorMessage = "Medicine Name cannot exceed 255 characters.")]

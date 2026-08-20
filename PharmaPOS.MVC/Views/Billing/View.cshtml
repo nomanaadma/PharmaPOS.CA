@@ -69,7 +69,7 @@
 										</tr>
 										<tr>
 											<td class="text">Date</td>
-											<td class="text w-min-130">@Model.BillDate.Format()</td>
+											<td class="text w-min-130">@Model.Date.Format()</td>
 										</tr>
 										<tr>
 											<td class="text">Payment Method</td>
@@ -116,11 +116,11 @@
 							<tr class="total">
 								<td rowspan="5" colspan="5" class="blank"></td>
 								<td class="title" colspan="2">Sub Total</td>
-								<td class="value" colspan="2">@Model.Subtotal.ToCrF2()</td>
+								<td class="value" colspan="2">@Model.SubTotal.ToCrF2()</td>
 							</tr>
 							<tr class="total">
 								<td class="title" colspan="2">Discount</td>
-								<td class="value" colspan="2">@Model.DiscountValue.ToCrF2()</td>
+								<td class="value" colspan="2">@Model.Discount.ToCrF2()</td>
 							</tr>
 							<tr class="total">
 								<td class="title" colspan="2">Tax</td>

@@ -117,7 +117,7 @@ public class PurchaseController(
 			var purchase = new Purchase(
 				model.Supplier,
 				model.Date,
-				model.Subtotal,
+				model.SubTotal,
 				model.Tax,
 				model.Discount,
 				model.Amount,
@@ -225,14 +225,14 @@ public class PurchaseController(
 			existingPurchase.Update(
 				model.Supplier,
 				model.Date,
-				model.Subtotal,
+				model.SubTotal,
 				model.Tax,
 				model.Discount,
 				model.Amount,
 				model.Note
 			);
 
-			var submittedBatchIds = model.Items.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToList();
+			var submittedBatchIds = model.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
 
 			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 			foreach (var bToRemove in batchesToRemove)
@@ -251,31 +251,29 @@ public class PurchaseController(
 				
 				var pricing = PricingHelper.PricingDetails(item);
 				
-				if (item.Id.HasValue)
+				if (item.Id != 0)
 				{
-					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id.Value);
+					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id);
 					
-					// ReSharper disable once UseNullPropagation
-					if (existingBatch != null)
+					if (existingBatch == null) continue;
+					
+					if (pricing.Qty < existingBatch.Sold)
 					{
-						if (pricing.Qty < existingBatch.Sold)
-						{
-							await transaction.RollbackAsync(ct);
-							NotifyError($"Cannot update batch '{existingBatch.BatchName}'. New quantity ({pricing.Qty}) is less than the amount already sold ({existingBatch.Sold}).");
-							return View("PurchaseForm", model);
-						}
-
-						existingBatch.Update(
-							item.Batch,
-							item.Expiry,
-							item.Pqty,
-							pricing,
-							item.Purchaseprice,
-							item.MedicineId,
-							existingPurchase.Id
-						);
+						await transaction.RollbackAsync(ct);
+						NotifyError($"Cannot update batch '{existingBatch.BatchName}'. New quantity ({pricing.Qty}) is less than the amount already sold ({existingBatch.Sold}).");
+						return View("PurchaseForm", model);
 					}
-					
+
+					existingBatch.Update(
+						item.Batch,
+						item.Expiry,
+						item.Pqty,
+						pricing,
+						item.Purchaseprice,
+						item.MedicineId,
+						existingPurchase.Id
+					);
+
 				}
 				else
 				{

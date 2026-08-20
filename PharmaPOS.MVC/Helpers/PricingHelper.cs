@@ -10,13 +10,13 @@ public static class PricingHelper
 	{
 		return new PricingDetails(
 			item.Qty, 
-			item.Saleprice, 
+			item.SalePrice, 
 			item.Gross, 
-			item.Discounttype, 
+			item.DiscountType, 
 			item.Discount, 
-			item.Discountvalue, 
+			item.DiscountValue, 
 			item.Tax, 
-			item.Taxprice, 
+			item.TaxPrice, 
 			item.Price
 		);
 	}

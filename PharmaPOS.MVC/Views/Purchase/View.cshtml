@@ -77,7 +77,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					@foreach (var value in Model.Batches)
+					@foreach (var value in Model.Items)
 					{
 						<tr>
 							<td>@value.MedicineName</td>
@@ -104,7 +104,7 @@
 					</tr>
 					<tr class="total">
 						<td class="title" colspan="2">Discount</td>
-						<td class="value" colspan="2">@Model.DiscountValue.ToCrF2()</td>
+						<td class="value" colspan="2">@Model.Discount.ToCrF2()</td>
 					</tr>
 					<tr class="total">
 						<td class="title" colspan="2">Amount</td>

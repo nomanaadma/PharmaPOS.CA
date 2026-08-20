@@ -3,9 +3,8 @@ using PharmaPOS.Domain.Enums;
 
 namespace PharmaPOS.MVC.Models;
 
-public class PaymentMethodViewModel
+public class PaymentMethodViewModel : Model
 {
-	public int? Id { get; init; }
 
 	[Required(ErrorMessage = "Payment Method Name is required.")]
 	[StringLength(100, ErrorMessage = "Payment Method Name cannot exceed 100 characters.")]

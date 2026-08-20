@@ -160,7 +160,7 @@ function initAutocomplete() {
 
 var discountTypeOptionsHtml;
 
-function item_html(count) {
+function itemHtml(count) {
 	var item_html = '<tr class="item-row">' +
 		'<td>' +
 		'<textarea class="item-name" name="Items[' + count + '].Name" required></textarea>' +
@@ -183,7 +183,7 @@ function item_html(count) {
 		'<textarea class="item-purchaseprice" name="Items[' + count + '].Purchaseprice" required></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-saleprice" name="Items[' + count + '].Saleprice" required></textarea>' +
+		'<textarea class="item-saleprice" name="Items[' + count + '].SalePrice" required></textarea>' +
 		'</td>' +
 		'<td>' +
 		'<input class="item-gross" readonly name="Items[' + count + '].Gross" value="0" />' +
@@ -191,19 +191,19 @@ function item_html(count) {
 		'<td class="">' +
 		'<div class="row no-gutters">' +
 		'<div class="col">' +
-		'<select name="Items[' + count + '].Discounttype" class="custom-select border-light item-discounttype">'
+		'<select name="Items[' + count + '].DiscountType" class="custom-select border-light item-discounttype">'
             + discountTypeOptionsHtml +
 		'</select>' +
 		'</div>' +
 		'<div class="col">' +
 		'<textarea type="text" name="Items[' + count + '].Discount" class="item-discount">0</textarea>' +
-		'<input type="text" readonly name="Items[' + count + '].Discountvalue" class="item-discountvalue" value="0">' +
+		'<input type="text" readonly name="Items[' + count + '].DiscountValue" class="item-discountvalue" value="0">' +
 		'</div>' +
 		'</div>' +
 		'</td>' +
 		'<td class="invoice-tax">' +
 		'<input type="text" name="Items[' + count + '].Tax" class="item-tax" value="0">' +
-		'<input type="text" readonly name="Items[' + count + '].Taxprice" class="item-taxprice" value="0">' +
+		'<input type="text" readonly name="Items[' + count + '].TaxPrice" class="item-taxprice" value="0">' +
 		'</td>' +
 		'<td>' +
 		'<textarea class="bg-white item-price" name="Items[' + count + '].Price" required readonly></textarea>' +
@@ -231,11 +231,11 @@ $(document).ready(function () {
 
 	$('.purchase-items').on('click', '.add-items', function () {
 		if ($(".item-row").length === 0) {
-			item_html(0);
+			itemHtml(0);
 		} else {
 			var count = $('.purchase-items table tr.item-row:last .item-name').attr('name').split('[')[1];
 			count = parseInt(count.split(']')[0]) + 1;
-			item_html(count);
+			itemHtml(count);
 		}
 		initAutocomplete();
 		initDatepicker();

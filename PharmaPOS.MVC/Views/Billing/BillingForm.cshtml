@@ -2,7 +2,7 @@
 @model PharmaPOS.MVC.Models.BillingFormModel
 @{
 	
-	var isEdit = Model?.Id.HasValue ?? false;
+	var isEdit = Model?.Id > 0;
 	var pageType = isEdit ? "Edit" : "Add";
 	var pageTitle = pageType + " Bill";
 	ViewData["Title"] = pageTitle;
@@ -66,9 +66,9 @@
 						<label>Date <span class="form-required">*</span></label>
 						<div class="input-group">
 							<div class="input-group-prepend"><span class="input-group-text"><i class="las la-calendar-alt"></i></span></div>
-							<input asp-for="BillDate" type="text" class="form-control bg-white date" placeholder="Billing Date" readonly/>
+							<input asp-for="Date" type="text" class="form-control bg-white date" placeholder="Billing Date" readonly/>
 						</div>
-						<span asp-validation-for="BillDate" class="text-danger"></span>
+						<span asp-validation-for="Date" class="text-danger"></span>
 					</div>
 				</div>
 				<div class="col-md-3">
@@ -106,6 +106,9 @@
 					{
 						for (var i = 0; i < Model.Items.Count; i++)
 						{
+							
+							var currentBatches = Model.Items[i].Batches;
+							var currentBatchId = Model.Items[i].Batch;
 
 							<tr class="item-row">
 								<td>
@@ -115,9 +118,9 @@
 								<td >
 									<select asp-for="Items[i].Batch" class="custom-select item-batch" required>
 										<option value="">Select</option>
-										@foreach (var batchf in Model.Items[i].Batches)
+										@foreach (var batchf in currentBatches)
 										{
-											if (batchf.Id == Model.Items[i].Batch)
+											if (batchf.Id == currentBatchId)
 											{
 												availableQuantity = batchf.Qty - batchf.Sold;
 											}
@@ -138,7 +141,7 @@
 									</div>
 								</td>
 								<td>
-									<input type="text" asp-for="Items[i].Saleprice" class="form-control item-sale" required>
+									<input type="text" asp-for="Items[i].SalePrice" class="form-control item-sale" required>
 								</td>
 								<td>
 									<input type="text" readonly class="item-gross" asp-for="Items[i].Gross"/>
@@ -146,19 +149,19 @@
 								<td>
 									<div class="row no-gutters">
 										<div class="col">
-											<select asp-for="Items[i].Discounttype" class="custom-select border-light item-discounttype" 
+											<select asp-for="Items[i].DiscountType" class="custom-select border-light item-discounttype" 
 											        asp-items="Html.GetEnumSelectList<DiscountType>()">
 											</select>
 										</div>
 										<div class="col">
 											<textarea asp-for="Items[i].Discount" class="item-discount"></textarea>
-											<input asp-for="Items[i].Discountvalue" type="text" class="item-discountvalue" readonly/>
+											<input asp-for="Items[i].DiscountValue" type="text" class="item-discountvalue" readonly/>
 										</div>
 									</div>
 								</td>
 								<td class="invoice-tax">
 									<input type="text" asp-for="Items[i].Tax" class="item-tax">
-									<input type="text" readonly asp-for="Items[i].Taxprice" class="item-taxprice">
+									<input type="text" readonly asp-for="Items[i].TaxPrice" class="item-taxprice">
 								</td>
 								<td>
 									<input type="text" asp-for="Items[i].Price" asp-format="{0:0.##}" class="form-control bg-white item-price" required readonly>
@@ -231,14 +234,14 @@
 						<td colspan="3" class="blank"></td>
 						<td colspan="3" class="total-line"><label class="p-2">Sub Total</label></td>
 						<td colspan="4" class="total-value">
-							<input asp-for="Subtotal" type="text" class="form-transparent p-2 total-price" readonly/>
+							<input asp-for="SubTotal" type="text" class="form-transparent p-2 total-price" readonly/>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="3" class="blank"></td>
 						<td colspan="3" class="total-line"><label class="p-2">Discount</label></td>
 						<td colspan="4" class="total-value">
-							<input asp-for="DiscountValue" type="text" class="form-transparent p-2 total-discount" readonly/>
+							<input asp-for="Discount" type="text" class="form-transparent p-2 total-discount" readonly/>
 						</td>
 					</tr>
 

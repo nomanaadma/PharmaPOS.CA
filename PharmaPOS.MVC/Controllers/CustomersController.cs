@@ -121,7 +121,7 @@ public class CustomersController(
 			return BadRequest();
 		}
 		
-		if (!model.Id.HasValue)
+		if (model.Id == 0)
 		{
 			NotifyError("Customer ID is required for editing.");
 			return BadRequest();

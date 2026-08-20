@@ -199,7 +199,7 @@ function itemHtml(count) {
 	'</div>'+
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="Items['+count+'].Saleprice" class="form-control item-sale" required>'+
+	'<input type="text" name="Items['+count+'].SalePrice" class="form-control item-sale" required>'+
 	'</td>'+
 	'<td>'+
  	'<input type="text" readonly class="item-gross" name="Items['+count+'].Gross" />'+
@@ -207,19 +207,19 @@ function itemHtml(count) {
 	'<td class="">'+
     '<div class="row no-gutters">'+
     '<div class="col">'+
-    '<select name="Items['+count+'].Discounttype" class="custom-select border-light item-discounttype">'
+    '<select name="Items['+count+'].DiscountType" class="custom-select border-light item-discounttype">'
         + discountTypeOptionsHtml +
     '</select>'+
     '</div>'+
     '<div class="col">'+
     '<textarea type="text" name="Items['+count+'].Discount" class="item-discount">0</textarea>'+
-    '<input type="text" readonly name="Items['+count+'].Discountvalue" class="item-discountvalue" value="0">'+
+    '<input type="text" readonly name="Items['+count+'].DiscountValue" class="item-discountvalue" value="0">'+
     '</div>'+
     '</div>'+
     '</td>'+
 	'<td class="invoice-tax">'+
 	'<input type="text" name="Items['+count+'].Tax" class="item-tax" value="0">' +
-	'<input type="text" readonly name="Items['+count+'].Taxprice" class="item-taxprice" value="0">' +
+	'<input type="text" readonly name="Items['+count+'].TaxPrice" class="item-taxprice" value="0">' +
 	'</td>'+
 	'<td>'+
 	'<input type="text" name="Items['+count+'].Price" class="form-control bg-white item-price" required readonly>'+

@@ -3,10 +3,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PharmaPOS.MVC.Models;
 
-public class BillingFormModel
+public class BillingFormModel : OrderDetailsModel<BillingItemFormModel>
 {
-	public int? Id { get; init; }
-
 	public int? CustomerId { get; init; }
 
 	[Required(ErrorMessage = "Name is required.")]
@@ -20,18 +18,6 @@ public class BillingFormModel
 	[Required(ErrorMessage = "Payment Method is required.")]
 	public int Method { get; init; }
 
-	[Required(ErrorMessage = "Date is required.")]
-	[DataType(DataType.Date)]
-	[DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-	public DateTime BillDate { get; init; } = DateTime.Now;
-
-	public string? Note { get; init; }
-	public decimal Subtotal { get; init; }
-	public decimal Tax { get; init; }
-	public decimal DiscountValue { get; init; }
-	public decimal Amount { get; init; }
-	public List<BillingItemFormModel> Items { get; init; } = [];
-
 	public IEnumerable<SelectListItem> PaymentMethods { get; set; } = [];
 }
 
@@ -42,9 +28,8 @@ public class BillingItemFormModel : PricingDetailModel
 	public List<BillingItemBatchesFormModel> Batches { get; init; } = [];
 }
 
-public class BillingItemBatchesFormModel
+public class BillingItemBatchesFormModel : Model
 {
-	public int? Id { get; init; }
 	
 	public decimal Qty { get; init; }
 

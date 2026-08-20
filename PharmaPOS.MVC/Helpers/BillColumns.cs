@@ -20,9 +20,9 @@ public static class BillColumns
 				EF.Functions.ILike(mb.Name, $"%{search}%") ||
 				(mb.Note != null &&
 				 EF.Functions.ILike(mb.Note, $"%{search}%")) ||
-				EF.Functions.ILike(mb.Subtotal.ToString(), $"%{search}%") ||
+				EF.Functions.ILike(mb.SubTotal.ToString(), $"%{search}%") ||
 				EF.Functions.ILike(mb.Tax.ToString(), $"%{search}%") ||
-				EF.Functions.ILike(mb.DiscountValue.ToString(), $"%{search}%") ||
+				EF.Functions.ILike(mb.Discount.ToString(), $"%{search}%") ||
 				EF.Functions.ILike(mb.Amount.ToString(), $"%{search}%")
 			);
 			
@@ -38,24 +38,24 @@ public static class BillColumns
 			["subtotal"] = new()
 			{
 				Type = ColumnType.Decimal,
-				DecimalSelector = mb => mb.Subtotal
+				DecimalSelector = mb => mb.SubTotal
 			},
 			["tax"] = new()
 			{
 				Type = ColumnType.Decimal,
 				DecimalSelector = mb => mb.Tax
 			},
-			["discount_value"] = new()
+			["discount"] = new()
 			{
 				Type = ColumnType.Decimal,
-				DecimalSelector = mb => mb.DiscountValue
+				DecimalSelector = mb => mb.Discount
 			},
 			["amount"] = new()
 			{
 				Type = ColumnType.Decimal,
 				DecimalSelector = mb => mb.Amount
 			},
-			["bill_date"] = new()
+			["date"] = new()
 			{
 				Type = ColumnType.DateTime,
 				DateTimeSelector = mb => mb.Date
@@ -65,9 +65,9 @@ public static class BillColumns
 		SortColumns = new Dictionary<string, Expression<Func<Bill, object>>>
 		{
 			["1"] = mb => mb.Name,
-			["2"] = mb => mb.Subtotal,
+			["2"] = mb => mb.SubTotal,
 			["3"] = mb => mb.Tax,
-			["4"] = mb => mb.DiscountValue,
+			["4"] = mb => mb.Discount,
 			["5"] = mb => mb.Amount,
 			["6"] = mb => mb.Date
 		},

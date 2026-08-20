@@ -94,7 +94,7 @@ public class CategoriesController(
 			return BadRequest();
 		}
 		
-		if (!model.Id.HasValue)
+		if (model.Id == 0)
 		{
 			NotifyError("Category ID is required for editing.");
 			return BadRequest();
@@ -105,7 +105,7 @@ public class CategoriesController(
 			return View("CategoryForm", model);
 		}
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id.Value, ct))
+		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id, ct))
 		{
 			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
 			return View("CategoryForm", model);
@@ -113,7 +113,7 @@ public class CategoriesController(
 
 		try
 		{
-			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id.Value, ct);
+			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id, ct);
 			if (category == null)
 			{
 				NotifyError("Category not found.");

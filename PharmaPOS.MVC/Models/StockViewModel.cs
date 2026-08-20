@@ -1,8 +1,7 @@
 namespace PharmaPOS.MVC.Models;
 
-public class StockViewModel
+public class StockViewModel : Model
 {
-	public int Id { get; init; }
 	public int MedicineId { get; init; }
 	public int PurchaseId { get; init; }
 	public string Name { get; init; } = null!;

@@ -14,7 +14,7 @@ $(function () {
         { data: "name" },
         { data: "total", type: 'num' },
         { data: "tax", type: 'num' },
-        { data: "discount_value", type: 'num' },
+        { data: "discount", type: 'num' },
         { data: "amount", type: 'num' },
         { data: "date", type: 'date' },
     ];

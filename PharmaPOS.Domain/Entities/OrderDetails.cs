@@ -3,9 +3,9 @@
 public abstract class OrderDetails : Entity
 {
 	public DateTime Date { get; protected set; }
-	public decimal Subtotal { get; protected set; }
+	public decimal SubTotal { get; protected set; }
 	public decimal Tax { get; protected set; }
-	public decimal DiscountValue { get; protected set; }
+	public decimal Discount { get; protected set; }
 	public decimal Amount { get; protected set; }
 	
 	// ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength

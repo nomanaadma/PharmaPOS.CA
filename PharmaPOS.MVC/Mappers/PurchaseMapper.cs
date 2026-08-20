@@ -80,9 +80,9 @@ public static class PurchaseMapper
             {
                 id = mp.Id,
                 name = mp.Supplier.Name,
-                total = mp.Subtotal.ToCrF2(),
+                subtotal = mp.SubTotal.ToCrF2(),
                 tax = mp.Tax.ToCrF2(),
-                discount_value = mp.DiscountValue.ToCrF2(),
+                discount = mp.Discount.ToCrF2(),
                 amount = mp.Amount.ToCrF2(),
                 date = mp.Date.Format(),
                 action = actionHtml
@@ -98,9 +98,9 @@ public static class PurchaseMapper
             Supplier = purchase.SupplierId,
             Date = purchase.Date,
             Note = purchase.Note,
-            Subtotal = purchase.Subtotal,
+            SubTotal = purchase.SubTotal,
             Tax = purchase.Tax,
-            Discount = purchase.DiscountValue,
+            Discount = purchase.Discount,
             Amount = purchase.Amount,
             Suppliers = suppliers,
             Items = purchase.Batches.Select(b => new PurchaseItemFormModel
@@ -113,13 +113,13 @@ public static class PurchaseMapper
                 Pqty = b.Pqty,
                 Qty = b.Pricing.Qty,
                 Purchaseprice = b.PurchasePrice,
-                Saleprice = b.Pricing.SalePrice,
+                SalePrice = b.Pricing.SalePrice,
                 Gross = b.Pricing.Gross,
-                Discounttype = b.Pricing.DiscountType,
+                DiscountType = b.Pricing.DiscountType,
                 Discount = b.Pricing.Discount,
-                Discountvalue = b.Pricing.DiscountValue,
+                DiscountValue = b.Pricing.DiscountValue,
                 Tax = b.Pricing.Tax,
-                Taxprice = b.Pricing.TaxPrice,
+                TaxPrice = b.Pricing.TaxPrice,
                 Price = b.Pricing.Price
             }).ToList()
         };
@@ -134,12 +134,12 @@ public static class PurchaseMapper
             SupplierEmail = purchase.Supplier?.Email,
             SupplierPhone = purchase.Supplier?.Phone,
             Date = purchase.Date,
-            SubTotal = purchase.Subtotal,
+            SubTotal = purchase.SubTotal,
             Tax = purchase.Tax,
-            DiscountValue = purchase.DiscountValue,
+            Discount = purchase.Discount,
             Amount = purchase.Amount,
             Note = purchase.Note,
-            Batches = purchase.Batches.Select(b => new PurchaseBatchViewModel
+            Items = purchase.Batches.Select(b => new PurchaseBatchViewModel
             {
                 MedicineName = b.Medicine?.Name ?? "",
                 BatchName = b.BatchName,

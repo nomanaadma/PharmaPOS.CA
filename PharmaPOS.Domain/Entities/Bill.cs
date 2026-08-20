@@ -46,9 +46,9 @@ public class Bill : OrderDetails
 		Mobile = mobile;
 		MethodId = methodId;
 		Date = billDate;
-		Subtotal = subtotal;
+		SubTotal = subtotal;
 		Tax = tax;
-		DiscountValue = discountValue;
+		Discount = discountValue;
 		Amount = amount;
 		Note = note;
 	}

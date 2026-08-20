@@ -119,10 +119,10 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				model.Email,
 				model.Mobile,
 				model.Method,
-				model.BillDate.ToUniversalTime(),
-				model.Subtotal,
+				model.Date.ToUniversalTime(),
+				model.SubTotal,
 				model.Tax,
-				model.DiscountValue,
+				model.Discount,
 				model.Amount,
 				model.Note
 			);
@@ -274,13 +274,12 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				customerId = newCustomer.Id;
 			}
 
-			bill.Update(customerId, model.Name, model.Email, model.Mobile, model.Method, model.BillDate.ToUniversalTime(), model.Subtotal, model.Tax, model.DiscountValue, model.Amount, model.Note);
+			bill.Update(customerId, model.Name, model.Email, model.Mobile, model.Method, model.Date.ToUniversalTime(), model.SubTotal, model.Tax, model.Discount, model.Amount, model.Note);
 
 			// Revert sold quantities for old items
 			foreach (var oldItem in bill.Items)
 			{
 				var batch = await context.Batches
-					
 					.FirstOrDefaultAsync(mb => mb.Id == oldItem.BatchId && mb.MedicineId == oldItem.MedicineId, ct);
 				
 				batch?.UpdateSold(batch.Sold - oldItem.Pricing.Qty);

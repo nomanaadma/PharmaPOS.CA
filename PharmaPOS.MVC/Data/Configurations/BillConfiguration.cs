@@ -41,7 +41,7 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 			.HasColumnType("date")
 			.IsRequired();
 
-		builder.Property(mb => mb.Subtotal)
+		builder.Property(mb => mb.SubTotal)
 			.HasColumnName("subtotal")
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();
@@ -51,7 +51,7 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();
 
-		builder.Property(mb => mb.DiscountValue)
+		builder.Property(mb => mb.Discount)
 			.HasColumnName("discount_value")
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();

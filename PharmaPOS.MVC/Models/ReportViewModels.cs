@@ -14,10 +14,10 @@ public class InventoryReportViewModel
 
 public class IncomeExpenseReportViewModel
 {
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public int? MedicineId { get; set; }
-    public string? MedicineName { get; set; }
+    public DateTime StartDate { get; init; }
+    public DateTime EndDate { get; init; }
+    public int? MedicineId { get; init; }
+    public string? MedicineName { get; init; }
 
     public decimal SalesAmount { get; init; }
     public decimal PurchaseAmount { get; init; }

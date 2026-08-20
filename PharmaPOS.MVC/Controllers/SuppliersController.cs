@@ -93,7 +93,7 @@ public class SuppliersController(
 			return BadRequest();
 		}
 		
-		if (!model.Id.HasValue)
+		if (model.Id == 0)
 		{
 			NotifyError("Supplier ID is required for editing.");
 			return BadRequest();
@@ -104,7 +104,7 @@ public class SuppliersController(
 			return View("SupplierForm", model);
 		}
 
-		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email && s.Id != model.Id.Value, ct))
+		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email && s.Id != model.Id, ct))
 		{
 			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
 			return View("SupplierForm", model);
@@ -112,7 +112,7 @@ public class SuppliersController(
 
 		try
 		{
-			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id.Value, ct);
+			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id, ct);
 			if (supplier == null)
 			{
 				NotifyError("Supplier not found.");

@@ -171,7 +171,7 @@ public class MedicinesController(
 			return BadRequest();
 		}
 		
-		if (!model.Id.HasValue)
+		if (model.Id == 0)
 		{
 			NotifyError("Medicine ID is required for editing.");
 			return BadRequest();
@@ -185,7 +185,7 @@ public class MedicinesController(
 
 		try
 		{
-			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id.Value, ct);
+			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id, ct);
 			if (medicine == null)
 			{
 				NotifyError("Medicine not found.");

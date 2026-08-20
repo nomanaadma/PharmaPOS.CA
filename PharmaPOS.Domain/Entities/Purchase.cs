@@ -33,9 +33,9 @@ public class Purchase : OrderDetails
 
 		SupplierId = supplierId;
 		Date = date;
-		Subtotal = subtotal;
+		SubTotal = subtotal;
 		Tax = tax;
-		DiscountValue = discountValue;
+		Discount = discountValue;
 		Amount = amount;
 		Note = note;
 	}

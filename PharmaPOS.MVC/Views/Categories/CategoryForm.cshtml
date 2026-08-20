@@ -1,6 +1,6 @@
 @model PharmaPOS.MVC.Models.MedicineCategoryViewModel
 @{
-	var isEdit = Model?.Id.HasValue ?? false;
+	var isEdit = Model?.Id > 0;
 	var pageType = isEdit ? "Edit" : "Add";
 	var pageTitle = pageType + " Category";
 	

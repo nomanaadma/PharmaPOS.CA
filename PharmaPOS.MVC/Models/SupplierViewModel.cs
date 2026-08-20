@@ -2,9 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PharmaPOS.MVC.Models;
 
-public class SupplierViewModel
+public class SupplierViewModel : Model
 {
-	public int? Id { get; init; }
 
 	[Required(ErrorMessage = "Supplier Name is required.")]
 	[StringLength(150, ErrorMessage = "Supplier Name cannot exceed 150 characters.")]

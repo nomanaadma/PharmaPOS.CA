@@ -1,11 +1,10 @@
 @using PharmaPOS.Domain.Enums
 @model PharmaPOS.MVC.Models.PurchaseFormModel
 @{
-	var isEdit = Model?.Id.HasValue ?? false;
+	var isEdit = Model?.Id > 0;
 	var pageType = isEdit ? "Edit" : "Add";
 	var pageTitle = pageType + " Purchase";
 	ViewData["Title"] = pageTitle;
-	
 }
 
 <div class="page-title">
@@ -105,7 +104,7 @@
 									<textarea asp-for="Items[i].Purchaseprice" class="item-purchaseprice" required></textarea>
 								</td>
 								<td>
-									<textarea asp-for="Items[i].Saleprice" class="item-saleprice" required></textarea>
+									<textarea asp-for="Items[i].SalePrice" class="item-saleprice" required></textarea>
 								</td>
 								<td>
 									<input asp-for="Items[i].Gross" type="text" class="item-gross" readonly/>
@@ -113,19 +112,19 @@
 								<td>
 									<div class="row no-gutters">
 										<div class="col">
-											<select asp-for="Items[i].Discounttype" class="custom-select border-light item-discounttype" 
+											<select asp-for="Items[i].DiscountType" class="custom-select border-light item-discounttype" 
 											        asp-items="Html.GetEnumSelectList<DiscountType>()">
 											</select>
 										</div>
 										<div class="col">
 											<textarea asp-for="Items[i].Discount" class="item-discount"></textarea>
-											<input asp-for="Items[i].Discountvalue" type="text" class="item-discountvalue" readonly/>
+											<input asp-for="Items[i].DiscountValue" type="text" class="item-discountvalue" readonly/>
 										</div>
 									</div>
 								</td>
 								<td class="invoice-tax">
 									<input asp-for="Items[i].Tax" type="text" class="item-tax"/>
-									<input asp-for="Items[i].Taxprice" type="text" class="item-taxprice" readonly/>
+									<input asp-for="Items[i].TaxPrice" type="text" class="item-taxprice" readonly/>
 								</td>
 								<td>
 									<textarea asp-for="Items[i].Price" class="bg-white item-price" required readonly></textarea>
@@ -202,7 +201,7 @@
 						<td colspan="5" class="blank"></td>
 						<td colspan="3" class="total-line"><label class="p-2">Sub Total</label></td>
 						<td colspan="4" class="total-value">
-							<input asp-for="Subtotal" type="text" class="form-transparent p-2 total-price" readonly/>
+							<input asp-for="SubTotal" type="text" class="form-transparent p-2 total-price" readonly/>
 						</td>
 					</tr>
 					<tr>
