@@ -7,7 +7,7 @@ public class PurchaseViewModel
     public string? SupplierEmail { get; init; }
     public string? SupplierPhone { get; init; }
     public DateTime Date { get; init; }
-    public decimal Total { get; init; }
+    public decimal SubTotal { get; init; }
     public decimal Tax { get; init; }
     public decimal DiscountValue { get; init; }
     public decimal Amount { get; init; }

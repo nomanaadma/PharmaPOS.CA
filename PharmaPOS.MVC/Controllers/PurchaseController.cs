@@ -117,7 +117,7 @@ public class PurchaseController(
 			var purchase = new Purchase(
 				model.Supplier,
 				model.Date,
-				model.Total,
+				model.Subtotal,
 				model.Tax,
 				model.Discount,
 				model.Amount,
@@ -225,7 +225,7 @@ public class PurchaseController(
 			existingPurchase.Update(
 				model.Supplier,
 				model.Date,
-				model.Total,
+				model.Subtotal,
 				model.Tax,
 				model.Discount,
 				model.Amount,
@@ -237,6 +237,12 @@ public class PurchaseController(
 			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 			foreach (var bToRemove in batchesToRemove)
 			{
+				if (bToRemove.Sold > 0)
+				{
+					await transaction.RollbackAsync(ct);
+					NotifyError($"Cannot delete batch '{bToRemove.BatchName}' because it has already been sold.");
+					return View("PurchaseForm", model);
+				}
 				context.Batches.Remove(bToRemove);
 			}
 
@@ -252,6 +258,13 @@ public class PurchaseController(
 					// ReSharper disable once UseNullPropagation
 					if (existingBatch != null)
 					{
+						if (pricing.Qty < existingBatch.Sold)
+						{
+							await transaction.RollbackAsync(ct);
+							NotifyError($"Cannot update batch '{existingBatch.BatchName}'. New quantity ({pricing.Qty}) is less than the amount already sold ({existingBatch.Sold}).");
+							return View("PurchaseForm", model);
+						}
+
 						existingBatch.Update(
 							item.Batch,
 							item.Expiry,
@@ -302,11 +315,20 @@ public class PurchaseController(
 	{
 		try
 		{
-			var purchase = await context.Purchases.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+			var purchase = await context.Purchases
+				.Include(mp => mp.Batches)
+				.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+			
 			if (purchase == null)
 			{
 				NotifyError("Purchase record not found.");
 				return NotFound();
+			}
+
+			if (purchase.Batches.Any(b => b.Sold > 0))
+			{
+				NotifyError("Cannot delete purchase because one or more batches have already been sold.");
+				return RedirectToAction(nameof(Index));
 			}
 
 			context.Purchases.Remove(purchase);

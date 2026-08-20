@@ -7,9 +7,9 @@ public class Purchase : OrderDetails
 	// EF Core parameterless constructor
 	private Purchase() { }
 
-	public Purchase(int supplierId, DateTime date, decimal total, decimal tax, decimal discountValue, decimal amount, string? note)
+	public Purchase(int supplierId, DateTime date, decimal subtotal, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
-		Update(supplierId, date, total, tax, discountValue, amount, note);
+		Update(supplierId, date, subtotal, tax, discountValue, amount, note);
 		CreatedDate = DateTime.UtcNow;
 	}
 
@@ -18,12 +18,12 @@ public class Purchase : OrderDetails
 
 	public IReadOnlyCollection<Batch> Batches => _batches.AsReadOnly();
 
-	public void Update(int supplierId, DateTime date, decimal total, decimal tax, decimal discountValue, decimal amount, string? note)
+	public void Update(int supplierId, DateTime date, decimal subtotal, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
 		if (supplierId <= 0)
 			throw new ArgumentException("Valid Supplier is required.", nameof(supplierId));
-		if (total < 0)
-			throw new ArgumentException("Total cannot be negative.", nameof(total));
+		if (subtotal < 0)
+			throw new ArgumentException("Subtotal cannot be negative.", nameof(subtotal));
 		if (tax < 0)
 			throw new ArgumentException("Tax cannot be negative.", nameof(tax));
 		if (discountValue < 0)
@@ -33,7 +33,7 @@ public class Purchase : OrderDetails
 
 		SupplierId = supplierId;
 		Date = date;
-		Subtotal = total;
+		Subtotal = subtotal;
 		Tax = tax;
 		DiscountValue = discountValue;
 		Amount = amount;

@@ -17,7 +17,7 @@ public class PurchaseFormModel
 	[DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
 	public DateTime Date { get; init; } = DateTime.Now;
 	public string? Note { get; init; }
-	public decimal Total { get; init; }
+	public decimal Subtotal { get; init; }
 	public decimal Tax { get; init; }
 	public decimal Discount { get; init; }
 	public decimal Amount { get; init; }

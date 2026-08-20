@@ -25,7 +25,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 			.IsRequired();
 
 		builder.Property(mp => mp.Subtotal)
-			.HasColumnName("total")
+			.HasColumnName("sub_total")
 			.HasColumnType("decimal(10, 2)")
 			.IsRequired();
 

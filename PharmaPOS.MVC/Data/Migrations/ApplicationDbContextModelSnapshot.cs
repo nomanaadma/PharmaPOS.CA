@@ -223,6 +223,137 @@ namespace PharmaPOS.MVC.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Batch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BatchName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("batch");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<string>("Expiry")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("expiry");
+
+                    b.Property<int>("MedicineId")
+                        .HasColumnType("integer")
+                        .HasColumnName("medicine_id");
+
+                    b.Property<string>("Pqty")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("pqty");
+
+                    b.Property<int>("PurchaseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("purchase_id");
+
+                    b.Property<decimal>("PurchasePrice")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("purchaseprice");
+
+                    b.Property<decimal>("Sold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("sold");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("boolean")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicineId");
+
+                    b.HasIndex("PurchaseId");
+
+                    b.ToTable("medicine_batch", (string)null);
+                });
+
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Bill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("customer_id");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("bill_date");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("discount_value");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<int>("MethodId")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Mobile")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("mobile");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("Tax")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("tax");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("MethodId");
+
+                    b.ToTable("medicine_bill", (string)null);
+                });
+
             modelBuilder.Entity("PharmaPOS.Domain.Entities.BillItem", b =>
                 {
                     b.Property<int>("Id")
@@ -240,45 +371,9 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("bill_id");
 
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discount");
-
-                    b.Property<int>("DiscountType")
-                        .HasColumnType("integer")
-                        .HasColumnName("discounttype");
-
-                    b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discountvalue");
-
-                    b.Property<decimal>("Gross")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("gross");
-
                     b.Property<int>("MedicineId")
                         .HasColumnType("integer")
                         .HasColumnName("medicine_id");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("price");
-
-                    b.Property<decimal>("Qty")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("qty");
-
-                    b.Property<decimal>("SalePrice")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("saleprice");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("tax");
-
-                    b.Property<decimal>("TaxPrice")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("taxprice");
 
                     b.HasKey("Id");
 
@@ -449,173 +544,6 @@ namespace PharmaPOS.MVC.Migrations
                     b.ToTable("medicines", (string)null);
                 });
 
-            modelBuilder.Entity("PharmaPOS.Domain.Entities.Batch", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Batch")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("batch");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discount");
-
-                    b.Property<int>("DiscountType")
-                        .HasColumnType("integer")
-                        .HasColumnName("discounttype");
-
-                    b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discountvalue");
-
-                    b.Property<string>("Expiry")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("expiry");
-
-                    b.Property<decimal>("Gross")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("gross");
-
-                    b.Property<int>("MedicineId")
-                        .HasColumnType("integer")
-                        .HasColumnName("medicine_id");
-
-                    b.Property<string>("Pqty")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("pqty");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("price");
-
-                    b.Property<int>("PurchaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("purchase_id");
-
-                    b.Property<decimal>("PurchasePrice")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("purchaseprice");
-
-                    b.Property<decimal>("Qty")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("qty");
-
-                    b.Property<decimal>("SalePrice")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("saleprice");
-
-                    b.Property<decimal>("Sold")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(10, 2)")
-                        .HasDefaultValue(0m)
-                        .HasColumnName("sold");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("boolean")
-                        .HasColumnName("status");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("tax");
-
-                    b.Property<decimal>("TaxPrice")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("taxprice");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicineId");
-
-                    b.HasIndex("PurchaseId");
-
-                    b.ToTable("medicine_batch", (string)null);
-                });
-
-            modelBuilder.Entity("PharmaPOS.Domain.Entities.Bill", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("amount");
-
-                    b.Property<DateTime>("BillDate")
-                        .HasColumnType("date")
-                        .HasColumnName("bill_date");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("customer_id");
-
-                    b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discount_value");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(254)
-                        .HasColumnType("character varying(254)")
-                        .HasColumnName("email");
-
-                    b.Property<int>("MethodId")
-                        .HasColumnType("integer")
-                        .HasColumnName("method");
-
-                    b.Property<string>("Mobile")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("mobile");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("subtotal");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("tax");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("MethodId");
-
-                    b.ToTable("medicine_bill", (string)null);
-                });
-
             modelBuilder.Entity("PharmaPOS.Domain.Entities.MedicineCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -637,54 +565,6 @@ namespace PharmaPOS.MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("medicine_categories", (string)null);
-                });
-
-            modelBuilder.Entity("PharmaPOS.Domain.Entities.Purchase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("amount");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("date")
-                        .HasColumnName("date");
-
-                    b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("discount_value");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer")
-                        .HasColumnName("supplier");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("tax");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("total");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("medicine_purchase", (string)null);
                 });
 
             modelBuilder.Entity("PharmaPOS.Domain.Entities.PaymentMethod", b =>
@@ -716,6 +596,54 @@ namespace PharmaPOS.MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("payment_method", (string)null);
+                });
+
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Purchase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("discount_value");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("sub_total");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("integer")
+                        .HasColumnName("supplier");
+
+                    b.Property<decimal>("Tax")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("tax");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("medicine_purchase", (string)null);
                 });
 
             modelBuilder.Entity("PharmaPOS.Domain.Entities.Setting", b =>
@@ -901,48 +829,10 @@ namespace PharmaPOS.MVC.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PharmaPOS.Domain.Entities.BillItem", b =>
-                {
-                    b.HasOne("PharmaPOS.Domain.Entities.Batch", "Batch")
-                        .WithMany()
-                        .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PharmaPOS.Domain.Entities.Bill", "Bill")
-                        .WithMany("Items")
-                        .HasForeignKey("BillId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PharmaPOS.Domain.Entities.Medicine", "Medicine")
-                        .WithMany()
-                        .HasForeignKey("MedicineId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Batch");
-
-                    b.Navigation("Bill");
-
-                    b.Navigation("Medicine");
-                });
-
-            modelBuilder.Entity("PharmaPOS.Domain.Entities.Medicine", b =>
-                {
-                    b.HasOne("PharmaPOS.Domain.Entities.MedicineCategory", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
             modelBuilder.Entity("PharmaPOS.Domain.Entities.Batch", b =>
                 {
                     b.HasOne("PharmaPOS.Domain.Entities.Medicine", "Medicine")
-                        .WithMany()
+                        .WithMany("Batches")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -953,7 +843,59 @@ namespace PharmaPOS.MVC.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("PharmaPOS.Domain.ValueObjects.PricingDetails", "Pricing", b1 =>
+                        {
+                            b1.Property<int>("BatchId")
+                                .HasColumnType("integer");
+
+                            b1.Property<decimal>("Discount")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("discount");
+
+                            b1.Property<int>("DiscountType")
+                                .HasColumnType("integer")
+                                .HasColumnName("discounttype");
+
+                            b1.Property<decimal>("DiscountValue")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("discountvalue");
+
+                            b1.Property<decimal>("Gross")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("gross");
+
+                            b1.Property<decimal>("Price")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("price");
+
+                            b1.Property<decimal>("Qty")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("qty");
+
+                            b1.Property<decimal>("SalePrice")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("saleprice");
+
+                            b1.Property<decimal>("Tax")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("tax");
+
+                            b1.Property<decimal>("TaxPrice")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("taxprice");
+
+                            b1.HasKey("BatchId");
+
+                            b1.ToTable("medicine_batch");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BatchId");
+                        });
+
                     b.Navigation("Medicine");
+
+                    b.Navigation("Pricing")
+                        .IsRequired();
 
                     b.Navigation("Purchase");
                 });
@@ -977,6 +919,96 @@ namespace PharmaPOS.MVC.Migrations
                     b.Navigation("PaymentMethod");
                 });
 
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.BillItem", b =>
+                {
+                    b.HasOne("PharmaPOS.Domain.Entities.Batch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PharmaPOS.Domain.Entities.Bill", "Bill")
+                        .WithMany("Items")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PharmaPOS.Domain.Entities.Medicine", "Medicine")
+                        .WithMany()
+                        .HasForeignKey("MedicineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("PharmaPOS.Domain.ValueObjects.PricingDetails", "Pricing", b1 =>
+                        {
+                            b1.Property<int>("BillItemId")
+                                .HasColumnType("integer");
+
+                            b1.Property<decimal>("Discount")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("discount");
+
+                            b1.Property<int>("DiscountType")
+                                .HasColumnType("integer")
+                                .HasColumnName("discounttype");
+
+                            b1.Property<decimal>("DiscountValue")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("discountvalue");
+
+                            b1.Property<decimal>("Gross")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("gross");
+
+                            b1.Property<decimal>("Price")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("price");
+
+                            b1.Property<decimal>("Qty")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("qty");
+
+                            b1.Property<decimal>("SalePrice")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("saleprice");
+
+                            b1.Property<decimal>("Tax")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("tax");
+
+                            b1.Property<decimal>("TaxPrice")
+                                .HasColumnType("decimal(10, 2)")
+                                .HasColumnName("taxprice");
+
+                            b1.HasKey("BillItemId");
+
+                            b1.ToTable("bill_items");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BillItemId");
+                        });
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Bill");
+
+                    b.Navigation("Medicine");
+
+                    b.Navigation("Pricing")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Medicine", b =>
+                {
+                    b.HasOne("PharmaPOS.Domain.Entities.MedicineCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("PharmaPOS.Domain.Entities.Purchase", b =>
                 {
                     b.HasOne("PharmaPOS.Domain.Entities.Supplier", "Supplier")
@@ -991,6 +1023,11 @@ namespace PharmaPOS.MVC.Migrations
             modelBuilder.Entity("PharmaPOS.Domain.Entities.Bill", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("PharmaPOS.Domain.Entities.Medicine", b =>
+                {
+                    b.Navigation("Batches");
                 });
 
             modelBuilder.Entity("PharmaPOS.Domain.Entities.Purchase", b =>
