@@ -25,14 +25,10 @@ public class Setting : Entity
 
 	public void Update(SettingDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.Name))
-			throw new ArgumentException("Store Name is required.", nameof(details.Name));
-		if (string.IsNullOrWhiteSpace(details.LegalName))
-			throw new ArgumentException("Store Legal Name is required.", nameof(details.LegalName));
-		if (string.IsNullOrWhiteSpace(details.Mail))
-			throw new ArgumentException("Email Address is required.", nameof(details.Mail));
-		if (string.IsNullOrWhiteSpace(details.Phone))
-			throw new ArgumentException("Phone Number is required.", nameof(details.Phone));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.LegalName);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Mail);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Phone);
 
 		Name = details.Name;
 		LegalName = details.LegalName;

@@ -19,12 +19,9 @@ public class Supplier : EntityWithDate
 
 	public void Update(SupplierDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.Name))
-			throw new ArgumentException("Supplier Name is required.", nameof(details.Name));
-		if (string.IsNullOrWhiteSpace(details.Email))
-			throw new ArgumentException("Email Address is required.", nameof(details.Email));
-		if (string.IsNullOrWhiteSpace(details.Phone))
-			throw new ArgumentException("Phone Number is required.", nameof(details.Phone));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Email);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Phone);
 
 		Name = details.Name;
 		Email = details.Email;

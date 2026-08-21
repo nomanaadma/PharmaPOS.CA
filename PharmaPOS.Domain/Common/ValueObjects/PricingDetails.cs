@@ -18,10 +18,8 @@ public record PricingDetails
 		decimal taxPrice,
 		decimal price)
 	{
-		if (qty < 0)
-			throw new ArgumentException("Quantity cannot be negative.", nameof(qty));
-		if (salePrice < 0)
-			throw new ArgumentException("Sale Price cannot be negative.", nameof(salePrice));
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(qty);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(salePrice);
 
 		Qty = qty;
 		SalePrice = salePrice;

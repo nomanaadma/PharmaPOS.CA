@@ -28,20 +28,13 @@ public class Bill : OrderDetails
 
 	public void Update(BillDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.Name))
-			throw new ArgumentException("Customer Name is required.", nameof(details.Name));
-		if (details.CustomerId <= 0)
-			throw new ArgumentException("Valid Customer is required.", nameof(details.CustomerId));
-		if (details.MethodId <= 0)
-			throw new ArgumentException("Valid Payment Method is required.", nameof(details.MethodId));
-		if (details.SubTotal < 0)
-			throw new ArgumentException("Subtotal cannot be negative.", nameof(details.SubTotal));
-		if (details.Tax < 0)
-			throw new ArgumentException("Tax cannot be negative.", nameof(details.Tax));
-		if (details.Discount < 0)
-			throw new ArgumentException("Discount value cannot be negative.", nameof(details.Discount));
-		if (details.Amount < 0)
-			throw new ArgumentException("Amount cannot be negative.", nameof(details.Amount));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.CustomerId);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MethodId);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SubTotal);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Tax);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Discount);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Amount);
 
 		CustomerId = details.CustomerId;
 		Name = details.Name;

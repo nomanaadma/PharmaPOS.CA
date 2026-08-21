@@ -33,16 +33,11 @@ public class Medicine : EntityWithDate
 	
 	public void Update(MedicineDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.Name))
-			throw new ArgumentException("Medicine Name is required.", nameof(details.Name));
-		if (string.IsNullOrWhiteSpace(details.Company))
-			throw new ArgumentException("Medicine Company is required.", nameof(details.Company));
-		if (string.IsNullOrWhiteSpace(details.Generic))
-			throw new ArgumentException("Medicine Generic is required.", nameof(details.Generic));
-		if (details.CategoryId <= 0)
-			throw new ArgumentException("Valid Medicine Category is required.", nameof(details.CategoryId));
-		if (string.IsNullOrWhiteSpace(details.Unit))
-			throw new ArgumentException("Unit is required.", nameof(details.Unit));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Company);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Generic);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.CategoryId);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Unit);
 
 		Name = details.Name;
 		Company = details.Company;

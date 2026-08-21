@@ -17,8 +17,7 @@ public class MedicineCategory : Entity
 
 	public void Update(string name)
 	{
-		if (string.IsNullOrWhiteSpace(name))
-			throw new ArgumentException("Category Name is required.", nameof(name));
+		ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
 		Name = name;
 	}

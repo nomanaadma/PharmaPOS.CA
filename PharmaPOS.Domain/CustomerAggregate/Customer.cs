@@ -1,5 +1,6 @@
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.Common.Guards;
 
 namespace PharmaPOS.Domain.CustomerAggregate;
 
@@ -22,18 +23,13 @@ public class Customer : EntityWithDate
 
 	public void Update(CustomerDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.FirstName))
-			throw new ArgumentException("First Name is required.", nameof(details.FirstName));
-		if (string.IsNullOrWhiteSpace(details.LastName))
-			throw new ArgumentException("Last Name is required.", nameof(details.LastName));
-		if (string.IsNullOrWhiteSpace(details.Email))
-			throw new ArgumentException("Email Address is required.", nameof(details.Email));
-		if (string.IsNullOrWhiteSpace(details.Mobile))
-			throw new ArgumentException("Mobile Number is required.", nameof(details.Mobile));
-		if (!Enum.IsDefined(details.Gender))
-			throw new ArgumentException("Invalid gender value.", nameof(details.Gender));
-		if (!Enum.IsDefined(details.Status))
-			throw new ArgumentException("Invalid status value.", nameof(details.Status));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.FirstName);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.LastName);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Email);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Mobile);
+
+		Guard.ThrowIfUndefined(details.Gender);
+		Guard.ThrowIfUndefined(details.Status);
 
 		FirstName = details.FirstName;
 		LastName = details.LastName;

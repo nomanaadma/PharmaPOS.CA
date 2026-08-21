@@ -29,16 +29,11 @@ public class Batch : EntityWithDate
 
 	public void Update(BatchDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.BatchName))
-			throw new ArgumentException("Batch No is required.", nameof(details.BatchName));
-		if (string.IsNullOrWhiteSpace(details.Expiry))
-			throw new ArgumentException("Expiry Date is required.", nameof(details.Expiry));
-		if (details.Pricing == null)
-			throw new ArgumentNullException(nameof(details.Pricing));
-		if (details.PurchasePrice < 0)
-			throw new ArgumentException("Purchase Price cannot be negative.", nameof(details.PurchasePrice));
-		if (details.MedicineId <= 0)
-			throw new ArgumentException("Valid Medicine is required.", nameof(details.MedicineId));
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.BatchName);
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Expiry);
+		ArgumentNullException.ThrowIfNull(details.Pricing);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.PurchasePrice);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MedicineId);
 
 		BatchName = details.BatchName;
 		Expiry = details.Expiry;
@@ -51,8 +46,7 @@ public class Batch : EntityWithDate
 
 	public void UpdateSold(decimal sold)
 	{
-		if (sold < 0)
-			throw new ArgumentException("Sold quantity cannot be negative.", nameof(sold));
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sold);
 		Sold = sold;
 	}
 

@@ -22,16 +22,11 @@ public class Purchase : OrderDetails
 
 	public void Update(PurchaseDetails details)
 	{
-		if (details.SupplierId <= 0)
-			throw new ArgumentException("Valid Supplier is required.", nameof(details.SupplierId));
-		if (details.SubTotal < 0)
-			throw new ArgumentException("Subtotal cannot be negative.", nameof(details.SubTotal));
-		if (details.Tax < 0)
-			throw new ArgumentException("Tax cannot be negative.", nameof(details.Tax));
-		if (details.Discount < 0)
-			throw new ArgumentException("Discount value cannot be negative.", nameof(details.Discount));
-		if (details.Amount < 0)
-			throw new ArgumentException("Amount cannot be negative.", nameof(details.Amount));
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SupplierId);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SubTotal);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Tax);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Discount);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Amount);
 
 		SupplierId = details.SupplierId;
 		Date = details.Date;

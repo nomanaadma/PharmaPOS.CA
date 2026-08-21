@@ -1,5 +1,6 @@
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.Common.Guards;
 
 namespace PharmaPOS.Domain.PaymentMethodAggregate;
 
@@ -18,11 +19,9 @@ public class PaymentMethod : EntityWithDate
 
 	public void Update(PaymentMethodDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(details.Name))
-			throw new ArgumentException("Payment Method Name is required.", nameof(details.Name));
-		if (!Enum.IsDefined(details.Status))
-			throw new ArgumentException("Invalid status value.", nameof(details.Status));
-
+		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
+		Guard.ThrowIfUndefined(details.Status);
+		
 		Name = details.Name;
 		Status = details.Status;
 	}

@@ -25,12 +25,9 @@ public class BillItem : Entity
 
 	private void Update(BillItemDetails details)
 	{
-		if (details.MedicineId <= 0)
-			throw new ArgumentException("Valid Medicine is required.", nameof(details.MedicineId));
-		if (details.BatchId <= 0)
-			throw new ArgumentException("Valid Batch is required.", nameof(details.BatchId));
-		if (details.Pricing == null)
-			throw new ArgumentNullException(nameof(details.Pricing));
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MedicineId);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.BatchId);
+		ArgumentNullException.ThrowIfNull(details.Pricing);
 
 		BillId = details.BillId;
 		MedicineId = details.MedicineId;

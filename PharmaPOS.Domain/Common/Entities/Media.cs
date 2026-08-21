@@ -7,10 +7,8 @@ public class Media : EntityWithDate
 
 	public Media(string filename, string ext, DateTime createdDate)
 	{
-		if (string.IsNullOrWhiteSpace(filename))
-			throw new ArgumentException("Filename cannot be empty.", nameof(filename));
-		if (string.IsNullOrWhiteSpace(ext))
-			throw new ArgumentException("Extension cannot be empty.", nameof(ext));
+		ArgumentException.ThrowIfNullOrWhiteSpace(filename);
+		ArgumentException.ThrowIfNullOrWhiteSpace(ext);
 
 		Filename = filename;
 		Ext = ext;
