@@ -39,6 +39,7 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
 
 		builder.Property(s => s.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 	}
 }

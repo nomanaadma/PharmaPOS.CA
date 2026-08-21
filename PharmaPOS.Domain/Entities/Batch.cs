@@ -4,7 +4,7 @@ using PharmaPOS.Domain.ValueObjects;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Batch : Entity
+public class Batch : EntityWithDate
 {
 	// EF Core parameterless constructor
 	private Batch() { }
@@ -19,7 +19,6 @@ public class Batch : Entity
 		int purchaseId)
 	{
 		Update(batch, expiry, pqty, pricing, purchasePrice, medicineId, purchaseId);
-		CreatedDate = DateTime.UtcNow;
 		Sold = 0;
 		Status = Status.Active;
 	}
@@ -35,7 +34,6 @@ public class Batch : Entity
 	public int PurchaseId { get; private set; }
 	public Purchase Purchase { get; private set; } = null!;
 	public Status Status { get; private set; }
-	public DateTime CreatedDate { get; private set; }
 
 	public void Update(
 		string batch,

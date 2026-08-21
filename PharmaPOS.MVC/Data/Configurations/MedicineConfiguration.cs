@@ -61,6 +61,7 @@ public class MedicineConfiguration : IEntityTypeConfiguration<Medicine>
 
 		builder.Property(m => m.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
 		builder.HasOne(m => m.Category)

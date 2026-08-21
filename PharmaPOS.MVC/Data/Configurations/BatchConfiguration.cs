@@ -106,6 +106,7 @@ public class BatchConfiguration : IEntityTypeConfiguration<Batch>
 
 		builder.Property(mb => mb.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
 		builder.HasOne(mb => mb.Medicine)

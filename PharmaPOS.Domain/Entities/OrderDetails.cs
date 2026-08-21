@@ -1,6 +1,6 @@
 ﻿namespace PharmaPOS.Domain.Entities;
 
-public abstract class OrderDetails : Entity
+public abstract class OrderDetails : EntityWithDate
 {
 	public DateTime Date { get; protected set; }
 	public decimal SubTotal { get; protected set; }
@@ -10,5 +10,4 @@ public abstract class OrderDetails : Entity
 	
 	// ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
 	public string? Note { get; protected set; }
-	public DateTime CreatedDate { get; protected init; }
 }

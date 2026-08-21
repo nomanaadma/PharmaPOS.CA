@@ -67,6 +67,7 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 
 		builder.Property(mb => mb.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
 		builder.HasOne(mb => mb.Customer)

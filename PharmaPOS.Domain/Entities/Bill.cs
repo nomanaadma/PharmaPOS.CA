@@ -10,7 +10,6 @@ public class Bill : OrderDetails
 	public Bill(int customerId, string name, string? email, string? mobile, int methodId, DateTime billDate, decimal subtotal, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
 		Update(customerId, name, email, mobile, methodId, billDate, subtotal, tax, discountValue, amount, note);
-		CreatedDate = DateTime.UtcNow;
 	}
 
 	public int CustomerId { get; private set; }

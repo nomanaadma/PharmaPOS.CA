@@ -31,6 +31,7 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 
 		builder.Property(pm => pm.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
 		builder.HasIndex(pm => pm.Name)

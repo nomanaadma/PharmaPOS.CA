@@ -10,7 +10,6 @@ public class Purchase : OrderDetails
 	public Purchase(int supplierId, DateTime date, decimal subtotal, decimal tax, decimal discountValue, decimal amount, string? note)
 	{
 		Update(supplierId, date, subtotal, tax, discountValue, amount, note);
-		CreatedDate = DateTime.UtcNow;
 	}
 
 	public int SupplierId { get; private set; }

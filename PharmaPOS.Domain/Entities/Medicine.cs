@@ -2,7 +2,7 @@ using System;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Medicine : Entity
+public class Medicine : EntityWithDate
 {
 	
 	// EF Core parameterless constructor
@@ -22,7 +22,6 @@ public class Medicine : Entity
 		string? note)
 	{
 		Update(name, company, generic, medicineGroup, categoryId, storeBox, minLevel, reOrderLevel, unit, unitPacking, note);
-		CreatedDate = DateTime.UtcNow;
 	}
 
 	public string Name { get; private set; } = null!;
@@ -37,7 +36,6 @@ public class Medicine : Entity
 	public string Unit { get; private set; } = null!;
 	public string? UnitPacking { get; private set; }
 	public string? Note { get; private set; }
-	public DateTime CreatedDate { get; private set; }
 	
 	public ICollection<Batch> Batches { get; init; } = [];
 	

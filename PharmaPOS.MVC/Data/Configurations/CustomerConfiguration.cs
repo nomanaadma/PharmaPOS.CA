@@ -56,6 +56,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
 		builder.Property(c => c.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 	}
 

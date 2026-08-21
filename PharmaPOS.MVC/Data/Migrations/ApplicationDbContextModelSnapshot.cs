@@ -239,8 +239,10 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnName("batch");
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Expiry")
                         .IsRequired()
@@ -298,8 +300,10 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnName("amount");
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer")
@@ -309,7 +313,7 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnType("date")
                         .HasColumnName("bill_date");
 
-                    b.Property<decimal>("DiscountValue")
+                    b.Property<decimal>("Discount")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("discount_value");
 
@@ -337,7 +341,7 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("note");
 
-                    b.Property<decimal>("Subtotal")
+                    b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("subtotal");
 
@@ -396,8 +400,10 @@ namespace PharmaPOS.MVC.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -450,8 +456,10 @@ namespace PharmaPOS.MVC.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Ext")
                         .IsRequired()
@@ -490,8 +498,10 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnName("company");
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Generic")
                         .IsRequired()
@@ -577,8 +587,10 @@ namespace PharmaPOS.MVC.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -612,14 +624,16 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnName("amount");
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
 
-                    b.Property<decimal>("DiscountValue")
+                    b.Property<decimal>("Discount")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("discount_value");
 
@@ -627,7 +641,7 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("note");
 
-                    b.Property<decimal>("Subtotal")
+                    b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("sub_total");
 
@@ -749,8 +763,10 @@ namespace PharmaPOS.MVC.Migrations
                         .HasColumnName("address");
 
                     b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("created_date")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Email")
                         .IsRequired()

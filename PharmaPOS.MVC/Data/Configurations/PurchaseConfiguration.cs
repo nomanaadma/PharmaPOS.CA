@@ -50,6 +50,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 
 		builder.Property(mp => mp.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
 		builder.HasOne(mp => mp.Supplier)

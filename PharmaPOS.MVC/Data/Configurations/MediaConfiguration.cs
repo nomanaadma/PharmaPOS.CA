@@ -28,6 +28,7 @@ public class MediaConfiguration : IEntityTypeConfiguration<Media>
 		
 		builder.Property(m => m.CreatedDate)
 			.HasColumnName("created_date")
+			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 		
 	}

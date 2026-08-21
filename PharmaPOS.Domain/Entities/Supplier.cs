@@ -2,7 +2,7 @@ using System;
 
 namespace PharmaPOS.Domain.Entities;
 
-public class Supplier : Entity
+public class Supplier : EntityWithDate
 {
 	// EF Core parameterless constructor
 	private Supplier() { }
@@ -10,14 +10,12 @@ public class Supplier : Entity
 	public Supplier(string name, string email, string phone, string? address)
 	{
 		Update(name, email, phone, address);
-		CreatedDate = DateTime.UtcNow;
 	}
 
 	public string Name { get; private set; } = null!;
 	public string Email { get; private set; } = null!;
 	public string Phone { get; private set; } = null!;
 	public string? Address { get; private set; }
-	public DateTime CreatedDate { get; private set; }
 
 	public void Update(string name, string email, string phone, string? address)
 	{
