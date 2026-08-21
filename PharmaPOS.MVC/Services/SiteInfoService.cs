@@ -1,7 +1,7 @@
+using PharmaPOS.Domain.SettingAggregate;
+
 namespace PharmaPOS.MVC.Services;
 
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.ValueObjects;
 using Extensions;
 using Microsoft.EntityFrameworkCore;
 using Data;
@@ -16,7 +16,8 @@ public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)
 		{
-			settings = new Setting("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+			var details = new SettingDetails("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+			settings = new Setting(details);
 			settings.UpdateAddress(Address.Empty);
 		}
 		

@@ -1,6 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
 

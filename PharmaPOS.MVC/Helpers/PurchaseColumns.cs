@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.MVC.Helpers;
 

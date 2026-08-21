@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.ValueObjects;
+namespace PharmaPOS.Domain.SettingAggregate;
 
 
 public record Address

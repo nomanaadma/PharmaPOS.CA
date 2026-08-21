@@ -1,7 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
 

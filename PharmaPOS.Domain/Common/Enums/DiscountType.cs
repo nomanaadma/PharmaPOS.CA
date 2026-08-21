@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PharmaPOS.Domain.Enums;
+namespace PharmaPOS.Domain.Common.Enums;
 
 public enum DiscountType
 {

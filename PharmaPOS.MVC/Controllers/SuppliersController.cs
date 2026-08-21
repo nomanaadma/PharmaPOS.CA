@@ -2,8 +2,8 @@ using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Domain.SupplierAggregate;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
@@ -52,7 +52,8 @@ public class SuppliersController(
 
 		try
 		{
-			var supplier = new Supplier(model.Name, model.Email, model.Phone, model.Address);
+			var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
+			var supplier = new Supplier(details);
 			context.Suppliers.Add(supplier);
 			await context.SaveChangesAsync(ct);
 
@@ -119,7 +120,8 @@ public class SuppliersController(
 				return NotFound();
 			}
 
-			supplier.Update(model.Name, model.Email, model.Phone, model.Address);
+			var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
+			supplier.Update(details);
 			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Supplier updated successfully.");

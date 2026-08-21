@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.BillingAggregate;
 
 namespace PharmaPOS.MVC.Data.Configurations;
 

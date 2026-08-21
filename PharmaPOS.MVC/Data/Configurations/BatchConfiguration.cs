@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.MVC.Data.Configurations;
 

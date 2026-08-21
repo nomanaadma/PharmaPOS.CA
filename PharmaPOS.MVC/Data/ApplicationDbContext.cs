@@ -1,6 +1,14 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.CustomerAggregate;
+using PharmaPOS.Domain.MedicineAggregate;
+using PharmaPOS.Domain.MedicineCategoryAggregate;
+using PharmaPOS.Domain.PaymentMethodAggregate;
+using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Domain.SettingAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.MVC.Data;
 

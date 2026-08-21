@@ -1,1 +1,33 @@
-﻿
+﻿I want to refactor my code 
+
+Whereever we are using
+
+this pattern in domain like in supplier
+
+
+public Supplier(string name, string email, string phone, string? address)
+{
+    Update(name, email, phone, address);
+}
+
+public void Update(string name, string email, string phone, string? address)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        throw new ArgumentException("Supplier Name is required.", nameof(name));
+    if (string.IsNullOrWhiteSpace(email))
+        throw new ArgumentException("Email Address is required.", nameof(email));
+    if (string.IsNullOrWhiteSpace(phone))
+        throw new ArgumentException("Phone Number is required.", nameof(phone));
+
+    Name = name;
+    Email = email;
+    Phone = phone;
+    Address = address;
+}
+
+
+I find problem in this approach it's a parameter hell so I want to use DTO record so refactor this
+
+so the DTO would be called SupplierDetails and it'll get pass to the supplier constructor and Update method 
+
+can you implement it  ? 

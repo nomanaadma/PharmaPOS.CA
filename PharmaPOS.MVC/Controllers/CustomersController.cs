@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
@@ -53,7 +53,8 @@ public class CustomersController(
 
 		try
 		{
-			var customer = new Customer(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
+			var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
+			var customer = new Customer(details);
 			context.Customers.Add(customer);
 			await context.SaveChangesAsync(ct);
 
@@ -147,7 +148,8 @@ public class CustomersController(
 				return NotFound();
 			}
 
-			customer.Update(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
+			var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
+			customer.Update(details);
 			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Customer updated successfully.");

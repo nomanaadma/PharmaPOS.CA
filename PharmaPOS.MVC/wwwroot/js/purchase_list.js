@@ -12,7 +12,7 @@ $(function () {
             }
         },
         { data: "name" },
-        { data: "total", type: 'num' },
+        { data: "subtotal", type: 'num' },
         { data: "tax", type: 'num' },
         { data: "discount", type: 'num' },
         { data: "amount", type: 'num' },

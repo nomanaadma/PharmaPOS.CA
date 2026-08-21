@@ -1,6 +1,7 @@
 using System;
+using PharmaPOS.Domain.Common.Entities;
 
-namespace PharmaPOS.Domain.Entities;
+namespace PharmaPOS.Domain.MedicineCategoryAggregate;
 
 public class MedicineCategory : Entity
 {

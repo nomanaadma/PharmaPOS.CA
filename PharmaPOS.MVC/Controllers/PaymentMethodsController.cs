@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
 using PharmaPOS.MVC.Models;
 using System.Text.Json;
+using PharmaPOS.Domain.PaymentMethodAggregate;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
 
@@ -54,7 +54,8 @@ public class PaymentMethodsController(
 
 		try
 		{
-			var method = new PaymentMethod(model.Name, model.Status);
+			var details = new PaymentMethodDetails(model.Name, model.Status);
+			var method = new PaymentMethod(details);
 			context.PaymentMethods.Add(method);
 			await context.SaveChangesAsync(ct);
 
@@ -121,7 +122,8 @@ public class PaymentMethodsController(
 				return NotFound();
 			}
 
-			method.Update(model.Name, model.Status);
+			var details = new PaymentMethodDetails(model.Name, model.Status);
+			method.Update(details);
 			await context.SaveChangesAsync(ct);
 
 			NotifySuccess("Payment method updated successfully.");

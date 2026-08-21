@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.MVC.Models;
 

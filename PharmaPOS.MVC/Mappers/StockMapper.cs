@@ -1,4 +1,4 @@
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;

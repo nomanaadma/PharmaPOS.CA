@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Models;
-using PharmaPOS.Domain.ValueObjects;
 using PharmaPOS.MVC.Helpers;
 
 namespace PharmaPOS.MVC.Controllers;
@@ -114,7 +112,7 @@ public class PurchaseController(
 		try
 		{
 
-			var purchase = new Purchase(
+			var details = new PurchaseDetails(
 				model.Supplier,
 				model.Date,
 				model.SubTotal,
@@ -123,6 +121,7 @@ public class PurchaseController(
 				model.Amount,
 				model.Note
 			);
+			var purchase = new Purchase(details);
 
 			context.Purchases.Add(purchase);
 			await context.SaveChangesAsync(ct);
@@ -133,7 +132,7 @@ public class PurchaseController(
 				
 				var pricing = PricingHelper.PricingDetails(item);
 
-				var batch = new Batch(
+				var batchDetails = new BatchDetails(
 					item.Batch,
 					item.Expiry,
 					item.Pqty,
@@ -142,6 +141,7 @@ public class PurchaseController(
 					item.MedicineId,
 					purchase.Id
 				);
+				var batch = new Batch(batchDetails);
 				purchase.AddBatch(batch);
 			}
 
@@ -222,7 +222,7 @@ public class PurchaseController(
 				return NotFound();
 			}
 
-			existingPurchase.Update(
+			var details = new PurchaseDetails(
 				model.Supplier,
 				model.Date,
 				model.SubTotal,
@@ -231,6 +231,7 @@ public class PurchaseController(
 				model.Amount,
 				model.Note
 			);
+			existingPurchase.Update(details);
 
 			var submittedBatchIds = model.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
 
@@ -264,7 +265,7 @@ public class PurchaseController(
 						return View("PurchaseForm", model);
 					}
 
-					existingBatch.Update(
+					var batchDetails = new BatchDetails(
 						item.Batch,
 						item.Expiry,
 						item.Pqty,
@@ -273,12 +274,13 @@ public class PurchaseController(
 						item.MedicineId,
 						existingPurchase.Id
 					);
+					existingBatch.Update(batchDetails);
 
 				}
 				else
 				{
 
-					var newBatch = new Batch(
+					var batchDetails = new BatchDetails(
 						item.Batch,
 						item.Expiry,
 						item.Pqty,
@@ -287,6 +289,7 @@ public class PurchaseController(
 						item.MedicineId,
 						existingPurchase.Id
 					);
+					var newBatch = new Batch(batchDetails);
 					existingPurchase.AddBatch(newBatch);
 				}
 			}

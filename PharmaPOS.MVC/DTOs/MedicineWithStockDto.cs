@@ -1,4 +1,5 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿
+using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.MVC.DTOs;
 

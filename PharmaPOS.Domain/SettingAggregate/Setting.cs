@@ -1,15 +1,15 @@
-using PharmaPOS.Domain.ValueObjects;
+using PharmaPOS.Domain.Common.Entities;
 
-namespace PharmaPOS.Domain.Entities;
+namespace PharmaPOS.Domain.SettingAggregate;
 
 public class Setting : Entity
 {
 	// EF Core parameterless constructor
 	private Setting() { }
 
-	public Setting(string name, string legalName, string mail, string phone)
+	public Setting(SettingDetails details)
 	{
-		Update(name, legalName, mail, phone);
+		Update(details);
 		Address = Address.Empty;
 	}
 
@@ -23,21 +23,21 @@ public class Setting : Entity
 	public string Phone { get; private set; } = null!;
 	public Address Address { get; private set; } = null!;
 
-	public void Update(string name, string legalName, string mail, string phone)
+	public void Update(SettingDetails details)
 	{
-		if (string.IsNullOrWhiteSpace(name))
-			throw new ArgumentException("Store Name is required.", nameof(name));
-		if (string.IsNullOrWhiteSpace(legalName))
-			throw new ArgumentException("Store Legal Name is required.", nameof(legalName));
-		if (string.IsNullOrWhiteSpace(mail))
-			throw new ArgumentException("Email Address is required.", nameof(mail));
-		if (string.IsNullOrWhiteSpace(phone))
-			throw new ArgumentException("Phone Number is required.", nameof(phone));
+		if (string.IsNullOrWhiteSpace(details.Name))
+			throw new ArgumentException("Store Name is required.", nameof(details.Name));
+		if (string.IsNullOrWhiteSpace(details.LegalName))
+			throw new ArgumentException("Store Legal Name is required.", nameof(details.LegalName));
+		if (string.IsNullOrWhiteSpace(details.Mail))
+			throw new ArgumentException("Email Address is required.", nameof(details.Mail));
+		if (string.IsNullOrWhiteSpace(details.Phone))
+			throw new ArgumentException("Phone Number is required.", nameof(details.Phone));
 
-		Name = name;
-		LegalName = legalName;
-		Mail = mail;
-		Phone = phone;
+		Name = details.Name;
+		LegalName = details.LegalName;
+		Mail = details.Mail;
+		Phone = details.Phone;
 	}
 
 	public void UpdateImages(string? logo, string? logoIcon, string? lgBackground, string? favicon)

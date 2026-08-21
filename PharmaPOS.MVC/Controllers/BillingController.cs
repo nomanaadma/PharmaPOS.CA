@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.Enums;
-using PharmaPOS.Domain.ValueObjects;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Helpers;
 using PharmaPOS.MVC.Models;
@@ -99,7 +99,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					? string.Join(" ", nameParts[..^1]) 
 					: lastName;
 				
-				var newCustomer = new Customer(
+				var customerDetails = new CustomerDetails(
 					firstName,
 					lastName,
 					model.Email ?? "no-email@example.com",
@@ -107,13 +107,14 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					Gender.Male,
 					Status.Active
 				);
+				var newCustomer = new Customer(customerDetails);
 				
 				context.Customers.Add(newCustomer);
 				await context.SaveChangesAsync(ct);
 				customerId = newCustomer.Id;
 			}
 
-			var bill = new Bill(
+			var billDetails = new BillDetails(
 				customerId,
 				model.Name,
 				model.Email,
@@ -126,6 +127,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				model.Amount,
 				model.Note
 			);
+			var bill = new Bill(billDetails);
 
 			context.Bills.Add(bill);
 			await context.SaveChangesAsync(ct);
@@ -135,12 +137,13 @@ public class BillingController(ApplicationDbContext context) : BaseController
 				
 				var pricing = PricingHelper.PricingDetails(item);
 
-				var billItem = new BillItem(
+				var billItemDetails = new BillItemDetails(
 					bill.Id,
 					item.MedicineId,
 					item.Batch,
 					pricing
 				);
+				var billItem = new BillItem(billItemDetails);
 				context.BillItems.Add(billItem);
 
 				var batch = await context.Batches
@@ -260,7 +263,7 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					? string.Join(" ", nameParts[..^1]) 
 					: lastName;
 				
-				var newCustomer = new Customer(
+				var customerDetails = new CustomerDetails(
 					firstName,
 					lastName,
 					model.Email ?? "no-email@example.com",
@@ -268,13 +271,27 @@ public class BillingController(ApplicationDbContext context) : BaseController
 					Gender.Male,
 					Status.Active
 				);
+				var newCustomer = new Customer(customerDetails);
 				
 				context.Customers.Add(newCustomer);
 				await context.SaveChangesAsync(ct);
 				customerId = newCustomer.Id;
 			}
 
-			bill.Update(customerId, model.Name, model.Email, model.Mobile, model.Method, model.Date.ToUniversalTime(), model.SubTotal, model.Tax, model.Discount, model.Amount, model.Note);
+			var billDetails = new BillDetails(
+				customerId,
+				model.Name,
+				model.Email,
+				model.Mobile,
+				model.Method,
+				model.Date.ToUniversalTime(),
+				model.SubTotal,
+				model.Tax,
+				model.Discount,
+				model.Amount,
+				model.Note
+			);
+			bill.Update(billDetails);
 
 			// Revert sold quantities for old items
 			foreach (var oldItem in bill.Items)
@@ -294,7 +311,8 @@ public class BillingController(ApplicationDbContext context) : BaseController
 
 				var pricing = PricingHelper.PricingDetails(item);
 				
-				var billItem = new BillItem(bill.Id, item.MedicineId, item.Batch, pricing);
+				var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
+				var billItem = new BillItem(billItemDetails);
 				context.BillItems.Add(billItem);
 				
 				var batch = await context.Batches

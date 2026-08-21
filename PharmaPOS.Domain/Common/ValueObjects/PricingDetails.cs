@@ -1,7 +1,6 @@
-using System;
-using PharmaPOS.Domain.Enums;
+using PharmaPOS.Domain.Common.Enums;
 
-namespace PharmaPOS.Domain.ValueObjects;
+namespace PharmaPOS.Domain.Common.ValueObjects;
 
 public record PricingDetails
 {

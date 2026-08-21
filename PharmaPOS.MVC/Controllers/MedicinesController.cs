@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
 using PharmaPOS.MVC.Models;
 using System.Text.Json;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.Domain.Enums;
 using PharmaPOS.MVC.DTOs;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
@@ -70,7 +70,7 @@ public class MedicinesController(
 
 		try
 		{
-			var medicine = new Medicine(
+			var details = new MedicineDetails(
 				model.Name,
 				model.Company,
 				model.Generic,
@@ -83,6 +83,7 @@ public class MedicinesController(
 				model.UnitPacking,
 				model.Note
 			);
+			var medicine = new Medicine(details);
 
 			context.Medicines.Add(medicine);
 			await context.SaveChangesAsync(ct);
@@ -121,7 +122,7 @@ public class MedicinesController(
 		var batchesQuery = await context.Batches
 			.Where(b => b.MedicineId == id)
 			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.MedicineId)
+			.OrderBy(b => b.MedicineId).Include(batch => batch.Pricing)
 			.ToListAsync(ct);
 		
 		var liveBatches = batchesQuery.Where(b => 
@@ -192,7 +193,7 @@ public class MedicinesController(
 				return NotFound();
 			}
 
-			medicine.Update(
+			var details = new MedicineDetails(
 				model.Name,
 				model.Company,
 				model.Generic,
@@ -205,6 +206,7 @@ public class MedicinesController(
 				model.UnitPacking,
 				model.Note
 			);
+			medicine.Update(details);
 
 			await context.SaveChangesAsync(ct);
 
@@ -350,7 +352,7 @@ public class MedicinesController(
 			return Forbid();
 		}
 		
-		var mBatch = await context.Batches
+		var mBatch = await context.Batches.Include(b => b.Pricing)
 			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch, ct);
 
 		if (mBatch == null)

@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
-using PharmaPOS.Domain.ValueObjects;
 using PharmaPOS.MVC.Models;
 using System.Text.Json;
+using PharmaPOS.Domain.SettingAggregate;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Services;
@@ -46,12 +45,14 @@ public class SettingController(
 		var settings = await context.Settings.FirstOrDefaultAsync(ct);
 		if (settings == null)
 		{
-			settings = new Setting(model.Name, model.LegalName, model.Mail, model.Phone);
+			var details = new SettingDetails(model.Name, model.LegalName, model.Mail, model.Phone);
+			settings = new Setting(details);
 			context.Settings.Add(settings);
 		}
 		else
 		{
-			settings.Update(model.Name, model.LegalName, model.Mail, model.Phone);
+			var details = new SettingDetails(model.Name, model.LegalName, model.Mail, model.Phone);
+			settings.Update(details);
 		}
 
 		settings.UpdateImages(model.Logo, model.LogoIcon, model.LgBackground, model.Favicon);

@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Models;
-using PharmaPOS.Domain.Enums;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Helpers;
 

@@ -1,10 +1,9 @@
-using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Data;
-using PharmaPOS.Domain.Entities;
 using PharmaPOS.MVC.Extensions;
 using IOFile = System.IO.File;
 

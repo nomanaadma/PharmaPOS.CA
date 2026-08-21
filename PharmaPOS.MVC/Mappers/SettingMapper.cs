@@ -1,4 +1,7 @@
-using PharmaPOS.Domain.Entities;
+using PharmaPOS.Domain.MedicineCategoryAggregate;
+using PharmaPOS.Domain.PaymentMethodAggregate;
+using PharmaPOS.Domain.SettingAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;

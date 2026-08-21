@@ -1,4 +1,4 @@
-﻿namespace PharmaPOS.Domain.Entities;
+﻿namespace PharmaPOS.Domain.Common.Entities;
 
 public class EntityWithDate : Entity
 {

@@ -1,4 +1,4 @@
-﻿using PharmaPOS.Domain.Entities;
+﻿using PharmaPOS.Domain.BillingAggregate;
 
 namespace PharmaPOS.MVC.Extensions;
 
