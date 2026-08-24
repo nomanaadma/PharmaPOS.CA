@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.MVC.Authorization;
@@ -75,42 +76,27 @@ public class BillingController(
 			NotifyError("Please check your inputs.");
 			return View("BillingForm", model);
 		}
-		
-		if (model.Items.Count == 0)
-		{
-			NotifyError("Missing Bill items.");
-			return View("BillingForm", model);
-		}
 
-		try
-		{
-			var billId = await billingService.CreateBillAsync(model, ct);
+		var result = await billingService.CreateBillAsync(model, ct);
 
-			NotifySuccess("Bill created successfully.");
-			return RedirectToAction(nameof(View), new { id = billId });
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Failed to create bill");
-			NotifyError("An unexpected error occurred while saving the bill. Please try again.");
-			return View("BillingForm", model);
-		}
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
+
+		NotifySuccess("Bill created successfully.");
+		return RedirectToAction(nameof(View), new { id = result.Value });
 	}
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Billing.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var bill = await billingService.GetBillForEditAsync(id, ct);
+		var result = await billingService.GetBillForEditAsync(id, ct);
 
-		if (bill == null)
-		{
-			NotifyWarning("Bill does not exist in database!");
-			return NotFound();
-		}
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
 		var paymentMethods = await billingService.GetPaymentMethodsAsync(ct);
-		var model = BillingMapper.MapToBillingForm(bill, paymentMethods);
+		var model = BillingMapper.MapToBillingForm(result.Value, paymentMethods);
 
 		return View("BillingForm", model);
 	}
@@ -133,31 +119,14 @@ public class BillingController(
 			NotifyError("Please check your inputs.");
 			return View("BillingForm", model);
 		}
-		
-		if (model.Items.Count == 0)
-		{
-			NotifyError("Missing bill items.");
-			return View("BillingForm", model);
-		}
 
-		try
-		{
-			var billId = await billingService.UpdateBillAsync(id, model, ct);
+		var result = await billingService.UpdateBillAsync(id, model, ct);
 
-			NotifySuccess("Bill updated successfully.");
-			return RedirectToAction(nameof(View), new { id = billId });
-		}
-		catch (KeyNotFoundException)
-		{
-			NotifyWarning("Bill does not exist in database!");
-			return NotFound();
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Failed to update bill {BillId}", id);
-			NotifyError("An unexpected error occurred while updating the bill. Please try again.");
-			return View("BillingForm", model);
-		}
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
+
+		NotifySuccess("Bill updated successfully.");
+		return RedirectToAction(nameof(View), new { id = result.Value });
 	}
 
 	[HttpPost]
@@ -165,22 +134,12 @@ public class BillingController(
 	[Authorize(Policy = Permissions.Billing.Delete)]
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			await billingService.DeleteBillAsync(id, ct);
-			NotifySuccess("Bill deleted successfully.");
-		}
-		catch (KeyNotFoundException)
-		{
-			NotifyWarning("Bill does not exist in database!");
-			return NotFound();
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Failed to delete bill {BillId}", id);
-			NotifyError("An unexpected error occurred while deleting the bill. Please try again.");
-		}
+		var result = await billingService.DeleteBillAsync(id, ct);
 
+		if (result.IsError)
+			return HandleErrors(result.Errors);
+
+		NotifySuccess("Bill deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
 
@@ -188,16 +147,44 @@ public class BillingController(
 	[Authorize(Policy = Permissions.Billing.View)]
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var bill = await billingService.GetBillForViewAsync(id, ct);
+		var result = await billingService.GetBillForViewAsync(id, ct);
 
-		if (bill == null)
-		{
-			NotifyWarning("Bill does not exist in database!");
-			return NotFound();
-		}
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-		var model = BillingMapper.MapToBillDetailsViewModel(bill);
+		var model = BillingMapper.MapToBillDetailsViewModel(result.Value);
 
 		return View(model);
+	}
+
+	/// <summary>
+	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
+	/// and notifications. Optionally returns to the form view with the model.
+	/// </summary>
+	private IActionResult HandleErrors(List<Error> errors, BillingFormModel? model = null)
+	{
+		var firstError = errors[0];
+
+		logger.LogWarning("Billing operation failed: {ErrorCode} - {ErrorDescription}",
+			firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyWarning(firstError.Description);
+				return NotFound();
+
+			case ErrorType.Validation:
+				NotifyError(firstError.Description);
+				return model != null
+					? View("BillingForm", model)
+					: RedirectToAction(nameof(Index));
+
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null
+					? View("BillingForm", model)
+					: RedirectToAction(nameof(Index));
+		}
 	}
 }

@@ -1,3 +1,4 @@
+using ErrorOr;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.Domain.PaymentMethodAggregate;
@@ -11,9 +12,9 @@ public class Bill : OrderDetails
 	// EF Core parameterless constructor
 	private Bill() { }
 
-	public Bill(BillDetails details)
+	private Bill(BillDetails details)
 	{
-		Update(details);
+		SetDetails(details);
 	}
 
 	public int CustomerId { get; private set; }
@@ -26,7 +27,40 @@ public class Bill : OrderDetails
 
 	public IReadOnlyCollection<BillItem> Items => _items.AsReadOnly();
 
-	public void Update(BillDetails details)
+	/// <summary>
+	/// Factory method: validates inputs and returns an ErrorOr&lt;Bill&gt;.
+	/// </summary>
+	public static ErrorOr<Bill> Create(BillDetails details)
+	{
+		var errors = ValidateDetails(details);
+		if (errors.Count > 0) return errors;
+
+		return new Bill(details);
+	}
+
+	/// <summary>
+	/// Updates the bill details. Returns ErrorOr&lt;Updated&gt; with validation.
+	/// </summary>
+	public ErrorOr<Updated> Update(BillDetails details)
+	{
+		var errors = ValidateDetails(details);
+		if (errors.Count > 0) return errors;
+
+		SetDetails(details);
+		return Result.Updated;
+	}
+
+	public void AddItem(BillItem item)
+	{
+		_items.Add(item);
+	}
+
+	public void ClearItems()
+	{
+		_items.Clear();
+	}
+
+	private void SetDetails(BillDetails details)
 	{
 		CustomerId = details.CustomerId;
 		Name = details.Name;
@@ -41,18 +75,31 @@ public class Bill : OrderDetails
 		Note = details.Note;
 	}
 
-	public void AddItem(BillItem item)
+	private static List<Error> ValidateDetails(BillDetails details)
 	{
-		_items.Add(item);
-	}
+		var errors = new List<Error>();
 
-	public void RemoveItem(BillItem item)
-	{
-		_items.Remove(item);
-	}
+		if (string.IsNullOrWhiteSpace(details.Name))
+			errors.Add(Error.Validation("Bill.NameRequired", "Customer name is required."));
 
-	public void ClearItems()
-	{
-		_items.Clear();
+		if (details.CustomerId <= 0)
+			errors.Add(Error.Validation("Bill.InvalidCustomer", "A valid customer is required."));
+
+		if (details.MethodId <= 0)
+			errors.Add(Error.Validation("Bill.InvalidPaymentMethod", "A valid payment method is required."));
+
+		if (details.SubTotal < 0)
+			errors.Add(Error.Validation("Bill.SubTotal", "SubTotal cannot be negative."));
+		
+		if (details.Tax < 0)
+			errors.Add(Error.Validation("Bill.Tax", "Tax cannot be negative."));
+		
+		if (details.Discount < 0)
+			errors.Add(Error.Validation("Bill.Discount", "Discount cannot be negative."));
+		
+		if (details.Amount < 0)
+			errors.Add(Error.Validation("Bill.InvalidAmount", "Amount cannot be negative."));
+
+		return errors;
 	}
 }

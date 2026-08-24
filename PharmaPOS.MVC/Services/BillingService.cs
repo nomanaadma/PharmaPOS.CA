@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Domain.BillingAggregate;
@@ -9,22 +10,27 @@ using PharmaPOS.MVC.Models;
 namespace PharmaPOS.MVC.Services;
 
 public class BillingService(
-	ApplicationDbContext context, 
-	CustomerService customerService, 
+	ApplicationDbContext context,
+	CustomerService customerService,
 	ILogger<BillingService> logger)
 {
 
 	/// <summary>
 	/// Creates a new bill with items, adjusting inventory (batch sold quantities) within a transaction.
 	/// </summary>
-	public async Task<int> CreateBillAsync(BillingFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreateBillAsync(BillingFormModel model, CancellationToken ct = default)
 	{
+		if (model.Items.Count == 0)
+			return BillErrors.MissingItems;
+
 		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-		var customerId = await customerService.GetOrCreateCustomerAsync(model, ct);
+		var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+		if (customerResult.IsError)
+			return customerResult.Errors;
 
 		var billDetails = new BillDetails(
-			customerId,
+			customerResult.Value,
 			model.Name,
 			model.Email,
 			model.Mobile,
@@ -36,8 +42,12 @@ public class BillingService(
 			model.Amount,
 			model.Note
 		);
-		var bill = new Bill(billDetails);
 
+		var billResult = Bill.Create(billDetails);
+		if (billResult.IsError)
+			return billResult.Errors;
+
+		var bill = billResult.Value;
 		context.Bills.Add(bill);
 		await context.SaveChangesAsync(ct);
 
@@ -54,17 +64,16 @@ public class BillingService(
 			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
 			var billItem = new BillItem(billItemDetails);
 
-			// Use aggregate root method instead of bypassing via context.BillItems.Add()
+			// Use aggregate root method
 			bill.AddItem(billItem);
 
 			if (!batches.TryGetValue(item.Batch, out var batch))
-				throw new InvalidOperationException($"Batch {item.Batch} not found for Medicine {item.MedicineId}.");
+				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
 
 			// Validate stock availability
 			var available = batch.Pricing.Qty - batch.Sold;
 			if (item.Qty > available)
-				throw new InvalidOperationException(
-					$"Insufficient stock for batch {batch.BatchName}. Available: {available}, Requested: {item.Qty}");
+				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
 
 			batch.UpdateSold(batch.Sold + item.Qty);
 		}
@@ -79,8 +88,11 @@ public class BillingService(
 	/// <summary>
 	/// Updates an existing bill: reverts old inventory, clears old items, adds new items, adjusts inventory.
 	/// </summary>
-	public async Task<int> UpdateBillAsync(int id, BillingFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdateBillAsync(int id, BillingFormModel model, CancellationToken ct = default)
 	{
+		if (model.Items.Count == 0)
+			return BillErrors.MissingItems;
+
 		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
 		var bill = await context.Bills
@@ -88,11 +100,16 @@ public class BillingService(
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
-			throw new KeyNotFoundException($"Bill {id} does not exist in database.");
+			return BillErrors.NotFound(id);
 
 		var customerId = model.CustomerId ?? bill.CustomerId;
 		if (customerId == 0)
-			customerId = await customerService.GetOrCreateCustomerAsync(model, ct);
+		{
+			var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+			if (customerResult.IsError)
+				return customerResult.Errors;
+			customerId = customerResult.Value;
+		}
 
 		var billDetails = new BillDetails(
 			customerId,
@@ -107,7 +124,10 @@ public class BillingService(
 			model.Amount,
 			model.Note
 		);
-		bill.Update(billDetails);
+
+		var updateResult = bill.Update(billDetails);
+		if (updateResult.IsError)
+			return updateResult.Errors;
 
 		// Pre-fetch all batches for both old and new items in a single query
 		var oldBatchIds = bill.Items.Select(i => i.BatchId).ToList();
@@ -122,8 +142,7 @@ public class BillingService(
 		foreach (var oldItem in bill.Items)
 		{
 			if (!batches.TryGetValue(oldItem.BatchId, out var batch))
-				throw new InvalidOperationException(
-					$"Batch {oldItem.BatchId} not found while reverting sold quantity for Medicine {oldItem.MedicineId}.");
+				return BillErrors.BatchNotFound(oldItem.BatchId, oldItem.MedicineId);
 
 			batch.UpdateSold(batch.Sold - oldItem.Pricing.Qty);
 		}
@@ -144,13 +163,12 @@ public class BillingService(
 			bill.AddItem(billItem);
 
 			if (!batches.TryGetValue(item.Batch, out var batch))
-				throw new InvalidOperationException($"Batch {item.Batch} not found for Medicine {item.MedicineId}.");
+				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
 
 			// Validate stock availability
 			var available = batch.Pricing.Qty - batch.Sold;
 			if (item.Qty > available)
-				throw new InvalidOperationException(
-					$"Insufficient stock for batch {batch.BatchName}. Available: {available}, Requested: {item.Qty}");
+				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
 
 			batch.UpdateSold(batch.Sold + item.Qty);
 		}
@@ -165,7 +183,7 @@ public class BillingService(
 	/// <summary>
 	/// Deletes a bill and reverts inventory (batch sold quantities).
 	/// </summary>
-	public async Task DeleteBillAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Deleted>> DeleteBillAsync(int id, CancellationToken ct = default)
 	{
 		await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
@@ -174,7 +192,7 @@ public class BillingService(
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
-			throw new KeyNotFoundException($"Bill {id} does not exist in database.");
+			return BillErrors.NotFound(id);
 
 		// Pre-fetch all batches in a single query
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
@@ -186,8 +204,7 @@ public class BillingService(
 		foreach (var item in bill.Items)
 		{
 			if (!batches.TryGetValue(item.BatchId, out var batch))
-				throw new InvalidOperationException(
-					$"Batch {item.BatchId} not found while reverting sold quantity for Medicine {item.MedicineId}.");
+				return BillErrors.BatchNotFound(item.BatchId, item.MedicineId);
 
 			batch.UpdateSold(batch.Sold - item.Pricing.Qty);
 		}
@@ -197,12 +214,13 @@ public class BillingService(
 		await transaction.CommitAsync(ct);
 
 		logger.LogInformation("Bill {BillId} deleted, {ItemCount} items reverted", id, bill.Items.Count);
+		return Result.Deleted;
 	}
 
 	/// <summary>
 	/// Loads a bill with all related data for the Edit GET action.
 	/// </summary>
-	public async Task<Bill?> GetBillForEditAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Bill>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
@@ -217,7 +235,8 @@ public class BillingService(
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
-		if (bill == null) return null;
+		if (bill == null)
+			return BillErrors.NotFound(id);
 
 		// Ensure each item's own batch is in the Medicine.Batches collection
 		// (it may be expired/inactive but we still need to display it)
@@ -239,9 +258,9 @@ public class BillingService(
 	/// <summary>
 	/// Loads a bill with all related data for the Details (view) action.
 	/// </summary>
-	public async Task<Bill?> GetBillForViewAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Bill>> GetBillForViewAsync(int id, CancellationToken ct = default)
 	{
-		return await context.Bills
+		var bill = await context.Bills
 			.Include(b => b.PaymentMethod)
 			.Include(b => b.Items)
 				.ThenInclude(bi => bi.Medicine)
@@ -249,6 +268,11 @@ public class BillingService(
 				.ThenInclude(bi => bi.Batch)
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
+
+		if (bill == null)
+			return BillErrors.NotFound(id);
+
+		return bill;
 	}
 
 	/// <summary>
