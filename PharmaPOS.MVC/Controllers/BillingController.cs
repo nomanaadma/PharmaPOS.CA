@@ -16,6 +16,7 @@ namespace PharmaPOS.MVC.Controllers;
 public class BillingController(
 	ApplicationDbContext context,
 	BillingService billingService,
+	PaymentMethodService paymentMethodService,
 	ILogger<BillingController> logger
 ) : BaseController
 {
@@ -59,7 +60,7 @@ public class BillingController(
 	{
 		var model = new BillingFormModel
 		{
-			PaymentMethods = await billingService.GetPaymentMethodsAsync(ct)
+			PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct)
 		};
 		return View("BillingForm", model);
 	}
@@ -69,7 +70,7 @@ public class BillingController(
 	[Authorize(Policy = Permissions.Billing.Add)]
 	public async Task<IActionResult> Add(BillingFormModel model, CancellationToken ct = default)
 	{
-		model.PaymentMethods = await billingService.GetPaymentMethodsAsync(ct);
+		model.PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
 		
 		if (!ModelState.IsValid)
 		{
@@ -95,7 +96,7 @@ public class BillingController(
 		if (result.IsError)
 			return HandleErrors(result.Errors);
 
-		var paymentMethods = await billingService.GetPaymentMethodsAsync(ct);
+		var paymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
 		var model = BillingMapper.MapToBillingForm(result.Value, paymentMethods);
 
 		return View("BillingForm", model);
@@ -112,7 +113,7 @@ public class BillingController(
 			return BadRequest();
 		}
 		
-		model.PaymentMethods = await billingService.GetPaymentMethodsAsync(ct);
+		model.PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
 
 		if (!ModelState.IsValid)
 		{

@@ -1,5 +1,4 @@
 using ErrorOr;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
@@ -62,10 +61,13 @@ public class BillingService(
 			var pricing = PricingHelper.PricingDetails(item);
 
 			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
-			var billItem = new BillItem(billItemDetails);
+			var billItemResult = BillItem.Create(billItemDetails);
+
+			if (billItemResult.IsError)
+				return billItemResult.Errors;
 
 			// Use aggregate root method
-			bill.AddItem(billItem);
+			bill.AddItem(billItemResult.Value);
 
 			if (!batches.TryGetValue(item.Batch, out var batch))
 				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
@@ -157,11 +159,14 @@ public class BillingService(
 			var pricing = PricingHelper.PricingDetails(item);
 
 			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
-			var billItem = new BillItem(billItemDetails);
+			var billItemResult = BillItem.Create(billItemDetails);
+			
+			if (billItemResult.IsError)
+				return billItemResult.Errors;
 
 			// Use aggregate root method
-			bill.AddItem(billItem);
-
+			bill.AddItem(billItemResult.Value);
+			
 			if (!batches.TryGetValue(item.Batch, out var batch))
 				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
 
@@ -274,20 +279,5 @@ public class BillingService(
 
 		return bill;
 	}
-
-	/// <summary>
-	/// Returns active payment methods as SelectListItems for dropdowns.
-	/// </summary>
-	public async Task<IEnumerable<SelectListItem>> GetPaymentMethodsAsync(CancellationToken ct = default)
-	{
-		return await context.PaymentMethods
-			.Where(pm => pm.Status == Status.Active)
-			.Select(pm =>
-				new SelectListItem
-				{
-					Value = pm.Id.ToString(),
-					Text = pm.Name
-				})
-			.ToListAsync(ct);
-	}
+	
 }

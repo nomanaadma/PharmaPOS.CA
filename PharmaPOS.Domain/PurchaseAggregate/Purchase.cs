@@ -1,3 +1,4 @@
+using ErrorOr;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.SupplierAggregate;
 
@@ -10,9 +11,9 @@ public class Purchase : OrderDetails
 	// EF Core parameterless constructor
 	private Purchase() { }
 
-	public Purchase(PurchaseDetails details)
+	private Purchase(PurchaseDetails details)
 	{
-		Update(details);
+		SetDetails(details);
 	}
 
 	public int SupplierId { get; private set; }
@@ -20,7 +21,56 @@ public class Purchase : OrderDetails
 
 	public IReadOnlyCollection<Batch> Batches => _batches.AsReadOnly();
 
-	public void Update(PurchaseDetails details)
+	/// <summary>
+	/// Factory method: validates inputs and returns an ErrorOr&lt;Purchase&gt;.
+	/// </summary>
+	public static ErrorOr<Purchase> Create(PurchaseDetails details)
+	{
+		var errors = ValidateDetails(details);
+		if (errors.Count > 0) return errors;
+
+		return new Purchase(details);
+	}
+
+	/// <summary>
+	/// Updates the purchase details. Returns ErrorOr&lt;Updated&gt; with validation.
+	/// </summary>
+	public ErrorOr<Updated> Update(PurchaseDetails details)
+	{
+		var errors = ValidateDetails(details);
+		if (errors.Count > 0) return errors;
+
+		SetDetails(details);
+		return Result.Updated;
+	}
+
+	public void AddBatch(Batch batch)
+	{
+		_batches.Add(batch);
+	}
+
+	public ErrorOr<Success> RemoveBatch(int batchId)
+	{
+		var batch = _batches.FirstOrDefault(b => b.Id == batchId);
+        
+		// If it doesn't exist, there is nothing to remove.
+		if (batch == null) 
+			return Result.Success; 
+
+		// The domain enforces its own business rules
+		if (batch.Sold > 0)
+			return PurchaseErrors.CannotDeleteSoldBatch(batch.BatchName);
+
+		_batches.Remove(batch);
+		return Result.Success;
+	}
+
+	public void ClearBatches()
+	{
+		_batches.Clear();
+	}
+
+	private void SetDetails(PurchaseDetails details)
 	{
 		SupplierId = details.SupplierId;
 		Date = details.Date;
@@ -31,18 +81,25 @@ public class Purchase : OrderDetails
 		Note = details.Note;
 	}
 
-	public void AddBatch(Batch batch)
+	private static List<Error> ValidateDetails(PurchaseDetails details)
 	{
-		_batches.Add(batch);
-	}
+		var errors = new List<Error>();
 
-	public void RemoveBatch(Batch batch)
-	{
-		_batches.Remove(batch);
-	}
+		if (details.SupplierId <= 0)
+			errors.Add(PurchaseErrors.SupplierRequired);
 
-	public void ClearBatches()
-	{
-		_batches.Clear();
+		if (details.Amount < 0)
+			errors.Add(PurchaseErrors.InvalidAmount);
+		
+		if (details.SubTotal < 0)
+			errors.Add(PurchaseErrors.InvalidSubTotal);
+		
+		if (details.Tax < 0)
+			errors.Add(PurchaseErrors.InvalidTax);
+		
+		if (details.Discount < 0)
+			errors.Add(PurchaseErrors.InvalidDiscount);
+		
+		return errors;
 	}
 }

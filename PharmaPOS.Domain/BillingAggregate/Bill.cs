@@ -80,26 +80,26 @@ public class Bill : OrderDetails
 		var errors = new List<Error>();
 
 		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(Error.Validation("Bill.NameRequired", "Customer name is required."));
+			errors.Add(BillErrors.NameRequired);
 
 		if (details.CustomerId <= 0)
-			errors.Add(Error.Validation("Bill.InvalidCustomer", "A valid customer is required."));
+			errors.Add(BillErrors.InvalidCustomer);
 
 		if (details.MethodId <= 0)
-			errors.Add(Error.Validation("Bill.InvalidPaymentMethod", "A valid payment method is required."));
-
-		if (details.SubTotal < 0)
-			errors.Add(Error.Validation("Bill.SubTotal", "SubTotal cannot be negative."));
-		
-		if (details.Tax < 0)
-			errors.Add(Error.Validation("Bill.Tax", "Tax cannot be negative."));
-		
-		if (details.Discount < 0)
-			errors.Add(Error.Validation("Bill.Discount", "Discount cannot be negative."));
+			errors.Add(BillErrors.InvalidPaymentMethod);
 		
 		if (details.Amount < 0)
-			errors.Add(Error.Validation("Bill.InvalidAmount", "Amount cannot be negative."));
-
+			errors.Add(BillErrors.InvalidAmount);
+		
+		if (details.SubTotal < 0)
+			errors.Add(BillErrors.InvalidSubTotal);
+		
+		if (details.Tax < 0)
+			errors.Add(BillErrors.InvalidTax);
+		
+		if (details.Discount < 0)
+			errors.Add(BillErrors.InvalidDiscount);
+		
 		return errors;
 	}
 }

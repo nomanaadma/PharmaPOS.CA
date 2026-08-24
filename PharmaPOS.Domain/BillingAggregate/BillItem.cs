@@ -1,3 +1,4 @@
+using ErrorOr;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.Common.ValueObjects;
 using PharmaPOS.Domain.MedicineAggregate;
@@ -10,9 +11,12 @@ public class BillItem : Entity
 	// EF Core parameterless constructor
 	private BillItem() { }
 
-	public BillItem(BillItemDetails details)
+	private BillItem(BillItemDetails details)
 	{
-		Update(details);
+		BillId = details.BillId;
+		MedicineId = details.MedicineId;
+		BatchId = details.BatchId;
+		Pricing = details.Pricing;
 	}
 
 	public int BillId { get; private set; }
@@ -22,12 +26,28 @@ public class BillItem : Entity
 	public int BatchId { get; private set; }
 	public Batch Batch { get; private set; } = null!;
 	public PricingDetails Pricing { get; private set; } = null!;
-
-	private void Update(BillItemDetails details)
+	
+	/// <summary>
+	/// Factory method: validates inputs and returns an ErrorOr&lt;Bill&gt;.
+	/// </summary>
+	public static ErrorOr<BillItem> Create(BillItemDetails details)
 	{
-		BillId = details.BillId;
-		MedicineId = details.MedicineId;
-		BatchId = details.BatchId;
-		Pricing = details.Pricing;
+		var errors = ValidateDetails(details);
+		if (errors.Count > 0) return errors;
+
+		return new BillItem(details);
+	}
+	
+	private static List<Error> ValidateDetails(BillItemDetails details)
+	{
+		var errors = new List<Error>();
+		
+		if (details.MedicineId <= 0)
+			errors.Add(BillErrors.InvalidMedicine);
+		
+		if (details.BatchId <= 0)
+			errors.Add(BillErrors.InvalidBatch);
+		
+		return errors;
 	}
 }

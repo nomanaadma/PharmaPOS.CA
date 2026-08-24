@@ -85,7 +85,7 @@
 								<td>
 									<textarea asp-for="Items[i].Name" class="item-name" required></textarea>
 									<input type="hidden" asp-for="Items[i].MedicineId" class="item-id"/>
-									<input type="hidden" asp-for="Items[i].Id"/>
+									<input type="hidden" asp-for="Items[i].Id" />
 								</td>
 								<td>
 									<textarea asp-for="Items[i].Batch" class="item-batch" required></textarea>
@@ -140,7 +140,7 @@
 							<td>
 								<textarea name="Items[0].Name" class="item-name" required></textarea>
 								<input type="hidden" name="Items[0].MedicineId" class="item-id"/>
-								<input type="hidden" name="Items[0].Id"/>
+								<input type="hidden" name="Items[0].Id" value="0" />
 							</td>
 							<td>
 								<textarea name="Items[0].Batch" class="item-batch" required></textarea>

@@ -165,7 +165,7 @@ function itemHtml(count) {
 		'<td>' +
 		'<textarea class="item-name" name="Items[' + count + '].Name" required></textarea>' +
 		'<input type="hidden" class="item-id" name="Items[' + count + '].MedicineId">' +
-		'<input type="hidden" name="Items[' + count + '].Id">' +
+		'<input type="hidden" name="Items[' + count + '].Id" value="0">' +
 		'</td>' +
 		'<td>' +
 		'<textarea class="item-batch" name="Items[' + count + '].Batch" required></textarea>' +

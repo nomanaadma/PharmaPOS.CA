@@ -1,21 +1,24 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Helpers;
+using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 [Route("Medicines/Purchase/[action]")]
 public class PurchaseController(
-	ApplicationDbContext context
+	ApplicationDbContext context,
+	PurchaseService purchaseService,
+	SupplierService supplierService,
+	ILogger<PurchaseController> logger
 ) : BaseController
 {
 	[HttpGet("/Medicines/Purchase")]
@@ -57,23 +60,14 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.View)]
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var purchase = await context.Purchases
-			.Include(mp => mp.Supplier)
-			.Include(mp => mp.Batches)
-				.ThenInclude(b => b.Medicine)
-			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+		var result = await purchaseService.GetPurchaseForViewAsync(id, ct);
 
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-		if (purchase == null)
-		{
-			NotifyWarning("Purchase record does not exist in database!");
-			return NotFound();
-		}
-
-		var model = PurchaseMapper.MapToPurchaseView(purchase);
+		var model = PurchaseMapper.MapToPurchaseView(result.Value);
 
 		return View(model);
-
 	}
 
 	[HttpGet]
@@ -82,7 +76,7 @@ public class PurchaseController(
 	{
 		var medicineViewModel = new PurchaseFormModel
 		{
-			Suppliers = await GetSuppliersAsync(ct)
+			Suppliers = await supplierService.GetSuppliersAsync(ct)
 		};
 		
 		return View("PurchaseForm", medicineViewModel);
@@ -93,8 +87,7 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.Add)]
 	public async Task<IActionResult> Add(PurchaseFormModel model, CancellationToken ct = default)
 	{
-		
-		model.Suppliers = await GetSuppliersAsync(ct);
+		model.Suppliers = await supplierService.GetSuppliersAsync(ct);
 		
 		if (!ModelState.IsValid)
 		{
@@ -102,81 +95,26 @@ public class PurchaseController(
 			return View("PurchaseForm", model);	
 		}
 		
-		if (model.Items.Count == 0)
-		{
-			NotifyError("Missing purchase items.");
-			return View("PurchaseForm", model);
-		}
+		var result = await purchaseService.CreatePurchaseAsync(model, ct);
 
-		await using var transaction = await context.Database.BeginTransactionAsync(ct);
-		try
-		{
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-			var details = new PurchaseDetails(
-				model.Supplier,
-				model.Date,
-				model.SubTotal,
-				model.Tax,
-				model.Discount,
-				model.Amount,
-				model.Note
-			);
-			var purchase = new Purchase(details);
-
-			context.Purchases.Add(purchase);
-			await context.SaveChangesAsync(ct);
-
-			// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-			foreach (var item in model.Items)
-			{
-				
-				var pricing = PricingHelper.PricingDetails(item);
-
-				var batchDetails = new BatchDetails(
-					item.Batch,
-					item.Expiry,
-					item.Pqty,
-					pricing,
-					item.Purchaseprice,
-					item.MedicineId,
-					purchase.Id
-				);
-				var batch = new Batch(batchDetails);
-				purchase.AddBatch(batch);
-			}
-
-			await context.SaveChangesAsync(ct);
-			await transaction.CommitAsync(ct);
-
-			NotifySuccess("Purchase created successfully.");
-			return RedirectToAction(nameof(Index));
-		}	
-		catch (Exception ex)
-		{
-			await transaction.RollbackAsync(ct);
-			NotifyError("Error saving purchase: " + ex.Message);
-			return View("PurchaseForm", model);
-		}
+		NotifySuccess("Purchase created successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpGet("{id:int}")]
 	[Authorize(Policy = Permissions.Purchase.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var purchase = await context.Purchases
-			.Include(mp => mp.Supplier)
-			.Include(mp => mp.Batches)
-				.ThenInclude(b => b.Medicine)
-			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+		var result = await purchaseService.GetPurchaseForEditAsync(id, ct);
 
-		if (purchase == null)
-		{
-			NotifyWarning("Purchase record does not exist in database!");
-			return NotFound();
-		}
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 		
-		var suppliers = await GetSuppliersAsync(ct);
-		var model = PurchaseMapper.MapToPurchaseForm(purchase, suppliers);
+		var suppliers = await supplierService.GetSuppliersAsync(ct);
+		var model = PurchaseMapper.MapToPurchaseForm(result.Value, suppliers);
 
 		return View("PurchaseForm", model);
 	}
@@ -186,15 +124,13 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.Edit)]
 	public async Task<IActionResult> Edit(int id, PurchaseFormModel model, CancellationToken ct = default)
 	{
-		
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
 			return BadRequest();
 		}
 		
-		
-		model.Suppliers = await GetSuppliersAsync(ct);
+		model.Suppliers = await supplierService.GetSuppliersAsync(ct);
 
 		if (!ModelState.IsValid)
 		{
@@ -202,111 +138,13 @@ public class PurchaseController(
 			return View("PurchaseForm", model);
 		}
 
-		if (model.Items.Count == 0)
-		{
-			NotifyError("Missing purchase items.");
-			return View("PurchaseForm", model);
-		}
+		var result = await purchaseService.UpdatePurchaseAsync(id, model, ct);
 
-		await using var transaction = await context.Database.BeginTransactionAsync(ct);
-		try
-		{
-			var existingPurchase = await context.Purchases
-				.Include(mp => mp.Batches)
-				
-				.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-			if (existingPurchase == null)
-			{
-				NotifyError("Purchase not found.");
-				return NotFound();
-			}
-
-			var details = new PurchaseDetails(
-				model.Supplier,
-				model.Date,
-				model.SubTotal,
-				model.Tax,
-				model.Discount,
-				model.Amount,
-				model.Note
-			);
-			existingPurchase.Update(details);
-
-			var submittedBatchIds = model.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
-
-			var batchesToRemove = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
-			foreach (var bToRemove in batchesToRemove)
-			{
-				if (bToRemove.Sold > 0)
-				{
-					await transaction.RollbackAsync(ct);
-					NotifyError($"Cannot delete batch '{bToRemove.BatchName}' because it has already been sold.");
-					return View("PurchaseForm", model);
-				}
-				context.Batches.Remove(bToRemove);
-			}
-
-			foreach (var item in model.Items)
-			{
-				
-				var pricing = PricingHelper.PricingDetails(item);
-				
-				if (item.Id != 0)
-				{
-					var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id);
-					
-					if (existingBatch == null) continue;
-					
-					if (pricing.Qty < existingBatch.Sold)
-					{
-						await transaction.RollbackAsync(ct);
-						NotifyError($"Cannot update batch '{existingBatch.BatchName}'. New quantity ({pricing.Qty}) is less than the amount already sold ({existingBatch.Sold}).");
-						return View("PurchaseForm", model);
-					}
-
-					var batchDetails = new BatchDetails(
-						item.Batch,
-						item.Expiry,
-						item.Pqty,
-						pricing,
-						item.Purchaseprice,
-						item.MedicineId,
-						existingPurchase.Id
-					);
-					existingBatch.Update(batchDetails);
-
-				}
-				else
-				{
-
-					var batchDetails = new BatchDetails(
-						item.Batch,
-						item.Expiry,
-						item.Pqty,
-						pricing,
-						item.Purchaseprice,
-						item.MedicineId,
-						existingPurchase.Id
-					);
-					var newBatch = new Batch(batchDetails);
-					existingPurchase.AddBatch(newBatch);
-				}
-			}
-
-			await context.SaveChangesAsync(ct);
-			await transaction.CommitAsync(ct);
-			
-
-			NotifySuccess("Purchase updated successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			await transaction.RollbackAsync(ct);
-			NotifyError("Error updating purchase: " + ex.Message);
-			return View("PurchaseForm", model);
-		}
+		NotifySuccess("Purchase updated successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpPost]
@@ -314,45 +152,44 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.Delete)]
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			var purchase = await context.Purchases
-				.Include(mp => mp.Batches)
-				.FirstOrDefaultAsync(mp => mp.Id == id, ct);
-			
-			if (purchase == null)
-			{
-				NotifyError("Purchase record not found.");
-				return NotFound();
-			}
+		var result = await purchaseService.DeletePurchaseAsync(id, ct);
 
-			if (purchase.Batches.Any(b => b.Sold > 0))
-			{
-				NotifyError("Cannot delete purchase because one or more batches have already been sold.");
-				return RedirectToAction(nameof(Index));
-			}
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-			context.Purchases.Remove(purchase);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Purchase deleted successfully.");
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error deleting purchase: " + ex.Message);
-		}
-
+		NotifySuccess("Purchase deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
-	
-	private async Task<IEnumerable<SelectListItem>> GetSuppliersAsync(CancellationToken ct = default)
+
+	/// <summary>
+	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
+	/// and notifications. Optionally returns to the form view with the model.
+	/// </summary>
+	private IActionResult HandleErrors(List<Error> errors, PurchaseFormModel? model = null)
 	{
-		return await context.Suppliers.OrderBy(s => s.Name)
-			.Select(s => new SelectListItem
-			{
-				Value = s.Id.ToString(),
-				Text = s.Name
-			})
-			.ToListAsync(ct);
+		var firstError = errors[0];
+
+		logger.LogWarning("Purchase operation failed: {ErrorCode} - {ErrorDescription}",
+			firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyWarning(firstError.Description);
+				return NotFound();
+
+			case ErrorType.Validation:
+			case ErrorType.Conflict:
+				NotifyError(firstError.Description);
+				return model != null
+					? View("PurchaseForm", model)
+					: RedirectToAction(nameof(Index));
+
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null
+					? View("PurchaseForm", model)
+					: RedirectToAction(nameof(Index));
+		}
 	}
 }
