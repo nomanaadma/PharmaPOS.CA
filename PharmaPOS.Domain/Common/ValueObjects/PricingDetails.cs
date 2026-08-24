@@ -18,8 +18,6 @@ public record PricingDetails
 		decimal taxPrice,
 		decimal price)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(qty);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(salePrice);
 
 		Qty = qty;
 		SalePrice = salePrice;

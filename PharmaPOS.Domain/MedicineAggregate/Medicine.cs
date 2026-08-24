@@ -33,12 +33,7 @@ public class Medicine : EntityWithDate
 	
 	public void Update(MedicineDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Company);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Generic);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.CategoryId);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Unit);
-
+		
 		Name = details.Name;
 		Company = details.Company;
 		Generic = details.Generic;

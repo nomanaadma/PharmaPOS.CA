@@ -28,14 +28,6 @@ public class Bill : OrderDetails
 
 	public void Update(BillDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.CustomerId);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MethodId);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SubTotal);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Tax);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Discount);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Amount);
-
 		CustomerId = details.CustomerId;
 		Name = details.Name;
 		Email = details.Email;

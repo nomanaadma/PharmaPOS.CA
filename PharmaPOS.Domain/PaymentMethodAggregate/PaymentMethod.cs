@@ -19,8 +19,6 @@ public class PaymentMethod : EntityWithDate
 
 	public void Update(PaymentMethodDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
-		Guard.ThrowIfUndefined(details.Status);
 		
 		Name = details.Name;
 		Status = details.Status;

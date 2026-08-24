@@ -17,8 +17,6 @@ public class MedicineCategory : Entity
 
 	public void Update(string name)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
 		Name = name;
 	}
 }

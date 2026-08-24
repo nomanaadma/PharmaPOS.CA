@@ -29,11 +29,6 @@ public class Batch : EntityWithDate
 
 	public void Update(BatchDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.BatchName);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Expiry);
-		ArgumentNullException.ThrowIfNull(details.Pricing);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.PurchasePrice);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MedicineId);
 
 		BatchName = details.BatchName;
 		Expiry = details.Expiry;
@@ -46,7 +41,6 @@ public class Batch : EntityWithDate
 
 	public void UpdateSold(decimal sold)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sold);
 		Sold = sold;
 	}
 

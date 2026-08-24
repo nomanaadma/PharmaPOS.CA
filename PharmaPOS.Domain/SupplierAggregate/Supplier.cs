@@ -19,10 +19,6 @@ public class Supplier : EntityWithDate
 
 	public void Update(SupplierDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Email);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Phone);
-
 		Name = details.Name;
 		Email = details.Email;
 		Phone = details.Phone;

@@ -22,12 +22,6 @@ public class Purchase : OrderDetails
 
 	public void Update(PurchaseDetails details)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SupplierId);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.SubTotal);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Tax);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Discount);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.Amount);
-
 		SupplierId = details.SupplierId;
 		Date = details.Date;
 		SubTotal = details.SubTotal;

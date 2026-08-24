@@ -25,10 +25,6 @@ public class BillItem : Entity
 
 	private void Update(BillItemDetails details)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.MedicineId);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(details.BatchId);
-		ArgumentNullException.ThrowIfNull(details.Pricing);
-
 		BillId = details.BillId;
 		MedicineId = details.MedicineId;
 		BatchId = details.BatchId;

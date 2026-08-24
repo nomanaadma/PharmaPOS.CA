@@ -7,9 +7,6 @@ public class Media : EntityWithDate
 
 	public Media(string filename, string ext, DateTime createdDate)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(filename);
-		ArgumentException.ThrowIfNullOrWhiteSpace(ext);
-
 		Filename = filename;
 		Ext = ext;
 		CreatedDate = createdDate;

@@ -23,13 +23,6 @@ public class Customer : EntityWithDate
 
 	public void Update(CustomerDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.FirstName);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.LastName);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Email);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Mobile);
-
-		Guard.ThrowIfUndefined(details.Gender);
-		Guard.ThrowIfUndefined(details.Status);
 
 		FirstName = details.FirstName;
 		LastName = details.LastName;

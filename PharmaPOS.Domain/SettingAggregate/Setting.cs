@@ -25,11 +25,6 @@ public class Setting : Entity
 
 	public void Update(SettingDetails details)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Name);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.LegalName);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Mail);
-		ArgumentException.ThrowIfNullOrWhiteSpace(details.Phone);
-
 		Name = details.Name;
 		LegalName = details.LegalName;
 		Mail = details.Mail;
@@ -46,6 +41,6 @@ public class Setting : Entity
 
 	public void UpdateAddress(Address address)
 	{
-		Address = address ?? throw new ArgumentNullException(nameof(address));
+		Address = address;
 	}
 }
