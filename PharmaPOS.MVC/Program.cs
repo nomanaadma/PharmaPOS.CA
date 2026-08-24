@@ -40,6 +40,8 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<SiteInfoService>();
+builder.Services.AddScoped<BillingService>();
+builder.Services.AddScoped<CustomerService>();
 
 var app = builder.Build();
 

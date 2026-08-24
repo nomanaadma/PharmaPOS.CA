@@ -13,8 +13,8 @@ public static class CustomerMapper
             Id = c.Id,
             FirstName = c.FirstName,
             LastName = c.LastName,
-            Email = c.Email,
-            Mobile = c.Mobile,
+            Email = c.Email ?? string.Empty,
+            Mobile = c.Mobile ?? string.Empty,
             Gender = c.Gender,
             Status = c.Status,
             CreatedDate = c.CreatedDate

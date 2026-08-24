@@ -16,8 +16,8 @@ public class Customer : EntityWithDate
 	
 	public string FirstName { get; private set; } = null!;
 	public string LastName { get; private set; } = null!;
-	public string Email { get; private set; } = null!;
-	public string Mobile { get; private set; } = null!;
+	public string? Email { get; private set; }
+	public string? Mobile { get; private set; }
 	public Gender? Gender { get; private set; }
 	public Status Status { get; private set; }
 

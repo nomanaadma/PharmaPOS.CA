@@ -210,7 +210,7 @@ public class CustomersController(
 		var results = await context.Customers
 			.Where(c => EF.Functions.ILike(c.FirstName, $"%{term}%") || 
 			            EF.Functions.ILike(c.LastName, $"%{term}%") || 
-			            EF.Functions.ILike(c.Mobile, $"%{term}%"))
+			            EF.Functions.ILike(c.Mobile ?? string.Empty, $"%{term}%"))
 			.Take(7)
 			.Select(c => new 
 			{
