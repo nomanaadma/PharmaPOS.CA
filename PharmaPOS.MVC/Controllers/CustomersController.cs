@@ -1,30 +1,28 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.Domain.CustomerAggregate;
-using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
+using PharmaPOS.MVC.Services;
+using PharmaPOS.MVC.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class CustomersController(
-	ApplicationDbContext context
+	ApplicationDbContext context,
+	CustomerService customerService,
+	ILogger<CustomersController> logger
 ) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var customersQuery = await context.Customers
-			.OrderByDescending(c => c.CreatedDate)
-			.ToListAsync(ct);
-
+		var customersQuery = await customerService.GetAllCustomersAsync(ct);
 		var customers = CustomerMapper.MapToCustomers(customersQuery);
-
 		return View(customers);
 	}
 
@@ -45,40 +43,23 @@ public class CustomersController(
 			return View("CustomerForm", model);
 		}
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email, ct))
-		{
-			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
-			return View("CustomerForm", model);
-		}
+		var result = await customerService.CreateCustomerAsync(model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
-			var customer = new Customer(details);
-			context.Customers.Add(customer);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Customer created successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error saving customer: " + ex.Message);
-			return View("CustomerForm", model);
-		}
+		NotifySuccess("Customer created successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.View)]
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
-		if (customer == null)
-		{
-			NotifyWarning("Customer does not exist in database!");
-			return NotFound();
-		}
+		var result = await customerService.GetCustomerAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
+		var customer = result.Value;
 		var recentBills = await context.Bills
 			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
 			.OrderByDescending(b => b.Date)
@@ -98,15 +79,11 @@ public class CustomersController(
 	[Authorize(Policy = Permissions.Customer.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
-		if (customer == null)
-		{
-			NotifyWarning("Customer does not exist in database!");
-			return NotFound();
-		}
+		var result = await customerService.GetCustomerAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-		var model = CustomerMapper.MapToCustomer(customer);
-
+		var model = CustomerMapper.MapToCustomer(result.Value);
 		return View("CustomerForm", model);
 	}
 
@@ -115,7 +92,6 @@ public class CustomersController(
 	[Authorize(Policy = Permissions.Customer.Edit)]
 	public async Task<IActionResult> Edit(int id, CustomerViewModel model, CancellationToken ct = default)
 	{
-		
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
@@ -133,33 +109,12 @@ public class CustomersController(
 			return View("CustomerForm", model);
 		}
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id, ct))
-		{
-			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
-			return View("CustomerForm", model);
-		}
+		var result = await customerService.UpdateCustomerAsync(id, model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
-			if (customer == null)
-			{
-				NotifyError("Customer not found.");
-				return NotFound();
-			}
-
-			var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
-			customer.Update(details);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Customer updated successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error updating customer: " + ex.Message);
-			return View("CustomerForm", model);
-		}
+		NotifySuccess("Customer updated successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpPost]
@@ -167,25 +122,11 @@ public class CustomersController(
 	[Authorize(Policy = Permissions.Customer.Delete)]
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
-			if (customer == null)
-			{
-				NotifyError("Customer not found.");
-				return NotFound();
-			}
+		var result = await customerService.DeleteCustomerAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-			context.Customers.Remove(customer);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Customer deleted successfully.");
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error deleting customer: " + ex.Message);
-		}
-
+		NotifySuccess("Customer deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
 
@@ -193,7 +134,6 @@ public class CustomersController(
 	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> SearchCustomer(string term, CancellationToken ct = default)
 	{
-		
 		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
 		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
 		
@@ -223,5 +163,31 @@ public class CustomersController(
 		
 		return Json(results);
 	}
-	
+
+	private IActionResult HandleErrors(List<Error> errors, CustomerViewModel? model = null)
+	{
+		var firstError = errors[0];
+		logger.LogWarning("Customer operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyError(firstError.Description);
+				return NotFound();
+			case ErrorType.Validation:
+			case ErrorType.Conflict:
+				if (firstError.Code == "Customer.EmailNotUnique" && model != null)
+				{
+					ModelState.AddModelError(nameof(model.Email), firstError.Description);
+				}
+				else
+				{
+					NotifyError(firstError.Description);
+				}
+				return model != null ? View("CustomerForm", model) : RedirectToAction(nameof(Index));
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null ? View("CustomerForm", model) : RedirectToAction(nameof(Index));
+		}
+	}
 }

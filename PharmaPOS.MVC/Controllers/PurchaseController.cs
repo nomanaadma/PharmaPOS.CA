@@ -60,7 +60,7 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.View)]
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var result = await purchaseService.GetPurchaseForViewAsync(id, ct);
+		var result = await purchaseService.GetPurchaseAsync(id, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors);
@@ -108,7 +108,7 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var result = await purchaseService.GetPurchaseForEditAsync(id, ct);
+		var result = await purchaseService.GetPurchaseAsync(id, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors);

@@ -58,9 +58,10 @@ public class BillingService(
 
 		foreach (var item in model.Items)
 		{
-			var pricing = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.PricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
 
-			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
+			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricingResult.Value);
 			var billItemResult = BillItem.Create(billItemDetails);
 
 			if (billItemResult.IsError)
@@ -156,9 +157,10 @@ public class BillingService(
 		// Add new items and update sold quantities
 		foreach (var item in model.Items)
 		{
-			var pricing = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.PricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
 
-			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricing);
+			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricingResult.Value);
 			var billItemResult = BillItem.Create(billItemDetails);
 			
 			if (billItemResult.IsError)
@@ -244,7 +246,7 @@ public class BillingService(
 			return BillErrors.NotFound(id);
 
 		// Ensure each item's own batch is in the Medicine.Batches collection
-		// (it may be expired/inactive but we still need to display it)
+		// (it may be expired/inactive, but we still need to display it)
 		foreach (var item in bill.Items)
 		{
 			var batchAlreadyLoaded = item.Medicine.Batches.Any(b => b.Id == item.BatchId);
@@ -263,7 +265,7 @@ public class BillingService(
 	/// <summary>
 	/// Loads a bill with all related data for the Details (view) action.
 	/// </summary>
-	public async Task<ErrorOr<Bill>> GetBillForViewAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Bill>> GetBillAsync(int id, CancellationToken ct = default)
 	{
 		var bill = await context.Bills
 			.Include(b => b.PaymentMethod)

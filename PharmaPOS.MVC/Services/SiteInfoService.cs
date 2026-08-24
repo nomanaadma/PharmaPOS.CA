@@ -17,7 +17,9 @@ public class SiteInfoService(ApplicationDbContext dbContext, IWebHostEnvironment
 		if (settings == null)
 		{
 			var details = new SettingDetails("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
-			settings = new Setting(details);
+			var settingsResult = Setting.Create(details);
+			if (settingsResult.IsError) throw new Exception("Failed to initialize default settings");
+			settings = settingsResult.Value;
 			settings.UpdateAddress(Address.Empty);
 		}
 		

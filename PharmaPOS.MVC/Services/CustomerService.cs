@@ -1,4 +1,5 @@
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
@@ -35,12 +36,86 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 			Gender.NotSpecified,
 			Status.Active
 		);
-		var newCustomer = new Customer(customerDetails);
+		
+		return await SaveCustomerAsync(customerDetails, "Created walk-in customer {CustomerId} from billing form", ct);
+		
+	}
+	
+	
+	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerViewModel model, CancellationToken ct = default)
+	{
+		if (await context.Customers.AnyAsync(c => c.Email == model.Email, ct))
+			return CustomerErrors.EmailNotUnique;
 
-		context.Customers.Add(newCustomer);
+		var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
+		
+		return await SaveCustomerAsync(details, "Customer {CustomerId} created", ct);
+		
+	}
+	
+	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerDetails details, string logMessage, CancellationToken ct)
+	{
+		var customerResult = Customer.Create(details);
+		if (customerResult.IsError)
+			return customerResult.Errors;
+
+		var customer = customerResult.Value;
+		context.Customers.Add(customer);
+    
 		await context.SaveChangesAsync(ct);
 
-		logger.LogInformation("Created walk-in customer {CustomerId} from billing form", newCustomer.Id);
-		return newCustomer.Id;
+		logger.LogInformation(logMessage, customer.Id);
+		return customer.Id;
 	}
+
+	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerViewModel model, CancellationToken ct = default)
+	{
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		if (customer == null)
+			return CustomerErrors.NotFound(id);
+
+		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id, ct))
+			return CustomerErrors.EmailNotUnique;
+
+		var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
+
+		var updateResult = customer.Update(details);
+		if (updateResult.IsError)
+			return updateResult.Errors;
+
+		await context.SaveChangesAsync(ct);
+
+		logger.LogInformation("Customer {CustomerId} updated", id);
+		return customer.Id;
+	}
+
+	public async Task<ErrorOr<Deleted>> DeleteCustomerAsync(int id, CancellationToken ct = default)
+	{
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		if (customer == null)
+			return CustomerErrors.NotFound(id);
+
+		context.Customers.Remove(customer);
+		await context.SaveChangesAsync(ct);
+
+		logger.LogInformation("Customer {CustomerId} deleted", id);
+		return Result.Deleted;
+	}
+
+	public async Task<ErrorOr<Customer>> GetCustomerAsync(int id, CancellationToken ct = default)
+	{
+		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		if (customer == null)
+			return CustomerErrors.NotFound(id);
+
+		return customer;
+	}
+
+	public async Task<List<Customer>> GetAllCustomersAsync(CancellationToken ct = default)
+	{
+		return await context.Customers
+			.OrderByDescending(c => c.CreatedDate)
+			.ToListAsync(ct);
+	}
+	
 }

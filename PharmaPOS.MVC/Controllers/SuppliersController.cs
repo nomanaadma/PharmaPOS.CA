@@ -1,28 +1,24 @@
-using System.Threading;
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Domain.SupplierAggregate;
-using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
+using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class SuppliersController(
-	ApplicationDbContext context
+	SupplierService supplierService,
+	ILogger<SuppliersController> logger
 ) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Suppliers.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var suppliersQuery = await context.Suppliers
-			.OrderBy(s => s.Id)
-			.ToListAsync(ct);
-
+		var suppliersQuery = await supplierService.GetAllSuppliersAsync(ct);
 		var suppliers = SettingMapper.MapToSuppliers(suppliersQuery);
 		return View(suppliers);
 	}
@@ -44,42 +40,23 @@ public class SuppliersController(
 			return View("SupplierForm", model);
 		}
 
-		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email, ct))
-		{
-			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
-			return View("SupplierForm", model);
-		}
+		var result = await supplierService.CreateSupplierAsync(model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
-			var supplier = new Supplier(details);
-			context.Suppliers.Add(supplier);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Supplier created successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error saving supplier: " + ex.Message);
-			return View("SupplierForm", model);
-		}
+		NotifySuccess("Supplier created successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Suppliers.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id, ct);
-		if (supplier == null)
-		{
-			NotifyError("Supplier not found.");
-			return NotFound();
-		}
+		var result = await supplierService.GetSupplierAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-		var model = SettingMapper.MapToSupplier(supplier);
-
+		var model = SettingMapper.MapToSupplier(result.Value);
 		return View("SupplierForm", model);
 	}
 	
@@ -105,33 +82,12 @@ public class SuppliersController(
 			return View("SupplierForm", model);
 		}
 
-		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email && s.Id != model.Id, ct))
-		{
-			ModelState.AddModelError(nameof(model.Email), "Email Address must be unique.");
-			return View("SupplierForm", model);
-		}
+		var result = await supplierService.UpdateSupplierAsync(id, model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id, ct);
-			if (supplier == null)
-			{
-				NotifyError("Supplier not found.");
-				return NotFound();
-			}
-
-			var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
-			supplier.Update(details);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Supplier updated successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error updating supplier: " + ex.Message);
-			return View("SupplierForm", model);
-		}
+		NotifySuccess("Supplier updated successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpPost]
@@ -139,25 +95,38 @@ public class SuppliersController(
 	[Authorize(Policy = Permissions.Suppliers.Delete)]
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id, ct);
-			if (supplier == null)
-			{
-				NotifyError("Supplier not found.");
-				return NotFound();
-			}
+		var result = await supplierService.DeleteSupplierAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-			context.Suppliers.Remove(supplier);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Supplier deleted successfully.");
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error deleting supplier: " + ex.Message);
-		}
-
+		NotifySuccess("Supplier deleted successfully.");
 		return RedirectToAction(nameof(Index));
+	}
+
+	private IActionResult HandleErrors(List<Error> errors, SupplierViewModel? model = null)
+	{
+		var firstError = errors[0];
+		logger.LogWarning("Supplier operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyError(firstError.Description);
+				return NotFound();
+			case ErrorType.Validation:
+			case ErrorType.Conflict:
+				if (firstError.Code == "Supplier.EmailNotUnique" && model != null)
+				{
+					ModelState.AddModelError(nameof(model.Email), firstError.Description);
+				}
+				else
+				{
+					NotifyError(firstError.Description);
+				}
+				return model != null ? View("SupplierForm", model) : RedirectToAction(nameof(Index));
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null ? View("SupplierForm", model) : RedirectToAction(nameof(Index));
+		}
 	}
 }

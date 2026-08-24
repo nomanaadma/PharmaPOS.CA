@@ -26,12 +26,12 @@ public static class PurchaseErrors
 	    Error.Validation("Purchase.InvalidAmount", "Amount cannot be negative.");
     
     public static Error InvalidSubTotal =>
-	    Error.Validation("Purchase.InvalidAmount", "SubTotal cannot be negative.");
+	    Error.Validation("Purchase.InvalidSubTotal", "SubTotal cannot be negative.");
     
     public static Error InvalidTax =>
-	    Error.Validation("Purchase.InvalidAmount", "Tax cannot be negative.");
+	    Error.Validation("Purchase.InvalidTax", "Tax cannot be negative.");
     
     public static Error InvalidDiscount =>
-	    Error.Validation("Purchase.InvalidAmount", "Discount cannot be negative.");
+	    Error.Validation("Purchase.InvalidDiscount", "Discount cannot be negative.");
     
 }

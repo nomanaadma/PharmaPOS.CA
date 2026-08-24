@@ -63,7 +63,11 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 			await file.CopyToAsync(stream, ct);
 		}
 
-		var media = new Media(fileName, ext, DateTime.UtcNow);
+		var mediaResult = Media.Create(fileName, ext, DateTime.UtcNow);
+		if (mediaResult.IsError)
+			return Json(new { error = true, message = mediaResult.Errors[0].Description });
+
+		var media = mediaResult.Value;
 		dbContext.Media.Add(media);
 		await dbContext.SaveChangesAsync(ct);
 

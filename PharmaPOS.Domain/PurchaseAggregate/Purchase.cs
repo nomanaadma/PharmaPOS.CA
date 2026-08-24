@@ -65,10 +65,6 @@ public class Purchase : OrderDetails
 		return Result.Success;
 	}
 
-	public void ClearBatches()
-	{
-		_batches.Clear();
-	}
 
 	private void SetDetails(PurchaseDetails details)
 	{

@@ -39,13 +39,14 @@ public class PurchaseService(
 
 		foreach (var item in model.Items)
 		{
-			var pricing = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.PricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var batchDetails = new BatchDetails(
 				item.Batch,
 				item.Expiry,
 				item.Pqty,
-				pricing,
+				pricingResult.Value,
 				item.Purchaseprice,
 				item.MedicineId,
 				purchase.Id
@@ -108,13 +109,14 @@ public class PurchaseService(
 
 		foreach (var item in model.Items)
 		{
-			var pricing = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.PricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var batchDetails = new BatchDetails(
 				item.Batch,
 				item.Expiry,
 				item.Pqty,
-				pricing,
+				pricingResult.Value,
 				item.Purchaseprice,
 				item.MedicineId,
 				existingPurchase.Id
@@ -125,8 +127,8 @@ public class PurchaseService(
 				var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id);
 				if (existingBatch == null) continue;
 
-				if (pricing.Qty < existingBatch.Sold)
-					return PurchaseErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricing.Qty, existingBatch.Sold);
+				if (pricingResult.Value.Qty < existingBatch.Sold)
+					return PurchaseErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricingResult.Value.Qty, existingBatch.Sold);
 
 				var batchUpdateResult = existingBatch.Update(batchDetails);
 				if (batchUpdateResult.IsError)
@@ -168,7 +170,7 @@ public class PurchaseService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<Purchase>> GetPurchaseForEditAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Purchase>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
@@ -182,17 +184,4 @@ public class PurchaseService(
 		return purchase;
 	}
 
-	public async Task<ErrorOr<Purchase>> GetPurchaseForViewAsync(int id, CancellationToken ct = default)
-	{
-		var purchase = await context.Purchases
-			.Include(mp => mp.Supplier)
-			.Include(mp => mp.Batches)
-				.ThenInclude(b => b.Medicine)
-			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
-
-		if (purchase == null)
-			return PurchaseErrors.NotFound(id);
-
-		return purchase;
-	}
 }

@@ -1,28 +1,24 @@
-using System.Threading;
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Domain.MedicineCategoryAggregate;
-using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
+using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class CategoriesController(
-	ApplicationDbContext context
+	CategoryService categoryService,
+	ILogger<CategoriesController> logger
 ) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var categoriesQuery = await context.MedicineCategories
-			.OrderBy(c => c.Id)
-			.ToListAsync(ct);
-
+		var categoriesQuery = await categoryService.GetAllCategoriesAsync(ct);
 		var categories = SettingMapper.MapToMedicineCategories(categoriesQuery);
 		
 		return View(categories);
@@ -45,41 +41,23 @@ public class CategoriesController(
 			return View("CategoryForm", model);
 		}
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name, ct))
-		{
-			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
-			return View("CategoryForm", model);
-		}
+		var result = await categoryService.CreateCategoryAsync(model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var category = new MedicineCategory(model.Name);
-			context.MedicineCategories.Add(category);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Category created successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error saving category: " + ex.Message);
-			return View("CategoryForm", model);
-		}
+		NotifySuccess("Category created successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpGet]
 	[Authorize(Policy = Permissions.Category.Edit)]
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
-		if (category == null)
-		{
-			NotifyError("Category not found.");
-			return NotFound();
-		}
+		var result = await categoryService.GetCategoryAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-		var model = SettingMapper.MapToMedicineCategory(category);
-
+		var model = SettingMapper.MapToMedicineCategory(result.Value);
 		return View("CategoryForm", model);
 	}
 	
@@ -105,32 +83,12 @@ public class CategoriesController(
 			return View("CategoryForm", model);
 		}
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == model.Name && c.Id != model.Id, ct))
-		{
-			ModelState.AddModelError(nameof(model.Name), "Category Name must be unique.");
-			return View("CategoryForm", model);
-		}
+		var result = await categoryService.UpdateCategoryAsync(id, model, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors, model);
 
-		try
-		{
-			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == model.Id, ct);
-			if (category == null)
-			{
-				NotifyError("Category not found.");
-				return NotFound();
-			}
-
-			category.Update(model.Name);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Category updated successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error updating category: " + ex.Message);
-			return View("CategoryForm", model);
-		}
+		NotifySuccess("Category updated successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpPost]
@@ -138,25 +96,38 @@ public class CategoriesController(
 	[Authorize(Policy = Permissions.Category.Delete)]
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
-			if (category == null)
-			{
-				NotifyError("Category not found.");
-				return NotFound();
-			}
+		var result = await categoryService.DeleteCategoryAsync(id, ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-			context.MedicineCategories.Remove(category);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Category deleted successfully.");
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error deleting category: " + ex.Message);
-		}
-
+		NotifySuccess("Category deleted successfully.");
 		return RedirectToAction(nameof(Index));
+	}
+
+	private IActionResult HandleErrors(List<Error> errors, MedicineCategoryViewModel? model = null)
+	{
+		var firstError = errors[0];
+		logger.LogWarning("Category operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyError(firstError.Description);
+				return NotFound();
+			case ErrorType.Validation:
+			case ErrorType.Conflict:
+				if (firstError.Code == "Category.NameNotUnique" && model != null)
+				{
+					ModelState.AddModelError(nameof(model.Name), firstError.Description);
+				}
+				else
+				{
+					NotifyError(firstError.Description);
+				}
+				return model != null ? View("CategoryForm", model) : RedirectToAction(nameof(Index));
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null ? View("CategoryForm", model) : RedirectToAction(nameof(Index));
+		}
 	}
 }

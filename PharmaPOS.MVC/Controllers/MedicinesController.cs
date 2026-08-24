@@ -1,44 +1,30 @@
-using System.Threading;
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Models;
-using System.Text.Json;
 using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.MVC.DTOs;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
+using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class MedicinesController(
-	ApplicationDbContext context
+	ApplicationDbContext context,
+	MedicineService medicineService,
+	CategoryService categoryService,
+	ILogger<MedicinesController> logger
 ) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var currentMonth = DateTime.UtcNow.ExpiryFormat();
-
-		var medicines = await context.Medicines
-			.Include(m => m.Category)
-			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new MedicineWithStockDto
-			(
-				Medicine: m, // The raw entity
-				// The SQL aggregation
-				LiveStock: m.Batches
-					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
-			))
-			.ToListAsync(ct);
-
+		var medicines = await medicineService.GetMedicinesWithStockAsync(ct);
 		var medicineResponse = MedicineMapper.MapToMedicinesWithStock(medicines);
 		
 		return View(medicineResponse);
@@ -50,7 +36,7 @@ public class MedicinesController(
 	{
 		var medicineViewModel = new MedicineViewModel
 		{
-			Categories = await GetMedicineCategoriesAsync(ct)
+			Categories = await categoryService.GetCategoriesAsync(ct)
 		};
 		
 		return View("MedicineForm", medicineViewModel);
@@ -62,41 +48,22 @@ public class MedicinesController(
 	
 	public async Task<IActionResult> Add(MedicineViewModel model, CancellationToken ct = default)
 	{
+		model.Categories = await categoryService.GetCategoriesAsync(ct);
+		
 		if (!ModelState.IsValid)
 		{
-			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);	
 		}
 
-		try
-		{
-			var details = new MedicineDetails(
-				model.Name,
-				model.Company,
-				model.Generic,
-				model.MedicineGroup,
-				model.CategoryId,
-				model.StoreBox,
-				model.MinLevel,
-				model.ReOrderLevel,
-				model.Unit,
-				model.UnitPacking,
-				model.Note
-			);
-			var medicine = new Medicine(details);
+		var result = await medicineService.CreateMedicineAsync(model, ct);
 
-			context.Medicines.Add(medicine);
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Medicine created successfully.");
-			return RedirectToAction(nameof(Index));
-		}
-		catch (Exception ex)
+		if (result.IsError)
 		{
-			NotifyError("Error saving medicine: " + ex.Message);
-			model.Categories = await GetMedicineCategoriesAsync(ct);
-			return View("MedicineForm", model);
+			return HandleErrors(result.Errors, model);
 		}
+
+		NotifySuccess("Medicine created successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpGet]
@@ -104,20 +71,14 @@ public class MedicinesController(
 	
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines
-			.Include(m => m.Category)
-			.FirstOrDefaultAsync(m => m.Id == id, ct);
+		var result = await medicineService.GetMedicineAsync(id, ct);
 
-		if (medicine == null)
-		{
-			NotifyWarning("Medicine does not exist in database!");
-			return NotFound();
-		}
-		
+		if (result.IsError)
+			return HandleErrors(result.Errors);
+
+		var medicine = result.Value;
 		var today = DateTime.UtcNow.Date;
-		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
-	
-		var currentMonthStr = currentMonthDate.ExpiryFormat();
+		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
 
 		var batchesQuery = await context.Batches
 			.Where(b => b.MedicineId == id)
@@ -147,15 +108,13 @@ public class MedicinesController(
 	
 	public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
-		if (medicine == null)
-		{
-			NotifyWarning("Medicine does not exist in database!");
-			return NotFound();
-		}
+		var result = await medicineService.GetMedicineAsync(id, ct);
+
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 		
-		var medicineCategories =  await GetMedicineCategoriesAsync(ct);
-		var model = MedicineMapper.MapToMedicine(medicine, medicineCategories);
+		var medicineCategories = await categoryService.GetCategoriesAsync(ct);
+		var model = MedicineMapper.MapToMedicine(result.Value, medicineCategories);
 		
 		return View("MedicineForm", model);
 	}
@@ -166,6 +125,10 @@ public class MedicinesController(
 	
 	public async Task<IActionResult> Edit(int id, MedicineViewModel model, CancellationToken ct = default)
 	{
+		
+		model.Categories = await categoryService.GetCategoriesAsync(ct);
+		
+			
 		if (id != model.Id)
 		{
 			NotifyError("Bad Request: ID mismatch.");
@@ -180,45 +143,18 @@ public class MedicinesController(
 
 		if (!ModelState.IsValid)
 		{
-			model.Categories = await GetMedicineCategoriesAsync(ct);
 			return View("MedicineForm", model);
 		}
 
-		try
+		var result = await medicineService.UpdateMedicineAsync(id, model, ct);
+
+		if (result.IsError)
 		{
-			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == model.Id, ct);
-			if (medicine == null)
-			{
-				NotifyError("Medicine not found.");
-				return NotFound();
-			}
-
-			var details = new MedicineDetails(
-				model.Name,
-				model.Company,
-				model.Generic,
-				model.MedicineGroup,
-				model.CategoryId,
-				model.StoreBox,
-				model.MinLevel,
-				model.ReOrderLevel,
-				model.Unit,
-				model.UnitPacking,
-				model.Note
-			);
-			medicine.Update(details);
-
-			await context.SaveChangesAsync(ct);
-
-			NotifySuccess("Medicine updated successfully.");
-			return RedirectToAction(nameof(Index));
+			return HandleErrors(result.Errors, model);
 		}
-		catch (Exception ex)
-		{
-			NotifyError("Error updating medicine: " + ex.Message);
-			model.Categories = await GetMedicineCategoriesAsync(ct);
-			return View("MedicineForm", model);
-		}
+
+		NotifySuccess("Medicine updated successfully.");
+		return RedirectToAction(nameof(Index));
 	}
 
 	[HttpPost]
@@ -227,39 +163,13 @@ public class MedicinesController(
 	
 	public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
 	{
-		try
-		{
-			var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
-			if (medicine == null)
-			{
-				NotifyError("Medicine not found.");
-				return NotFound();
-			}
+		var result = await medicineService.DeleteMedicineAsync(id, ct);
 
-			context.Medicines.Remove(medicine);
-			await context.SaveChangesAsync(ct);
+		if (result.IsError)
+			return HandleErrors(result.Errors);
 
-			NotifySuccess("Medicine deleted successfully.");
-		}
-		catch (Exception ex)
-		{
-			NotifyError("Error deleting medicine: " + ex.Message);
-		}
-
+		NotifySuccess("Medicine deleted successfully.");
 		return RedirectToAction(nameof(Index));
-	}
-
-	private async Task<IEnumerable<SelectListItem>> GetMedicineCategoriesAsync(CancellationToken ct = default)
-	{
-		return await context.MedicineCategories
-			.OrderBy(c => c.Name)
-			.Select(c => new SelectListItem
-			{
-				Value = c.Id.ToString(),
-				Text = c.Name
-			})
-			.ToListAsync(ct);
-		
 	}
 
 	[HttpGet("/getmedicine")]
@@ -368,5 +278,37 @@ public class MedicinesController(
 		};
 
 		return Json(new { error = false, result = result });
+	}
+
+	/// <summary>
+	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
+	/// and notifications.
+	/// </summary>
+	private IActionResult HandleErrors(List<Error> errors, MedicineViewModel? model = null)
+	{
+		var firstError = errors[0];
+
+		logger.LogWarning("Medicine operation failed: {ErrorCode} - {ErrorDescription}",
+			firstError.Code, firstError.Description);
+
+		switch (firstError.Type)
+		{
+			case ErrorType.NotFound:
+				NotifyWarning(firstError.Description);
+				return NotFound();
+
+			case ErrorType.Validation:
+			case ErrorType.Conflict:
+				NotifyError(firstError.Description);
+				return model != null
+					? View("MedicineForm", model)
+					: RedirectToAction(nameof(Index));
+
+			default:
+				NotifyError("An unexpected error occurred. Please try again.");
+				return model != null
+					? View("MedicineForm", model)
+					: RedirectToAction(nameof(Index));
+		}
 	}
 }

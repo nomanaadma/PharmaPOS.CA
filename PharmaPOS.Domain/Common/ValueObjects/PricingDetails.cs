@@ -1,3 +1,4 @@
+using ErrorOr;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Domain.Common.ValueObjects;
@@ -7,7 +8,7 @@ public record PricingDetails
 	// EF Core parameterless constructor
 	private PricingDetails() { }
 
-	public PricingDetails(
+	private PricingDetails(
 		decimal qty,
 		decimal salePrice,
 		decimal gross,
@@ -18,7 +19,6 @@ public record PricingDetails
 		decimal taxPrice,
 		decimal price)
 	{
-
 		Qty = qty;
 		SalePrice = salePrice;
 		Gross = gross;
@@ -29,6 +29,27 @@ public record PricingDetails
 		TaxPrice = taxPrice;
 		Price = price;
 	}
+
+	public static ErrorOr<PricingDetails> Create(
+		decimal qty,
+		decimal salePrice,
+		decimal gross,
+		DiscountType discountType,
+		decimal discount,
+		decimal discountValue,
+		decimal tax,
+		decimal taxPrice,
+		decimal price)
+	{
+		if (qty < 0)
+			return PricingErrors.NegativeQuantity;
+		if (salePrice < 0)
+			return PricingErrors.NegativeSalePrice;
+
+		return new PricingDetails(qty, salePrice, gross, discountType, discount, discountValue, tax, taxPrice, price);
+	}
+
+
 
 	public decimal Qty { get; private set; }
 	public decimal SalePrice { get; private set; }

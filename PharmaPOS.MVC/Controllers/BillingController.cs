@@ -148,7 +148,7 @@ public class BillingController(
 	[Authorize(Policy = Permissions.Billing.View)]
 	public async Task<IActionResult> View(int id, CancellationToken ct = default)
 	{
-		var result = await billingService.GetBillForViewAsync(id, ct);
+		var result = await billingService.GetBillAsync(id, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors);
