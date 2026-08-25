@@ -1,15 +1,31 @@
 using System.Text.Json;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace PharmaPOS.MVC.Controllers;
 
 public abstract class BaseController : Controller
 {
+	public override void OnActionExecuted(ActionExecutedContext context)
+	{
+		var isRedirect = context.Result is RedirectResult or RedirectToActionResult or RedirectToRouteResult or LocalRedirectResult;
+
+		var setInCurrentRequest = HttpContext.Items.ContainsKey("NotifyMessageCurrentRequest");
+
+		if (!isRedirect && setInCurrentRequest)
+		{
+			TempData.Remove("Message");
+		}
+
+		base.OnActionExecuted(context);
+	}
 	private void Notify(string alert, string message )
 	{
 		var msg = JsonSerializer.Serialize(new { alert, value = message });
 		HttpContext.Items["NotifyMessage"] = msg;
+		HttpContext.Items["NotifyMessageCurrentRequest"] = true;
+		TempData["Message"] = msg;
 	}
 	
     protected void NotifySuccess(string message)

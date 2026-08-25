@@ -3,6 +3,7 @@
 	var siteInfo = await SiteInfo.GetSettingsAsync();
 	var notificationMessage =
 		TempData["Message"]?.ToString() ?? Context.Items["NotifyMessage"]?.ToString();
+	TempData.Remove("Message");
 }
 <!DOCTYPE html>
 <html lang="en">
