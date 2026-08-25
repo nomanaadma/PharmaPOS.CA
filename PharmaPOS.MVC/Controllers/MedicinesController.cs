@@ -1,12 +1,7 @@
-using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Models;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Services;
 
@@ -14,7 +9,6 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class MedicinesController(
-	ApplicationDbContext context,
 	MedicineService medicineService,
 	CategoryService categoryService
 ) : BaseController
@@ -77,21 +71,7 @@ public class MedicinesController(
 			return HandleErrors(result.Errors, FormView);
 
 		var medicine = result.Value;
-		var today = DateTime.UtcNow.Date;
-		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
-
-		var batchesQuery = await context.Batches
-			.Where(b => b.MedicineId == id)
-			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.MedicineId).Include(batch => batch.Pricing)
-			.ToListAsync(ct);
-		
-		var liveBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
-		
-		var badBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
-			.Where(b => b.Pricing.Qty > b.Sold);
+		var (liveBatches, badBatches) = await medicineService.GetMedicineStockSummaryAsync(id, ct);
 		
 		var model = new MedicineViewPageModel
 		{
@@ -198,16 +178,7 @@ public class MedicinesController(
 			return Json(Array.Empty<object>());
 		}
 
-		var results = await context.Medicines
-			.Where(m => EF.Functions.ILike(m.Name, $"%{term}%"))
-			.Take(10)
-			.Select(m => new
-			{
-				id = m.Id,
-				label = m.Name,
-				Generic = m.Generic
-			})
-			.ToListAsync(ct);
+		var results = await medicineService.SearchMedicinesAsync(term, ct);
 
 		return Json(results);
 	}
@@ -225,15 +196,7 @@ public class MedicinesController(
 			return Forbid();
 		}
 		
-		var currentMonth = DateTime.UtcNow.ExpiryFormat();
-
-		var batches = await context.Batches
-			.Where(b => b.MedicineId == id)
-			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-			.Where(b => (b.Pricing.Qty - b.Sold) > 0)
-			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.Expiry)
-			.ToListAsync(ct);
+		var batches = await medicineService.GetActiveBatchesForMedicineAsync(id, ct);
 		
 		if (batches.Count == 0)
 		{
@@ -262,8 +225,7 @@ public class MedicinesController(
 			return Forbid();
 		}
 		
-		var mBatch = await context.Batches.Include(b => b.Pricing)
-			.FirstOrDefaultAsync(b => b.MedicineId == medicine && b.Id == batch, ct);
+		var mBatch = await medicineService.GetBatchDataAsync(medicine, batch, ct);
 
 		if (mBatch == null)
 		{
@@ -277,7 +239,7 @@ public class MedicinesController(
 			saleprice = mBatch.Pricing.SalePrice
 		};
 
-		return Json(new { error = false, result = result });
+		return Json(new { error = false, result });
 	}
 
 }

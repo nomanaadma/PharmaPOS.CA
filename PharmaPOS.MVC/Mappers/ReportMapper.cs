@@ -20,4 +20,21 @@ public static class ReportMapper
         });
     }
 
+
+    public static IncomeExpenseReportViewModel MapToStatsReport(StatsReportDto stats)
+    {
+	    return new IncomeExpenseReportViewModel
+	    {
+		    SalesAmount = stats.SalesAmount,
+		    PurchaseAmount = stats.PurchaseAmount,
+		    Profit = stats.SalesAmount - stats.PurchaseAmount,
+		    Quantity = stats.Quantity,
+		    TaxAmount = stats.TaxAmount,
+		    DiscountAmount = stats.DiscountAmount,
+		    StartDate = stats.StartDate,
+		    EndDate = stats.EndDate,
+		    MedicineId = stats.MedicineId,
+		    MedicineName = stats.MedicineName
+	    };
+    }
 }

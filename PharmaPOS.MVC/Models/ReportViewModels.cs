@@ -18,7 +18,6 @@ public class IncomeExpenseReportViewModel
     public DateTime EndDate { get; init; }
     public int? MedicineId { get; init; }
     public string? MedicineName { get; init; }
-
     public decimal SalesAmount { get; init; }
     public decimal PurchaseAmount { get; init; }
     public decimal Profit { get; init; }

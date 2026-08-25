@@ -12,6 +12,15 @@ public class PurchaseService(
 	ApplicationDbContext context,
 	ILogger<PurchaseService> logger)
 {
+	public async Task<DataTableResult<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
+	{
+		var query = context.Purchases
+			.Include(mp => mp.Supplier)
+			.AsQueryable();
+
+		return await DataTableHelper.FilterAsync(query, request, columns, ct);
+	}
+
 	public async Task<ErrorOr<int>> CreatePurchaseAsync(PurchaseFormModel model, CancellationToken ct = default)
 	{
 		if (model.Items.Count == 0)
@@ -39,7 +48,7 @@ public class PurchaseService(
 
 		foreach (var item in model.Items)
 		{
-			var pricingResult = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var batchDetails = new BatchDetails(
@@ -109,7 +118,7 @@ public class PurchaseService(
 
 		foreach (var item in model.Items)
 		{
-			var pricingResult = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var batchDetails = new BatchDetails(

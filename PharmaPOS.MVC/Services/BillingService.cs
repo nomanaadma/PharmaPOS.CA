@@ -15,6 +15,15 @@ public class BillingService(
 {
 
 	/// <summary>
+	/// Gets filtered bills for DataTables.
+	/// </summary>
+	public async Task<DataTableResult<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
+	{
+		var query = context.Bills.AsQueryable();
+		return await DataTableHelper.FilterAsync(query, request, columns, ct);
+	}
+
+	/// <summary>
 	/// Creates a new bill with items, adjusting inventory (batch sold quantities) within a transaction.
 	/// </summary>
 	public async Task<ErrorOr<int>> CreateBillAsync(BillingFormModel model, CancellationToken ct = default)
@@ -58,7 +67,7 @@ public class BillingService(
 
 		foreach (var item in model.Items)
 		{
-			var pricingResult = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricingResult.Value);
@@ -157,7 +166,7 @@ public class BillingService(
 		// Add new items and update sold quantities
 		foreach (var item in model.Items)
 		{
-			var pricingResult = PricingHelper.PricingDetails(item);
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var billItemDetails = new BillItemDetails(bill.Id, item.MedicineId, item.Batch, pricingResult.Value);
@@ -280,6 +289,15 @@ public class BillingService(
 			return BillErrors.NotFound(id);
 
 		return bill;
+	}
+	
+	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
+	{
+		return await context.Bills
+			.Where(b => b.CustomerId == customerId || (email != null && b.Email == email))
+			.OrderByDescending(b => b.Date)
+			.Take(20)
+			.ToListAsync(ct);
 	}
 	
 }

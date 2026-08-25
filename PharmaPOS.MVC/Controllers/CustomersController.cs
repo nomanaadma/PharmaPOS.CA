@@ -1,19 +1,16 @@
-using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Services;
-using PharmaPOS.MVC.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class CustomersController(
-	ApplicationDbContext context,
-	CustomerService customerService
+	CustomerService customerService,
+	BillingService billingService
 ) : BaseController
 {
 	private const string FormView = "CustomerForm";
@@ -60,11 +57,7 @@ public class CustomersController(
 			return HandleErrors(result.Errors, FormView);
 
 		var customer = result.Value;
-		var recentBills = await context.Bills
-			.Where(b => b.CustomerId == customer.Id || b.Email == customer.Email)
-			.OrderByDescending(b => b.Date)
-			.Take(20)
-			.ToListAsync(ct);
+		var recentBills = await billingService.GetRecentBillsAsync(customer.Id, customer.Email, ct);
 		
 		var model = new CustomerViewPageModel
 		{
@@ -147,19 +140,7 @@ public class CustomersController(
 			return Json(Array.Empty<object>());
 		}
 
-		var results = await context.Customers
-			.Where(c => EF.Functions.ILike(c.FirstName, $"%{term}%") || 
-			            EF.Functions.ILike(c.LastName, $"%{term}%") || 
-			            EF.Functions.ILike(c.Mobile ?? string.Empty, $"%{term}%"))
-			.Take(7)
-			.Select(c => new 
-			{
-				id = c.Id,
-				label = c.FirstName + " " + c.LastName,
-				email = c.Email,
-				mobile = c.Mobile
-			})
-			.ToListAsync(ct);
+		var results = await customerService.SearchCustomersAsync(term, ct);
 		
 		return Json(results);
 	}

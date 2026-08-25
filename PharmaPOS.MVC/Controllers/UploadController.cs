@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.MVC.Authorization;
-using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.Extensions;
 using IOFile = System.IO.File;
 
@@ -11,19 +9,19 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 [Route("media")]
-public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbContext) : BaseController
+public class UploadController(IWebHostEnvironment env, PharmaPOS.MVC.Services.SettingService settingService) : BaseController
 {
 	[HttpGet("get")]
 	[Authorize(Policy = Permissions.Media.List)]
 	public async Task<IActionResult> Get(CancellationToken ct = default)
 	{
-		var result = await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync(ct);
+		var result = await settingService.GetMediaListAsync(ct);
 		var html = "";
 		
 		foreach (var value in result)
 		{
 			var filePath = env.UploadsFilePath(value.Filename);
-			var (width, height) = GetImageDimensions(filePath);
+			var (width, height) = settingService.GetImageDimensions(filePath);
 
 			html += $"""
 			 <div class="block">
@@ -52,26 +50,11 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 			return Json(new { error = true, message = "No file uploaded." });
 		}
 
-		var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+		var uploadResult = await settingService.UploadMediaFileAsync(file, ct);
+		if (uploadResult.IsError)
+			return Json(new { error = true, message = uploadResult.Errors[0].Description });
 
-		var uniqueId = Guid.NewGuid().ToString("N")[..8];
-		var fileName = $"media-{uniqueId}.{ext}";
-		var filePath = env.UploadsFilePath(fileName);
-
-		await using (var stream = new FileStream(filePath, FileMode.Create))
-		{
-			await file.CopyToAsync(stream, ct);
-		}
-
-		var mediaResult = Media.Create(fileName, ext, DateTime.UtcNow);
-		if (mediaResult.IsError)
-			return Json(new { error = true, message = mediaResult.Errors[0].Description });
-
-		var media = mediaResult.Value;
-		dbContext.Media.Add(media);
-		await dbContext.SaveChangesAsync(ct);
-
-		var (width, height) = GetImageDimensions(filePath);
+		var (media, width, height) = uploadResult.Value;
 		
 		var canDelete = User.HasPermission(Permissions.Media.Delete);
 
@@ -84,15 +67,15 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 		                     {deleteHtml}
 		                     <input type="radio" class="block-id" value="{media.Id}">
 		                     <div class="picture">
-		                         <img src="/uploads/{fileName}" title="{fileName}">
-		                         <input type="radio" id="{fileName}" value="{fileName}">
-		                         <label for="{fileName}">{fileName}</label>
+		                         <img src="/uploads/{media.Filename}" title="{media.Filename}">
+		                         <input type="radio" id="{media.Filename}" value="{media.Filename}">
+		                         <label for="{media.Filename}">{media.Filename}</label>
 		                     </div>
 		                     <label class="font-12">Image Size : {width}*{height}</label>
 		                 </div>
 		                 """;
 
-		return Json(new { error = false, name = fileName, id = media.Id, media = mediaHtml });
+		return Json(new { error = false, name = media.Filename, id = media.Id, media = mediaHtml });
 	}
 
 	[HttpPost("delete")]
@@ -105,108 +88,9 @@ public class UploadController(IWebHostEnvironment env, ApplicationDbContext dbCo
 			return Json(new { error = true, message = "File name is wrong or does not exist." });
 		}
 
-		var media = await dbContext.Media.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name, ct);
-		if (media == null)
-		{
-			return Json(new { error = true, message = "File is wrong or does not exist." });
-		}
-
-		var filePath = env.UploadsFilePath(name);
-		if (IOFile.Exists(filePath))
-		{
-			try
-			{
-				IOFile.Delete(filePath);
-			}
-			catch (Exception ex)
-			{
-				return Json(new { error = true, message = "Error deleting " + name + ": " + ex.Message });
-			}
-		}
-
-		dbContext.Media.Remove(media);
-		await dbContext.SaveChangesAsync(ct);
-
-		return Json(new { error = false, message = "File deleted successfully." });
-	}
-	
-
-	private static (int width, int height) GetImageDimensions(string path)
-	{
-		try
-		{
-			if (!IOFile.Exists(path)) return (0, 0);
-
-			using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-			using var reader = new BinaryReader(fileStream);
-			
-			var header = reader.ReadBytes(8);
-			if (header.Length < 8) return (0, 0);
-
-			// Check PNG: 89 50 4E 47 0D 0A 1A 0A
-			if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47)
-			{
-				fileStream.Position = 16;
-				var widthBytes = reader.ReadBytes(4);
-				var heightBytes = reader.ReadBytes(4);
-				Array.Reverse(widthBytes); // big-endian
-				Array.Reverse(heightBytes);
-				var width = BitConverter.ToInt32(widthBytes, 0);
-				var height = BitConverter.ToInt32(heightBytes, 0);
-				return (width, height);
-			}
-
-			// Check GIF: GIF87a or GIF89a
-			if (header[0] == 'G' && header[1] == 'I' && header[2] == 'F')
-			{
-				fileStream.Position = 6;
-				int width = reader.ReadUInt16();
-				int height = reader.ReadUInt16();
-				return (width, height);
-			}
-
-			// Check JPEG: FF D8
-			if (header[0] == 0xFF && header[1] == 0xD8)
-			{
-				fileStream.Position = 2;
-				while (fileStream.Position < fileStream.Length)
-				{
-					var marker = reader.ReadByte();
-					while (marker == 0xFF && fileStream.Position < fileStream.Length)
-					{
-						marker = reader.ReadByte();
-					}
-
-					if (marker is 0xD9 or 0xDA) // EOI or SOS
-					{
-						break;
-					}
-
-					var lenBytes = reader.ReadBytes(2);
-					if (lenBytes.Length < 2) break;
-					Array.Reverse(lenBytes);
-					var length = BitConverter.ToUInt16(lenBytes, 0);
-
-					if (marker is 0xC0 or 0xC1 or 0xC2 or 0xC3 or >= 0xC5 and <= 0xC7 or >= 0xC9 and <= 0xCB or >= 0xCD and <= 0xCF)
-					{
-						fileStream.Position += 1; // skip precision
-						var hBytes = reader.ReadBytes(2);
-						var wBytes = reader.ReadBytes(2);
-						Array.Reverse(hBytes);
-						Array.Reverse(wBytes);
-						int height = BitConverter.ToUInt16(hBytes, 0);
-						int width = BitConverter.ToUInt16(wBytes, 0);
-						return (width, height);
-					}
-
-					fileStream.Position += (length - 2);
-				}
-			}
-		}
-		catch
-		{
-			// ignored
-		}
-		return (0, 0);
+		var result = await settingService.DeleteMediaFileAsync(id, name, ct);
+		return Json(result.IsError ? 
+			new { error = true, message = result.Errors[0].Description } : 
+			new { error = false, message = "File deleted successfully." });
 	}
 }

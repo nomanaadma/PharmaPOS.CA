@@ -117,5 +117,22 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 			.OrderByDescending(c => c.CreatedDate)
 			.ToListAsync(ct);
 	}
+
+	public async Task<object> SearchCustomersAsync(string term, CancellationToken ct = default)
+	{
+		return await context.Customers
+			.Where(c => EF.Functions.ILike(c.FirstName, $"%{term}%") || 
+			            EF.Functions.ILike(c.LastName, $"%{term}%") || 
+			            EF.Functions.ILike(c.Mobile ?? string.Empty, $"%{term}%"))
+			.Take(7)
+			.Select(c => new 
+			{
+				id = c.Id,
+				label = c.FirstName + " " + c.LastName,
+				email = c.Email,
+				mobile = c.Mobile
+			})
+			.ToListAsync(ct);
+	}
 	
 }

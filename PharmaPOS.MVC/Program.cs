@@ -39,7 +39,7 @@ builder.Services.AddAuthorization(options =>
 	}
 });
 
-builder.Services.AddScoped<SiteInfoService>();
+builder.Services.AddScoped<SettingService>();
 builder.Services.AddScoped<BillingService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<PurchaseService>();
@@ -47,6 +47,8 @@ builder.Services.AddScoped<PaymentMethodService>();
 builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<MedicineService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<StockService>();
+builder.Services.AddScoped<ReportService>();
 
 var app = builder.Build();
 

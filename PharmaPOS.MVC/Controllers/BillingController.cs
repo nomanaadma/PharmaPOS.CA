@@ -14,7 +14,6 @@ namespace PharmaPOS.MVC.Controllers;
 [Authorize]
 [Route("Medicines/Billing/[action]")]
 public class BillingController(
-	ApplicationDbContext context,
 	BillingService billingService,
 	PaymentMethodService paymentMethodService
 ) : BaseController
@@ -35,9 +34,7 @@ public class BillingController(
 	{
 		var request = DataTableRequest.FromForm(Request.Form);
 
-		var query = context.Bills.AsQueryable();
-
-		var result = await DataTableHelper.FilterAsync(query, request, BillColumns.GetColumnMap(), ct);
+		var result = await billingService.GetFilteredBillsAsync(request, BillColumns.GetColumnMap(), ct);
 
 		var canView = User.HasPermission(Permissions.Billing.View);
 		var canEdit = User.HasPermission(Permissions.Billing.Edit);

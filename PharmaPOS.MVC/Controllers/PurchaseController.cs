@@ -15,7 +15,6 @@ namespace PharmaPOS.MVC.Controllers;
 [Authorize]
 [Route("Medicines/Purchase/[action]")]
 public class PurchaseController(
-	ApplicationDbContext context,
 	PurchaseService purchaseService,
 	SupplierService supplierService
 ) : BaseController
@@ -35,11 +34,7 @@ public class PurchaseController(
 	{
 		var request = DataTableRequest.FromForm(Request.Form);
 
-		var query = context.Purchases
-			.Include(mp => mp.Supplier)
-			.AsQueryable();
-
-		var result = await DataTableHelper.FilterAsync(query, request, PurchaseColumns.GetColumnMap(), ct);
+		var result = await purchaseService.GetFilteredPurchasesAsync(request, PurchaseColumns.GetColumnMap(), ct);
 
 		var canView = User.HasPermission(Permissions.Purchase.View);
 		var canEdit = User.HasPermission(Permissions.Purchase.Edit);

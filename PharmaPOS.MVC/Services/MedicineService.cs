@@ -7,6 +7,7 @@ using PharmaPOS.MVC.Data;
 using PharmaPOS.MVC.DTOs;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
+using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.MVC.Services;
 
@@ -129,6 +130,60 @@ public class MedicineService(
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
 			))
 			.ToListAsync(ct);
+	}
+
+	public async Task<(IEnumerable<Batch> LiveStock, IEnumerable<Batch> BadStock)> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
+	{
+		var today = DateTime.UtcNow.Date;
+		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
+
+		var batchesQuery = await context.Batches
+			.Where(b => b.MedicineId == medicineId)
+			.Where(b => b.Status == Status.Active)
+			.OrderBy(b => b.MedicineId).Include(batch => batch.Pricing)
+			.ToListAsync(ct);
+		
+		var liveBatches = batchesQuery.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
+		
+		var badBatches = batchesQuery.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
+			.Where(b => b.Pricing.Qty > b.Sold);
+            
+		return (liveBatches, badBatches);
+	}
+
+	public async Task<object> SearchMedicinesAsync(string term, CancellationToken ct = default)
+	{
+		return await context.Medicines
+			.Where(m => EF.Functions.ILike(m.Name, $"%{term}%"))
+			.Take(10)
+			.Select(m => new
+			{
+				id = m.Id,
+				label = m.Name,
+				Generic = m.Generic
+			})
+			.ToListAsync(ct);
+	}
+
+	public async Task<List<Batch>> GetActiveBatchesForMedicineAsync(int medicineId, CancellationToken ct = default)
+	{
+		var currentMonth = DateTime.UtcNow.ExpiryFormat();
+
+		return await context.Batches
+			.Where(b => b.MedicineId == medicineId)
+			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+			.Where(b => (b.Pricing.Qty - b.Sold) > 0)
+			.Where(b => b.Status == Status.Active)
+			.OrderBy(b => b.Expiry)
+			.ToListAsync(ct);
+	}
+
+	public async Task<Batch?> GetBatchDataAsync(int medicineId, int batchId, CancellationToken ct = default)
+	{
+		return await context.Batches.Include(b => b.Pricing)
+			.FirstOrDefaultAsync(b => b.MedicineId == medicineId && b.Id == batchId, ct);
 	}
 	
 }

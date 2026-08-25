@@ -12,16 +12,15 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class SettingController(
-	ApplicationDbContext context,
-	SiteInfoService siteInfoService
+	SettingService settingService
 ) : BaseController
 {
 	[HttpGet]
 	[Authorize(Policy = Permissions.Info.View)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var siteInfo = await siteInfoService.GetSettingsAsync();
-		var rawSetting = await context.Settings.FirstOrDefaultAsync(ct);
+		var rawSetting = await settingService.GetRawSettingsAsync(ct); // await dbContext.Settings.FirstOrDefaultAsync(ct);
+		var siteInfo = await settingService.GetSettingsAsync(ct);
 
 		var model = SettingMapper.MapToSystemInfo(rawSetting, siteInfo);
 		
@@ -40,34 +39,12 @@ public class SettingController(
 			return View("Info", model);
 		}
 
-		var settings = await context.Settings.FirstOrDefaultAsync(ct);
-		var details = new SettingDetails(model.Name, model.LegalName, model.Mail, model.Phone);
-		
-		if (settings == null)
+		var result = await settingService.UpdateSettingsAsync(model, ct);
+		if (result.IsError)
 		{
-			var settingsResult = Setting.Create(details);
-			if (settingsResult.IsError)
-			{
-				NotifyError(settingsResult.Errors[0].Description);
-				return View("Info", model);
-			}
-			settings = settingsResult.Value;
-			context.Settings.Add(settings);
+			NotifyError(result.Errors[0].Description);
+			return View("Info", model);
 		}
-		else
-		{
-			var updateResult = settings.Update(details);
-			if (updateResult.IsError)
-			{
-				NotifyError(updateResult.Errors[0].Description);
-				return View("Info", model);
-			}
-		}
-
-		settings.UpdateImages(model.Logo, model.LogoIcon, model.LgBackground, model.Favicon);
-		settings.UpdateAddress(new Address(model.AddressLine1, model.AddressLine2, model.City, model.Country, model.Postal));
-
-		await context.SaveChangesAsync(ct);
 
 		NotifySuccess("System settings updated successfully.");
 
