@@ -16,10 +16,10 @@ namespace PharmaPOS.MVC.Controllers;
 public class MedicinesController(
 	ApplicationDbContext context,
 	MedicineService medicineService,
-	CategoryService categoryService,
-	ILogger<MedicinesController> logger
+	CategoryService categoryService
 ) : BaseController
 {
+	private const string FormView = "MedicineForm";
 	[HttpGet]
 	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
@@ -39,7 +39,7 @@ public class MedicinesController(
 			Categories = await categoryService.GetCategoriesAsync(ct)
 		};
 		
-		return View("MedicineForm", medicineViewModel);
+		return View(FormView, medicineViewModel);
 	}
 
 	[HttpPost]
@@ -52,14 +52,14 @@ public class MedicinesController(
 		
 		if (!ModelState.IsValid)
 		{
-			return View("MedicineForm", model);	
+			return View(FormView, model);	
 		}
 
 		var result = await medicineService.CreateMedicineAsync(model, ct);
 
 		if (result.IsError)
 		{
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 		}
 
 		NotifySuccess("Medicine created successfully.");
@@ -74,7 +74,7 @@ public class MedicinesController(
 		var result = await medicineService.GetMedicineAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var medicine = result.Value;
 		var today = DateTime.UtcNow.Date;
@@ -111,12 +111,12 @@ public class MedicinesController(
 		var result = await medicineService.GetMedicineAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 		
 		var medicineCategories = await categoryService.GetCategoriesAsync(ct);
 		var model = MedicineMapper.MapToMedicine(result.Value, medicineCategories);
 		
-		return View("MedicineForm", model);
+		return View(FormView, model);
 	}
 
 	[HttpPost]
@@ -143,14 +143,14 @@ public class MedicinesController(
 
 		if (!ModelState.IsValid)
 		{
-			return View("MedicineForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await medicineService.UpdateMedicineAsync(id, model, ct);
 
 		if (result.IsError)
 		{
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 		}
 
 		NotifySuccess("Medicine updated successfully.");
@@ -166,7 +166,7 @@ public class MedicinesController(
 		var result = await medicineService.DeleteMedicineAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Medicine deleted successfully.");
 		return RedirectToAction(nameof(Index));
@@ -280,35 +280,4 @@ public class MedicinesController(
 		return Json(new { error = false, result = result });
 	}
 
-	/// <summary>
-	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
-	/// and notifications.
-	/// </summary>
-	private IActionResult HandleErrors(List<Error> errors, MedicineViewModel? model = null)
-	{
-		var firstError = errors[0];
-
-		logger.LogWarning("Medicine operation failed: {ErrorCode} - {ErrorDescription}",
-			firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyWarning(firstError.Description);
-				return NotFound();
-
-			case ErrorType.Validation:
-			case ErrorType.Conflict:
-				NotifyError(firstError.Description);
-				return model != null
-					? View("MedicineForm", model)
-					: RedirectToAction(nameof(Index));
-
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null
-					? View("MedicineForm", model)
-					: RedirectToAction(nameof(Index));
-		}
-	}
 }

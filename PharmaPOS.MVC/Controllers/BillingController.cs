@@ -16,10 +16,10 @@ namespace PharmaPOS.MVC.Controllers;
 public class BillingController(
 	ApplicationDbContext context,
 	BillingService billingService,
-	PaymentMethodService paymentMethodService,
-	ILogger<BillingController> logger
+	PaymentMethodService paymentMethodService
 ) : BaseController
 {
+	private const string FormView = "BillingForm";
 	[HttpGet("/Medicines/Billing")]
 	[Authorize(Policy = Permissions.Billing.List)]
 	public IActionResult Index()
@@ -62,7 +62,7 @@ public class BillingController(
 		{
 			PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct)
 		};
-		return View("BillingForm", model);
+		return View(FormView, model);
 	}
 
 	[HttpPost]
@@ -75,13 +75,13 @@ public class BillingController(
 		if (!ModelState.IsValid)
 		{
 			NotifyError("Please check your inputs.");
-			return View("BillingForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await billingService.CreateBillAsync(model, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 
 		NotifySuccess("Bill created successfully.");
 		return RedirectToAction(nameof(View), new { id = result.Value });
@@ -94,12 +94,12 @@ public class BillingController(
 		var result = await billingService.GetBillForEditAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var paymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
 		var model = BillingMapper.MapToBillingForm(result.Value, paymentMethods);
 
-		return View("BillingForm", model);
+		return View(FormView, model);
 	}
 
 	[HttpPost("{id:int}")]
@@ -118,13 +118,13 @@ public class BillingController(
 		if (!ModelState.IsValid)
 		{
 			NotifyError("Please check your inputs.");
-			return View("BillingForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await billingService.UpdateBillAsync(id, model, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 
 		NotifySuccess("Bill updated successfully.");
 		return RedirectToAction(nameof(View), new { id = result.Value });
@@ -138,7 +138,7 @@ public class BillingController(
 		var result = await billingService.DeleteBillAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Bill deleted successfully.");
 		return RedirectToAction(nameof(Index));
@@ -151,41 +151,11 @@ public class BillingController(
 		var result = await billingService.GetBillAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var model = BillingMapper.MapToBillDetailsViewModel(result.Value);
 
 		return View(model);
 	}
 
-	/// <summary>
-	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
-	/// and notifications. Optionally returns to the form view with the model.
-	/// </summary>
-	private IActionResult HandleErrors(List<Error> errors, BillingFormModel? model = null)
-	{
-		var firstError = errors[0];
-
-		logger.LogWarning("Billing operation failed: {ErrorCode} - {ErrorDescription}",
-			firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyWarning(firstError.Description);
-				return NotFound();
-
-			case ErrorType.Validation:
-				NotifyError(firstError.Description);
-				return model != null
-					? View("BillingForm", model)
-					: RedirectToAction(nameof(Index));
-
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null
-					? View("BillingForm", model)
-					: RedirectToAction(nameof(Index));
-		}
-	}
 }

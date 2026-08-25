@@ -10,10 +10,10 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class SuppliersController(
-	SupplierService supplierService,
-	ILogger<SuppliersController> logger
+	SupplierService supplierService
 ) : BaseController
 {
+	private const string FormView = "SupplierForm";
 	[HttpGet]
 	[Authorize(Policy = Permissions.Suppliers.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
@@ -27,7 +27,7 @@ public class SuppliersController(
 	[Authorize(Policy = Permissions.Suppliers.Add)]
 	public IActionResult Add()
 	{
-		return View("SupplierForm", new SupplierViewModel());
+		return View(FormView, new SupplierViewModel());
 	}
 
 	[HttpPost]
@@ -37,12 +37,12 @@ public class SuppliersController(
 	{
 		if (!ModelState.IsValid)
 		{
-			return View("SupplierForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await supplierService.CreateSupplierAsync(model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["Supplier.EmailNotUnique"] = "Email" });
 
 		NotifySuccess("Supplier created successfully.");
 		return RedirectToAction(nameof(Index));
@@ -54,10 +54,10 @@ public class SuppliersController(
 	{
 		var result = await supplierService.GetSupplierAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var model = SettingMapper.MapToSupplier(result.Value);
-		return View("SupplierForm", model);
+		return View(FormView, model);
 	}
 	
 	[HttpPost]
@@ -79,12 +79,12 @@ public class SuppliersController(
 
 		if (!ModelState.IsValid)
 		{
-			return View("SupplierForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await supplierService.UpdateSupplierAsync(id, model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["Supplier.EmailNotUnique"] = "Email" });
 
 		NotifySuccess("Supplier updated successfully.");
 		return RedirectToAction(nameof(Index));
@@ -97,36 +97,10 @@ public class SuppliersController(
 	{
 		var result = await supplierService.DeleteSupplierAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Supplier deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
 
-	private IActionResult HandleErrors(List<Error> errors, SupplierViewModel? model = null)
-	{
-		var firstError = errors[0];
-		logger.LogWarning("Supplier operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyError(firstError.Description);
-				return NotFound();
-			case ErrorType.Validation:
-			case ErrorType.Conflict:
-				if (firstError.Code == "Supplier.EmailNotUnique" && model != null)
-				{
-					ModelState.AddModelError(nameof(model.Email), firstError.Description);
-				}
-				else
-				{
-					NotifyError(firstError.Description);
-				}
-				return model != null ? View("SupplierForm", model) : RedirectToAction(nameof(Index));
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null ? View("SupplierForm", model) : RedirectToAction(nameof(Index));
-		}
-	}
 }

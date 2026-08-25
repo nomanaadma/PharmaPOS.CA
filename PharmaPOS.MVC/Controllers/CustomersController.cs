@@ -13,10 +13,10 @@ namespace PharmaPOS.MVC.Controllers;
 [Authorize]
 public class CustomersController(
 	ApplicationDbContext context,
-	CustomerService customerService,
-	ILogger<CustomersController> logger
+	CustomerService customerService
 ) : BaseController
 {
+	private const string FormView = "CustomerForm";
 	[HttpGet]
 	[Authorize(Policy = Permissions.Customer.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
@@ -30,7 +30,7 @@ public class CustomersController(
 	[Authorize(Policy = Permissions.Customer.Add)]
 	public IActionResult Add()
 	{
-		return View("CustomerForm", new CustomerViewModel());
+		return View(FormView, new CustomerViewModel());
 	}
 
 	[HttpPost]
@@ -40,12 +40,12 @@ public class CustomersController(
 	{
 		if (!ModelState.IsValid)
 		{
-			return View("CustomerForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await customerService.CreateCustomerAsync(model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["Customer.EmailNotUnique"] = "Email" });
 
 		NotifySuccess("Customer created successfully.");
 		return RedirectToAction(nameof(Index));
@@ -57,7 +57,7 @@ public class CustomersController(
 	{
 		var result = await customerService.GetCustomerAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var customer = result.Value;
 		var recentBills = await context.Bills
@@ -81,10 +81,10 @@ public class CustomersController(
 	{
 		var result = await customerService.GetCustomerAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var model = CustomerMapper.MapToCustomer(result.Value);
-		return View("CustomerForm", model);
+		return View(FormView, model);
 	}
 
 	[HttpPost]
@@ -106,12 +106,12 @@ public class CustomersController(
 		
 		if (!ModelState.IsValid)
 		{
-			return View("CustomerForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await customerService.UpdateCustomerAsync(id, model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["Customer.EmailNotUnique"] = "Email" });
 
 		NotifySuccess("Customer updated successfully.");
 		return RedirectToAction(nameof(Index));
@@ -124,7 +124,7 @@ public class CustomersController(
 	{
 		var result = await customerService.DeleteCustomerAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Customer deleted successfully.");
 		return RedirectToAction(nameof(Index));
@@ -164,30 +164,4 @@ public class CustomersController(
 		return Json(results);
 	}
 
-	private IActionResult HandleErrors(List<Error> errors, CustomerViewModel? model = null)
-	{
-		var firstError = errors[0];
-		logger.LogWarning("Customer operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyError(firstError.Description);
-				return NotFound();
-			case ErrorType.Validation:
-			case ErrorType.Conflict:
-				if (firstError.Code == "Customer.EmailNotUnique" && model != null)
-				{
-					ModelState.AddModelError(nameof(model.Email), firstError.Description);
-				}
-				else
-				{
-					NotifyError(firstError.Description);
-				}
-				return model != null ? View("CustomerForm", model) : RedirectToAction(nameof(Index));
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null ? View("CustomerForm", model) : RedirectToAction(nameof(Index));
-		}
-	}
 }

@@ -10,10 +10,10 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 public class PaymentMethodsController(
-	PaymentMethodService paymentMethodService,
-	ILogger<PaymentMethodsController> logger
+	PaymentMethodService paymentMethodService
 ) : BaseController
 {
+	private const string FormView = "PaymentMethodForm";
 	[HttpGet]
 	[Authorize(Policy = Permissions.PaymentMethod.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
@@ -28,7 +28,7 @@ public class PaymentMethodsController(
 	[Authorize(Policy = Permissions.PaymentMethod.Add)]
 	public IActionResult Add()
 	{
-		return View("PaymentMethodForm", new PaymentMethodViewModel());
+		return View(FormView, new PaymentMethodViewModel());
 	}
 
 	[HttpPost]
@@ -38,12 +38,12 @@ public class PaymentMethodsController(
 	{
 		if (!ModelState.IsValid)
 		{
-			return View("PaymentMethodForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await paymentMethodService.CreatePaymentMethodAsync(model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["PaymentMethod.NameNotUnique"] = "Name" });
 
 		NotifySuccess("Payment method created successfully.");
 		return RedirectToAction(nameof(Index));
@@ -55,10 +55,10 @@ public class PaymentMethodsController(
 	{
 		var result = await paymentMethodService.GetPaymentMethodAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var model = SettingMapper.MapToPaymentMethod(result.Value);
-		return View("PaymentMethodForm", model);
+		return View(FormView, model);
 	}
 	
 	[HttpPost]
@@ -80,12 +80,12 @@ public class PaymentMethodsController(
 
 		if (!ModelState.IsValid)
 		{
-			return View("PaymentMethodForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await paymentMethodService.UpdatePaymentMethodAsync(id, model, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model, new() { ["PaymentMethod.NameNotUnique"] = "Name" });
 
 		NotifySuccess("Payment method updated successfully.");
 		return RedirectToAction(nameof(Index));
@@ -98,36 +98,10 @@ public class PaymentMethodsController(
 	{
 		var result = await paymentMethodService.DeletePaymentMethodAsync(id, ct);
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Payment method deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
 
-	private IActionResult HandleErrors(List<Error> errors, PaymentMethodViewModel? model = null)
-	{
-		var firstError = errors[0];
-		logger.LogWarning("PaymentMethod operation failed: {ErrorCode} - {ErrorDescription}", firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyError(firstError.Description);
-				return NotFound();
-			case ErrorType.Validation:
-			case ErrorType.Conflict:
-				if (firstError.Code == "PaymentMethod.NameNotUnique" && model != null)
-				{
-					ModelState.AddModelError(nameof(model.Name), firstError.Description);
-				}
-				else
-				{
-					NotifyError(firstError.Description);
-				}
-				return model != null ? View("PaymentMethodForm", model) : RedirectToAction(nameof(Index));
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null ? View("PaymentMethodForm", model) : RedirectToAction(nameof(Index));
-		}
-	}
 }

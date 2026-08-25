@@ -17,10 +17,10 @@ namespace PharmaPOS.MVC.Controllers;
 public class PurchaseController(
 	ApplicationDbContext context,
 	PurchaseService purchaseService,
-	SupplierService supplierService,
-	ILogger<PurchaseController> logger
+	SupplierService supplierService
 ) : BaseController
 {
+	private const string FormView = "PurchaseForm";
 	[HttpGet("/Medicines/Purchase")]
 	[Authorize(Policy = Permissions.Purchase.List)]
 	public IActionResult Index()
@@ -63,7 +63,7 @@ public class PurchaseController(
 		var result = await purchaseService.GetPurchaseAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		var model = PurchaseMapper.MapToPurchaseView(result.Value);
 
@@ -79,7 +79,7 @@ public class PurchaseController(
 			Suppliers = await supplierService.GetSuppliersAsync(ct)
 		};
 		
-		return View("PurchaseForm", medicineViewModel);
+		return View(FormView, medicineViewModel);
 	}
 
 	[HttpPost]
@@ -92,13 +92,13 @@ public class PurchaseController(
 		if (!ModelState.IsValid)
 		{
 			NotifyError("Please check your inputs.");
-			return View("PurchaseForm", model);	
+			return View(FormView, model);	
 		}
 		
 		var result = await purchaseService.CreatePurchaseAsync(model, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 
 		NotifySuccess("Purchase created successfully.");
 		return RedirectToAction(nameof(Index));
@@ -111,12 +111,12 @@ public class PurchaseController(
 		var result = await purchaseService.GetPurchaseAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 		
 		var suppliers = await supplierService.GetSuppliersAsync(ct);
 		var model = PurchaseMapper.MapToPurchaseForm(result.Value, suppliers);
 
-		return View("PurchaseForm", model);
+		return View(FormView, model);
 	}
 
 	[HttpPost("{id:int}")]
@@ -135,13 +135,13 @@ public class PurchaseController(
 		if (!ModelState.IsValid)
 		{
 			NotifyError("Please check your inputs.");
-			return View("PurchaseForm", model);
+			return View(FormView, model);
 		}
 
 		var result = await purchaseService.UpdatePurchaseAsync(id, model, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors, model);
+			return HandleErrors(result.Errors, FormView, model);
 
 		NotifySuccess("Purchase updated successfully.");
 		return RedirectToAction(nameof(Index));
@@ -155,41 +155,10 @@ public class PurchaseController(
 		var result = await purchaseService.DeletePurchaseAsync(id, ct);
 
 		if (result.IsError)
-			return HandleErrors(result.Errors);
+			return HandleErrors(result.Errors, FormView);
 
 		NotifySuccess("Purchase deleted successfully.");
 		return RedirectToAction(nameof(Index));
 	}
 
-	/// <summary>
-	/// Centralized error handling: maps ErrorOr errors to appropriate HTTP responses
-	/// and notifications. Optionally returns to the form view with the model.
-	/// </summary>
-	private IActionResult HandleErrors(List<Error> errors, PurchaseFormModel? model = null)
-	{
-		var firstError = errors[0];
-
-		logger.LogWarning("Purchase operation failed: {ErrorCode} - {ErrorDescription}",
-			firstError.Code, firstError.Description);
-
-		switch (firstError.Type)
-		{
-			case ErrorType.NotFound:
-				NotifyWarning(firstError.Description);
-				return NotFound();
-
-			case ErrorType.Validation:
-			case ErrorType.Conflict:
-				NotifyError(firstError.Description);
-				return model != null
-					? View("PurchaseForm", model)
-					: RedirectToAction(nameof(Index));
-
-			default:
-				NotifyError("An unexpected error occurred. Please try again.");
-				return model != null
-					? View("PurchaseForm", model)
-					: RedirectToAction(nameof(Index));
-		}
-	}
 }

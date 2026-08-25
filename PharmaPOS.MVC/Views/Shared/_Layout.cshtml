@@ -1,6 +1,8 @@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
 	var siteInfo = await SiteInfo.GetSettingsAsync();
+	var notificationMessage =
+		TempData["Message"]?.ToString() ?? Context.Items["NotifyMessage"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -40,11 +42,13 @@
 		    <div class="page-wrapper">
 			    <div class="page-body">
 
-				    @RenderBody()
-
-				    @if (Context.Items["NotifyMessage"] != null)
+				    @RenderBody() 
+				    
+				    @if (!string.IsNullOrEmpty(notificationMessage))
 				    {
-					    <input type="hidden" class="alert-message" value="@(Context.Items["NotifyMessage"])">
+					    <input type="hidden"
+					           class="alert-message"
+					           value="@notificationMessage" />
 				    }
 
 			    </div>
