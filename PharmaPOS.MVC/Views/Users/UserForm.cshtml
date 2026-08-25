@@ -1,3 +1,4 @@
+@using PharmaPOS.Domain.CustomerAggregate
 @model PharmaPOS.MVC.Models.UserFormViewModel
 @{
 	var isEdit = !string.IsNullOrEmpty(Model.UserId);
@@ -86,9 +87,7 @@
 											<div class="input-group-prepend">
 												<span class="input-group-text"><i class="las la-genderless"></i></span>
 											</div>
-											<select asp-for="Gender" class="custom-select">
-												<option value="Male">Male</option>
-												<option value="Female">Female</option>
+											<select asp-for="Gender" asp-items="Html.GetEnumSelectList<Gender>()" class="custom-select">
 											</select>
 										</div>
 									</div>

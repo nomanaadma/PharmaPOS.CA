@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Helpers;
+using static System.Enum;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -126,7 +128,7 @@ public class UsersController(
         {
             new(ClaimTypes.GivenName, model.FirstName),
             new(ClaimTypes.Surname, model.LastName),
-            new("Gender", model.Gender),
+            new("Gender", model.Gender.ToString()),
             new("CreatedDate", model.CreatedDate.Format()),
         };
         await userManager.AddClaimsAsync(user, claims);
@@ -165,7 +167,15 @@ public class UsersController(
         
         var firstName = claims.GetClaim(ClaimTypes.GivenName);
         var lastName = claims.GetClaim(ClaimTypes.Surname);
-        var gender = claims.GetClaim(ClaimTypes.Surname, "Male");
+        
+        var genderStr = claims.GetClaim("Gender", nameof(Gender.NotSpecified));
+        
+        var genderFound = TryParse<Gender>(genderStr, out var genderEnum);
+
+        if (!genderFound)
+        {
+	        genderEnum = Gender.NotSpecified;
+        }
 
         var model = new UserFormViewModel
         {
@@ -174,7 +184,7 @@ public class UsersController(
             LastName = lastName,
             Mobile = user.PhoneNumber ?? "",
             Email = user.Email ?? "",
-            Gender = gender,
+            Gender = genderEnum,
             Status = status,
             UserRole = roleName,
             UserName = user.UserName ?? "",
@@ -260,7 +270,7 @@ public class UsersController(
         
         await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.GivenName, model.FirstName, claims, userManager, user);
         await ClaimHelper.UpdateOrCreateClaimAsync(ClaimTypes.Surname, model.LastName, claims, userManager, user);
-        await ClaimHelper.UpdateOrCreateClaimAsync("Gender", model.Gender, claims, userManager, user);
+        await ClaimHelper.UpdateOrCreateClaimAsync("Gender", model.Gender.ToString(), claims, userManager, user);
 
         // Sync Role
         if (!string.IsNullOrWhiteSpace(model.UserRole) && await roleManager.RoleExistsAsync(model.UserRole))

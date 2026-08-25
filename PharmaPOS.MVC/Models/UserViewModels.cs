@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.MVC.Models;
 
@@ -40,7 +41,7 @@ public class UserFormViewModel
     public string Email { get; init; } = string.Empty;
 
     [Display(Name = "Gender")]
-    public string Gender { get; init; } = string.Empty;
+    public Gender Gender { get; init; }
 
     [Display(Name = "Status")]
     public Status Status { get; init; }

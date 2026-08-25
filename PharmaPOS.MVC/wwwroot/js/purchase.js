@@ -41,70 +41,91 @@ function roundNumber(number, decimals) {
 }
 
 function updateTotal() {
-
-
 	var total = 0, discount = 0;
 
 	$('.item-gross').each(function (i) {
-		price = $(this).val();
-		if (!isNaN(price)) { total += Number(price); }
+		var price = $(this).val();
+		if (!isNaN(price) && price !== "") { total += Math.abs(Number(price)); }
 	});
 
 	var taxtotal = 0;
 	$('.item-taxprice').each(function (i) {
-		taxprice = $(this).val();
-		if (!isNaN(taxprice)) { taxtotal += Number(taxprice); }
+		var taxprice = $(this).val();
+		if (!isNaN(taxprice) && taxprice !== "") { taxtotal += Math.abs(Number(taxprice)); }
 	});
 
 	$('.item-discountvalue').each(function (i) {
 		var value = $(this).val();
-		if (!isNaN(value)) { discount += Number(value); }
+		if (!isNaN(value) && value !== "") { discount += Math.abs(Number(value)); }
 	});
 
 	total = roundNumber(total, 2);
-	taxprice = roundNumber(taxtotal, 2);
-	discount = roundNumber(discount, 2);
+	var taxpriceStr = roundNumber(taxtotal, 2);
+	var discountStr = roundNumber(discount, 2);
 
 	$('.total-price').val(total);
-	$('.total-tax').val(taxprice);
-	$('.total-discount').val(discount);
+	$('.total-tax').val(taxpriceStr);
+	$('.total-discount').val(discountStr);
 
-	var amount = total - discount + parseFloat(taxprice);
-
+	var amount = Number(total) - Number(discountStr) + parseFloat(taxpriceStr);
 	amount = Number(roundNumber(amount, 2));
+	if (amount < 0) amount = 0;
 
 	$('.total-amount').val(amount);
 }
 
 function updatePrice() {
 	$('.item-row').each(function () {
-		var row = $(this),
-			price = row.find('.item-purchaseprice').val() * row.find('.item-qty').val();
+		var row = $(this);
+		
+		var purchasePrice = Number(row.find('.item-purchaseprice').val());
+		if (purchasePrice < 0) {
+			purchasePrice = Math.abs(purchasePrice);
+			row.find('.item-purchaseprice').val(purchasePrice);
+		}
+		
+		var qty = Number(row.find('.item-qty').val());
+		if (qty < 0) {
+			qty = Math.abs(qty);
+			row.find('.item-qty').val(qty);
+		}
+		
+		var price = purchasePrice * qty;
 
 		price = Number(roundNumber(price, 2));
 		row.find('.item-gross').val(price);
 
-		discounttype = row.find('.item-discounttype').val(),
-			discount = Number(row.find('.item-discount').val());
+		var discounttype = row.find('.item-discounttype').val();
+		var discount = Number(row.find('.item-discount').val());
+		if (discount < 0) {
+			discount = Math.abs(discount);
+			row.find('.item-discount').val(discount);
+		}
 
-		discount = roundNumber(discount, 2);
+		discount = Number(roundNumber(discount, 2));
 		if (discounttype === "2") {
 			price = price - discount;
 			row.find('.item-discountvalue').val(discount);
 		} else {
-			discount = price * discount * 0.01;
-			discount = Number(roundNumber(discount, 2));
-			row.find('.item-discountvalue').val(discount);
-			price = price - discount;
+			var discountVal = price * discount * 0.01;
+			discountVal = Number(roundNumber(discountVal, 2));
+			row.find('.item-discountvalue').val(discountVal);
+			price = price - discountVal;
 		}
 
 		var tax = Number(row.find('.item-tax').val());
-		tax_price = price * tax * 0.01;
+		if (tax < 0) {
+			tax = Math.abs(tax);
+			row.find('.item-tax').val(tax);
+		}
+		
+		var tax_price = price * tax * 0.01;
 		tax_price = Number(roundNumber(tax_price, 2));
 		row.find('.item-taxprice').val(tax_price);
 
 		price += tax_price;
 		price = Number(roundNumber(price, 2));
+		if (price < 0) price = 0;
 
 		isNaN(price) ? row.find('.item-price').val("N/A") : row.find('.item-price').val(price);
 	});
