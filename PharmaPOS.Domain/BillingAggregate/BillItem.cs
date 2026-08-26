@@ -13,7 +13,6 @@ public class BillItem : Entity
 
 	private BillItem(BillItemDetails details)
 	{
-		BillId = details.BillId;
 		MedicineId = details.MedicineId;
 		BatchId = details.BatchId;
 		Pricing = details.Pricing;

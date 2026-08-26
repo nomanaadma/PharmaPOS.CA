@@ -1,5 +1,6 @@
 @model PharmaPOS.Domain.SettingAggregate.Setting
 @using System.Security.Claims
+@using PharmaPOS.Application.Authorization
 @{
 	
 	var userName = User.Identity?.Name?.Split('@').FirstOrDefault() ?? "Guest";

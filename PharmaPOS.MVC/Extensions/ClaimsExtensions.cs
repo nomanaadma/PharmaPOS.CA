@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using PharmaPOS.MVC.Authorization;
 
 namespace PharmaPOS.MVC.Extensions;
 

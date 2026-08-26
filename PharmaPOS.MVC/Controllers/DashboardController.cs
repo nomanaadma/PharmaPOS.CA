@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.MVC.Authorization;
+using PharmaPOS.Application.Authorization;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Controllers;

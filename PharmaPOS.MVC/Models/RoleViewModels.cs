@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using PharmaPOS.MVC.Authorization;
 
 namespace PharmaPOS.MVC.Models;
 

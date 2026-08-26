@@ -1,8 +1,8 @@
-using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.MVC.Authorization;
-using PharmaPOS.MVC.Data;
+using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Helpers;
 using PharmaPOS.MVC.Mappers;

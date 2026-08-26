@@ -1,0 +1,296 @@
+using ErrorOr;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Helpers;
+using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.MVC.Services;
+
+namespace PharmaPOS.Application.Services;
+
+public class BillingService(
+	ApplicationDbContext context,
+	CustomerService customerService,
+	ILogger<BillingService> logger)
+{
+
+	/// <summary>
+	/// Gets filtered bills for DataTables.
+	/// </summary>
+	public async Task<DataTableResult<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
+	{
+		var query = context.Bills.AsQueryable();
+		return await DataTableHelper.FilterAsync(query, request, columns, ct);
+	}
+
+	/// <summary>
+	/// Creates a new bill with items, adjusting inventory (batch sold quantities) within a transaction.
+	/// </summary>
+	public async Task<ErrorOr<int>> CreateBillAsync(BillingFormModel model, CancellationToken ct = default)
+	{
+		if (model.Items.Count == 0)
+			return BillErrors.MissingItems;
+		
+		var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+		if (customerResult.IsError)
+			return customerResult.Errors;
+
+		var billDetails = new BillDetails(
+			customerResult.Value,
+			model.Name,
+			model.Email,
+			model.Mobile,
+			model.Method,
+			model.Date,
+			model.SubTotal,
+			model.Tax,
+			model.Discount,
+			model.Amount,
+			model.Note
+		);
+
+		var billResult = Bill.Create(billDetails);
+		if (billResult.IsError)
+			return billResult.Errors;
+
+		var bill = billResult.Value;
+
+		// Pre-fetch all needed batches in a single query (fixes N+1)
+		var batchIds = model.Items.Select(i => i.Batch).Distinct().ToList();
+		var batches = await context.Batches
+			.Where(b => batchIds.Contains(b.Id))
+			.ToDictionaryAsync(b => b.Id, ct);
+
+		foreach (var item in model.Items)
+		{
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
+
+			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
+			var billItemResult = BillItem.Create(billItemDetails);
+
+			if (billItemResult.IsError)
+				return billItemResult.Errors;
+
+			// Use aggregate root method
+			bill.AddItem(billItemResult.Value);
+
+			if (!batches.TryGetValue(item.Batch, out var batch))
+				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
+
+			// Validate stock availability
+			var available = batch.Pricing.Qty - batch.Sold;
+			if (item.Qty > available)
+				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
+
+			batch.UpdateSold(batch.Sold + item.Qty);
+		}
+
+		context.Bills.Add(bill);
+		await context.SaveChangesAsync(ct);
+
+		logger.LogInformation("Bill {BillId} created with {ItemCount} items", bill.Id, model.Items.Count);
+		return bill.Id;
+	}
+
+	/// <summary>
+	/// Updates an existing bill: reverts old inventory, clears old items, adds new items, adjusts inventory.
+	/// </summary>
+	public async Task<ErrorOr<int>> UpdateBillAsync(int id, BillingFormModel model, CancellationToken ct = default)
+	{
+		if (model.Items.Count == 0)
+			return BillErrors.MissingItems;
+		
+		var bill = await context.Bills
+			.Include(b => b.Items)
+			.FirstOrDefaultAsync(b => b.Id == id, ct);
+
+		if (bill == null)
+			return BillErrors.NotFound(id);
+
+		var customerId = model.CustomerId ?? bill.CustomerId;
+		if (customerId == 0)
+		{
+			var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+			if (customerResult.IsError)
+				return customerResult.Errors;
+			customerId = customerResult.Value;
+		}
+
+		var billDetails = new BillDetails(
+			customerId,
+			model.Name,
+			model.Email,
+			model.Mobile,
+			model.Method,
+			model.Date,
+			model.SubTotal,
+			model.Tax,
+			model.Discount,
+			model.Amount,
+			model.Note
+		);
+
+		var updateResult = bill.Update(billDetails);
+		if (updateResult.IsError)
+			return updateResult.Errors;
+
+		// Pre-fetch all batches for both old and new items in a single query
+		var oldBatchIds = bill.Items.Select(i => i.BatchId).ToList();
+		var newBatchIds = model.Items.Select(i => i.Batch).ToList();
+		var allBatchIds = oldBatchIds.Union(newBatchIds).Distinct().ToList();
+
+		var batches = await context.Batches
+			.Where(b => allBatchIds.Contains(b.Id))
+			.ToDictionaryAsync(b => b.Id, ct);
+
+		// Revert sold quantities for old items
+		foreach (var oldItem in bill.Items)
+		{
+			if (!batches.TryGetValue(oldItem.BatchId, out var batch))
+				return BillErrors.BatchNotFound(oldItem.BatchId, oldItem.MedicineId);
+
+			batch.UpdateSold(batch.Sold - oldItem.Pricing.Qty);
+		}
+
+		// Clear old items using aggregate root method
+		bill.ClearItems();
+
+		// Add new items and update sold quantities
+		foreach (var item in model.Items)
+		{
+			var pricingResult = PricingHelper.CreatePricingDetails(item);
+			if (pricingResult.IsError) return pricingResult.Errors;
+
+			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
+			var billItemResult = BillItem.Create(billItemDetails);
+			
+			if (billItemResult.IsError)
+				return billItemResult.Errors;
+
+			// Use aggregate root method
+			bill.AddItem(billItemResult.Value);
+			
+			if (!batches.TryGetValue(item.Batch, out var batch))
+				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
+
+			// Validate stock availability
+			var available = batch.Pricing.Qty - batch.Sold;
+			if (item.Qty > available)
+				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
+
+			batch.UpdateSold(batch.Sold + item.Qty);
+		}
+
+		await context.SaveChangesAsync(ct);
+
+		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, model.Items.Count);
+		return bill.Id;
+	}
+
+	/// <summary>
+	/// Deletes a bill and reverts inventory (batch sold quantities).
+	/// </summary>
+	public async Task<ErrorOr<Deleted>> DeleteBillAsync(int id, CancellationToken ct = default)
+	{
+
+		var bill = await context.Bills
+			.Include(b => b.Items)
+			.FirstOrDefaultAsync(b => b.Id == id, ct);
+
+		if (bill == null)
+			return BillErrors.NotFound(id);
+
+		// Pre-fetch all batches in a single query
+		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
+		var batches = await context.Batches
+			.Where(b => batchIds.Contains(b.Id))
+			.ToDictionaryAsync(b => b.Id, ct);
+
+		// Revert sold quantities
+		foreach (var item in bill.Items)
+		{
+			if (!batches.TryGetValue(item.BatchId, out var batch))
+				return BillErrors.BatchNotFound(item.BatchId, item.MedicineId);
+
+			batch.UpdateSold(batch.Sold - item.Pricing.Qty);
+		}
+
+		context.Bills.Remove(bill);
+		await context.SaveChangesAsync(ct);
+
+		logger.LogInformation("Bill {BillId} deleted, {ItemCount} items reverted", id, bill.Items.Count);
+		return Result.Deleted;
+	}
+
+	/// <summary>
+	/// Loads a bill with all related data for the Edit GET action.
+	/// </summary>
+	public async Task<ErrorOr<Bill>> GetBillForEditAsync(int id, CancellationToken ct = default)
+	{
+		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+
+		var bill = await context.Bills
+			.Include(b => b.Items)
+				.ThenInclude(bi => bi.Medicine)
+					.ThenInclude(m => m.Batches
+						.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+						.Where(b => b.Status == Status.Active))
+			.Include(b => b.Items)
+				.ThenInclude(bi => bi.Batch)
+			.AsSplitQuery()
+			.FirstOrDefaultAsync(b => b.Id == id, ct);
+
+		if (bill == null)
+			return BillErrors.NotFound(id);
+
+		// Ensure each item's own batch is in the Medicine.Batches collection
+		// (it may be expired/inactive, but we still need to display it)
+		foreach (var item in bill.Items)
+		{
+			var batchAlreadyLoaded = item.Medicine.Batches.Any(b => b.Id == item.BatchId);
+			if (batchAlreadyLoaded) continue;
+
+			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId, ct);
+			if (activeBatch != null)
+			{
+				item.Medicine.Batches.Add(activeBatch);
+			}
+		}
+
+		return bill;
+	}
+
+	/// <summary>
+	/// Loads a bill with all related data for the Details (view) action.
+	/// </summary>
+	public async Task<ErrorOr<Bill>> GetBillAsync(int id, CancellationToken ct = default)
+	{
+		var bill = await context.Bills
+			.Include(b => b.PaymentMethod)
+			.Include(b => b.Items)
+				.ThenInclude(bi => bi.Medicine)
+			.Include(b => b.Items)
+				.ThenInclude(bi => bi.Batch)
+			.AsSplitQuery()
+			.FirstOrDefaultAsync(b => b.Id == id, ct);
+
+		if (bill == null)
+			return BillErrors.NotFound(id);
+
+		return bill;
+	}
+	
+	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
+	{
+		return await context.Bills
+			.Where(b => b.CustomerId == customerId || (email != null && b.Email == email))
+			.OrderByDescending(b => b.Date)
+			.Take(20)
+			.ToListAsync(ct);
+	}
+	
+}

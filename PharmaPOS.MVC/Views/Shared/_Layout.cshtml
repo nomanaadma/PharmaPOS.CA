@@ -1,3 +1,4 @@
+@using PharmaPOS.Application.Authorization
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
 	var siteInfo = await SiteInfo.GetSettingsAsync();

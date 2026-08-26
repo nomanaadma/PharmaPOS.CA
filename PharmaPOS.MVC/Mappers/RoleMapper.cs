@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using PharmaPOS.MVC.Authorization;
+using PharmaPOS.Application.Authorization;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;

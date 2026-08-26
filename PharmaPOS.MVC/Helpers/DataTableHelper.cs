@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.MVC.Helpers;
 

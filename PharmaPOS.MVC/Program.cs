@@ -1,24 +1,14 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.EntityFrameworkCore;
-using PharmaPOS.MVC.Authorization;
-using PharmaPOS.MVC.Data;
+using PharmaPOS.Application;
+using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Data;
 using PharmaPOS.MVC.Middlewares;
-using PharmaPOS.MVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-	options.UseNpgsql(connectionString);
-	options.EnableSensitiveDataLogging();
-});
+builder.Services.AddDatabase(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -39,16 +29,7 @@ builder.Services.AddAuthorization(options =>
 	}
 });
 
-builder.Services.AddScoped<SettingService>();
-builder.Services.AddScoped<BillingService>();
-builder.Services.AddScoped<CustomerService>();
-builder.Services.AddScoped<PurchaseService>();
-builder.Services.AddScoped<PaymentMethodService>();
-builder.Services.AddScoped<SupplierService>();
-builder.Services.AddScoped<MedicineService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<StockService>();
-builder.Services.AddScoped<ReportService>();
+builder.Services.AddApplication();
 
 var app = builder.Build();
 
@@ -57,8 +38,9 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseMigrationsEndPoint();
 	
-	// Auto-seed on startup
-	await DbInitializer.SeedAuthData(app.Services);
+	using var scope = app.Services.CreateScope();
+	var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+	await dbInitializer.SeedAuthDataAsync();
 	
 }
 else

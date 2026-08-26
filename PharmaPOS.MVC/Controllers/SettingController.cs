@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.MVC.Data;
+using PharmaPOS.Application.Authorization;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.Domain.SettingAggregate;
-using PharmaPOS.MVC.Authorization;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Services;
 

@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="PharmaPOS.Application/PharmaPOS.Application.csproj" />
+  <Project Path="PharmaPOS.Contracts/PharmaPOS.Contracts.csproj" />
   <Project Path="PharmaPOS.Domain/PharmaPOS.Domain.csproj" />
   <Project Path="PharmaPOS.MVC/PharmaPOS.MVC.csproj" />
 </Solution>

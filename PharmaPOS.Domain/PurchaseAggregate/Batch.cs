@@ -63,7 +63,6 @@ public class Batch : EntityWithDate
 		Pricing = details.Pricing;
 		PurchasePrice = details.PurchasePrice;
 		MedicineId = details.MedicineId;
-		PurchaseId = details.PurchaseId;
 	}
 
 	private static List<Error> ValidateDetails(BatchDetails details)
