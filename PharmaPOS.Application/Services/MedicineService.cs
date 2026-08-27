@@ -1,15 +1,16 @@
 using ErrorOr;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Extensions;
+using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.MedicineAggregate;
-using PharmaPOS.MVC.DTOs;
-using PharmaPOS.MVC.Extensions;
-using PharmaPOS.MVC.Models;
 using PharmaPOS.Domain.PurchaseAggregate;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class MedicineService(
 	ApplicationDbContext context,
@@ -18,21 +19,9 @@ public class MedicineService(
 	/// <summary>
 	/// Creates a new medicine.
 	/// </summary>
-	public async Task<ErrorOr<int>> CreateMedicineAsync(MedicineViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreateMedicineAsync(MedicineRequest request, CancellationToken ct = default)
 	{
-		var details = new MedicineDetails(
-			model.Name,
-			model.Company,
-			model.Generic,
-			model.MedicineGroup,
-			model.CategoryId,
-			model.StoreBox,
-			model.MinLevel,
-			model.ReOrderLevel,
-			model.Unit,
-			model.UnitPacking,
-			model.Note
-		);
+		var details = request.Adapt<MedicineDetails>();
 
 		var medicineResult = Medicine.Create(details);
 		if (medicineResult.IsError)
@@ -49,26 +38,14 @@ public class MedicineService(
 	/// <summary>
 	/// Updates an existing medicine.
 	/// </summary>
-	public async Task<ErrorOr<int>> UpdateMedicineAsync(int id, MedicineViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdateMedicineAsync(int id, MedicineRequest request, CancellationToken ct = default)
 	{
 		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
 
-		var details = new MedicineDetails(
-			model.Name,
-			model.Company,
-			model.Generic,
-			model.MedicineGroup,
-			model.CategoryId,
-			model.StoreBox,
-			model.MinLevel,
-			model.ReOrderLevel,
-			model.Unit,
-			model.UnitPacking,
-			model.Note
-		);
+		var details = request.Adapt<MedicineDetails>();
 
 		var updateResult = medicine.Update(details);
 		if (updateResult.IsError)
@@ -115,14 +92,14 @@ public class MedicineService(
 	/// <summary>
 	/// Returns all medicines with live stock for the Index page.
 	/// </summary>
-	public async Task<List<MedicineWithStockDto>> GetMedicinesWithStockAsync(CancellationToken ct = default)
+	public async Task<List<MedicineStockResponse>> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 
 		return await context.Medicines
 			.Include(m => m.Category)
 			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new MedicineWithStockDto
+			.Select(m => new MedicineStockResponse
 			(
 				Medicine: m,
 				LiveStock: m.Batches
@@ -162,7 +139,7 @@ public class MedicineService(
 			{
 				id = m.Id,
 				label = m.Name,
-				Generic = m.Generic
+				m.Generic
 			})
 			.ToListAsync(ct);
 	}

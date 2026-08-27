@@ -1,17 +1,16 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Extensions;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.MVC.DTOs;
-using PharmaPOS.MVC.Extensions;
-using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Models;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class StockService(ApplicationDbContext context, ILogger<StockService> logger)
 {
-	public async Task<List<StockViewModel>> GetStockListAsync(string? type, CancellationToken ct = default)
+	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{
 		var batchesQuery = context.Batches
 			.Include(b => b.Medicine)
@@ -100,9 +99,26 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 				totalSales += Math.Round(unitSalePrice * b.Sold, 2);
 				profit += Math.Round(totalSales - totalPurchase, 2);
 			}
-
-			return StockMapper.MapToStock(b, false, unitPurchasePrice, unitSalePrice, totalPurchase, totalSales, profit);
 			
+			return new StockResponse(
+				Id: b.Id,
+				MedicineId: b.MedicineId,
+				PurchaseId: b.PurchaseId,
+				Name: b.Medicine.Name,
+				Batch: b.BatchName,
+				Expiry: b.Expiry,
+				PurchasePrice: unitPurchasePrice,
+				SalePrice: unitSalePrice,
+				TotalPurchase: totalPurchase,
+				TotalSales: totalSales,
+				Profit: profit,
+				Qty: b.Pricing.Qty,
+				Sold: b.Sold,
+				Available: b.Pricing.Qty - b.Sold
+			);
+
+			// return StockMapper.MapToStock(b, false, unitPurchasePrice, unitSalePrice, totalPurchase, totalSales, profit);
+
 		}).ToList();
 	}
 

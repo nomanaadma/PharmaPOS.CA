@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Services;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.Application;
 
@@ -23,6 +22,7 @@ public static class ApplicationServiceCollectionExtensions
 		    services.AddScoped<CategoryService>();
 		    services.AddScoped<StockService>();
 		    services.AddScoped<ReportService>();
+		    
 	    }
 
 	    public void AddDatabase(string? connectionString)

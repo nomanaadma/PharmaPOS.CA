@@ -1,14 +1,15 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Helpers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -32,7 +33,7 @@ public class PurchaseController(
 	[Authorize(Policy = Permissions.Purchase.List)]
 	public async Task<IActionResult> Filter(CancellationToken ct = default)
 	{
-		var request = DataTableRequest.FromForm(Request.Form);
+		var request = Request.Form.ToDataTableRequest();
 
 		var result = await purchaseService.GetFilteredPurchasesAsync(request, PurchaseColumns.GetColumnMap(), ct);
 
@@ -90,7 +91,9 @@ public class PurchaseController(
 			return View(FormView, model);	
 		}
 		
-		var result = await purchaseService.CreatePurchaseAsync(model, ct);
+		var request = model.Adapt<PurchaseRequest>();
+		
+		var result = await purchaseService.CreatePurchaseAsync(request, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model);
@@ -132,8 +135,10 @@ public class PurchaseController(
 			NotifyError("Please check your inputs.");
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<PurchaseRequest>();
 
-		var result = await purchaseService.UpdatePurchaseAsync(id, model, ct);
+		var result = await purchaseService.UpdatePurchaseAsync(id, request, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model);

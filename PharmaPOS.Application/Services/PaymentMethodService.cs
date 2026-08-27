@@ -1,23 +1,25 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.PaymentMethodAggregate;
-using PharmaPOS.MVC.Models;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class PaymentMethodService(
 	ApplicationDbContext context,
 	ILogger<PaymentMethodService> logger)
 {
-	public async Task<ErrorOr<int>> CreatePaymentMethodAsync(PaymentMethodViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreatePaymentMethodAsync(PaymentMethodRequest request, CancellationToken ct = default)
 	{
-		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name, ct))
+		if (await context.PaymentMethods.AnyAsync(p => p.Name == request.Name, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
-		var details = new PaymentMethodDetails(model.Name, model.Status);
+		var details = request.Adapt<PaymentMethodDetails>();
 
 		var methodResult = PaymentMethod.Create(details);
 		if (methodResult.IsError)
@@ -31,16 +33,16 @@ public class PaymentMethodService(
 		return method.Id;
 	}
 
-	public async Task<ErrorOr<int>> UpdatePaymentMethodAsync(int id, PaymentMethodViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdatePaymentMethodAsync(int id, PaymentMethodRequest request, CancellationToken ct = default)
 	{
 		var method = await context.PaymentMethods.FirstOrDefaultAsync(p => p.Id == id, ct);
 		if (method == null)
 			return PaymentMethodErrors.NotFound(id);
 
-		if (await context.PaymentMethods.AnyAsync(p => p.Name == model.Name && p.Id != id, ct))
+		if (await context.PaymentMethods.AnyAsync(p => p.Name == request.Name && p.Id != id, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
-		var details = new PaymentMethodDetails(model.Name, model.Status);
+		var details = request.Adapt<PaymentMethodDetails>();
 
 		var updateResult = method.Update(details);
 		if (updateResult.IsError)

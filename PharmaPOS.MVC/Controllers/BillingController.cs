@@ -1,3 +1,4 @@
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
@@ -7,7 +8,6 @@ using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Helpers;
 using PharmaPOS.MVC.Mappers;
 using PharmaPOS.MVC.Models;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -32,7 +32,7 @@ public class BillingController(
 	[Authorize(Policy = Permissions.Billing.List)]
 	public async Task<IActionResult> Filter(CancellationToken ct = default)
 	{
-		var request = DataTableRequest.FromForm(Request.Form);
+		var request = Request.Form.ToDataTableRequest();
 
 		var result = await billingService.GetFilteredBillsAsync(request, BillColumns.GetColumnMap(), ct);
 
@@ -74,8 +74,10 @@ public class BillingController(
 			NotifyError("Please check your inputs.");
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<BillingRequest>();
 
-		var result = await billingService.CreateBillAsync(model, ct);
+		var result = await billingService.CreateBillAsync(request, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model);
@@ -117,8 +119,10 @@ public class BillingController(
 			NotifyError("Please check your inputs.");
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<BillingRequest>();
 
-		var result = await billingService.UpdateBillAsync(id, model, ct);
+		var result = await billingService.UpdateBillAsync(id, request, ct);
 
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model);

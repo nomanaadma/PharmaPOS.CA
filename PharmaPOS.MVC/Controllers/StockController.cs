@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.MVC.Services;
+using PharmaPOS.Application.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 

@@ -1,10 +1,12 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -40,8 +42,10 @@ public class PaymentMethodsController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<PaymentMethodRequest>();
 
-		var result = await paymentMethodService.CreatePaymentMethodAsync(model, ct);
+		var result = await paymentMethodService.CreatePaymentMethodAsync(request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["PaymentMethod.NameNotUnique"] = "Name" });
 
@@ -82,8 +86,10 @@ public class PaymentMethodsController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<PaymentMethodRequest>();
 
-		var result = await paymentMethodService.UpdatePaymentMethodAsync(id, model, ct);
+		var result = await paymentMethodService.UpdatePaymentMethodAsync(id, request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["PaymentMethod.NameNotUnique"] = "Name" });
 

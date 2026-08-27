@@ -1,11 +1,11 @@
-using PharmaPOS.MVC.DTOs;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;
 
 public static class ReportMapper
 {
-    public static IEnumerable<InventoryReportViewModel> MapToInventoryReport(IEnumerable<InventoryReportDto> dtos)
+    public static IEnumerable<InventoryReportViewModel> MapToInventoryReport(IEnumerable<InventoryReportResponse> dtos)
     {
         return dtos.Select(x => new InventoryReportViewModel
         {
@@ -21,7 +21,7 @@ public static class ReportMapper
     }
 
 
-    public static IncomeExpenseReportViewModel MapToStatsReport(StatsReportDto stats)
+    public static IncomeExpenseReportViewModel MapToStatsReport(StatsReportResponse stats)
     {
 	    return new IncomeExpenseReportViewModel
 	    {

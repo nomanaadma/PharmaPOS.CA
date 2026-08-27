@@ -1,17 +1,15 @@
+using ErrorOr;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Application.IProviders;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.Domain.SettingAggregate;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
-using Extensions;
-using Microsoft.EntityFrameworkCore;
-using Data;
-using PharmaPOS.MVC.Models;
-using ErrorOr;
-using IOFile = System.IO.File;
-
-public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment env)
+public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pathProvider)
 {
 
 	public async Task<Setting?> GetRawSettingsAsync(CancellationToken ct = default)
@@ -36,7 +34,7 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 		
 		var logo = "/images/logo.png";
 		
-		if (!string.IsNullOrEmpty(settings.Logo) && File.Exists( env.UploadsFilePath(settings.Logo) ))
+		if (!string.IsNullOrEmpty(settings.Logo) && File.Exists( pathProvider.GetUploadsFilePath(settings.Logo) ))
 		{
 			logo = $"/uploads/{settings.Logo}";
 		}
@@ -44,21 +42,21 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 		
 		var logoIcon = "/images/icon.png";
 
-		if (!string.IsNullOrEmpty(settings.LogoIcon) && File.Exists( env.UploadsFilePath(settings.LogoIcon) ))
+		if (!string.IsNullOrEmpty(settings.LogoIcon) && File.Exists( pathProvider.GetUploadsFilePath(settings.LogoIcon) ))
 		{
 			logoIcon = $"/uploads/{settings.LogoIcon}";
 		}
 		
 		var favicon = "/images/favicon.png";
 
-		if (!string.IsNullOrEmpty(settings.Favicon) && File.Exists( env.UploadsFilePath(settings.Favicon) ))
+		if (!string.IsNullOrEmpty(settings.Favicon) && File.Exists( pathProvider.GetUploadsFilePath(settings.Favicon) ))
 		{
 			favicon = $"/uploads/{settings.Favicon}";
 		}
 		
 		var lgBackground = "/images/login-bg.jpg";
 
-		if (!string.IsNullOrEmpty(settings.LgBackground) && File.Exists( env.UploadsFilePath(settings.LgBackground) ))
+		if (!string.IsNullOrEmpty(settings.LgBackground) && File.Exists( pathProvider.GetUploadsFilePath(settings.LgBackground) ))
 		{
 			lgBackground = $"/uploads/{settings.LgBackground}";
 		}
@@ -70,10 +68,10 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 		
 	}
 
-	public async Task<ErrorOr<Success>> UpdateSettingsAsync(SystemInfoViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<Success>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
 	{
 		var settings = await dbContext.Settings.FirstOrDefaultAsync(ct);
-		var details = new SettingDetails(model.Name, model.LegalName, model.Mail, model.Phone);
+		var details = new SettingDetails(request.Name, request.LegalName, request.Mail, request.Phone);
 		
 		if (settings == null)
 		{
@@ -94,8 +92,8 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 			}
 		}
 
-		settings.UpdateImages(model.Logo, model.LogoIcon, model.LgBackground, model.Favicon);
-		settings.UpdateAddress(new Address(model.AddressLine1, model.AddressLine2, model.City, model.Country, model.Postal));
+		settings.UpdateImages(request.Logo, request.LogoIcon, request.LgBackground, request.Favicon);
+		settings.UpdateAddress(new Address(request.AddressLine1, request.AddressLine2, request.City, request.Country, request.Postal));
 
 		await dbContext.SaveChangesAsync(ct);
 		return Result.Success;
@@ -114,7 +112,7 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 		var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
 		var uniqueId = Guid.NewGuid().ToString("N")[..8];
 		var fileName = $"media-{uniqueId}.{ext}";
-		var filePath = env.UploadsFilePath(fileName);
+		var filePath = pathProvider.GetUploadsFilePath(fileName);
 
 		await using (var stream = new FileStream(filePath, FileMode.Create))
 		{
@@ -140,12 +138,12 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 		if (media == null)
 			return Error.NotFound(description: "File is wrong or does not exist.");
 
-		var filePath = env.UploadsFilePath(name);
-		if (IOFile.Exists(filePath))
+		var filePath = pathProvider.GetUploadsFilePath(name);
+		if (File.Exists(filePath))
 		{
 			try
 			{
-				IOFile.Delete(filePath);
+				File.Delete(filePath);
 			}
 			catch (Exception ex)
 			{
@@ -163,7 +161,7 @@ public class SettingService(ApplicationDbContext dbContext, IWebHostEnvironment 
 	{
 		try
 		{
-			if (!IOFile.Exists(path)) return (0, 0);
+			if (!File.Exists(path)) return (0, 0);
 
 			using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 			using var reader = new BinaryReader(fileStream);

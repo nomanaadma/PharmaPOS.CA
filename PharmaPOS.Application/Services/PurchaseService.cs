@@ -1,19 +1,19 @@
 using ErrorOr;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Helpers;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.PurchaseAggregate;
-using PharmaPOS.MVC.Models;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class PurchaseService(
 	ApplicationDbContext context,
 	ILogger<PurchaseService> logger)
 {
-	public async Task<DataTableResult<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
+	public async Task<DataTableResponse<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
 	{
 		var query = context.Purchases
 			.Include(mp => mp.Supplier)
@@ -22,20 +22,20 @@ public class PurchaseService(
 		return await DataTableHelper.FilterAsync(query, request, columns, ct);
 	}
 
-	public async Task<ErrorOr<int>> CreatePurchaseAsync(PurchaseFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreatePurchaseAsync(PurchaseRequest request, CancellationToken ct = default)
 	{
-		if (model.Items.Count == 0)
+		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
 
 
 		var details = new PurchaseDetails(
-			model.Supplier,
-			model.Date,
-			model.SubTotal,
-			model.Tax,
-			model.Discount,
-			model.Amount,
-			model.Note
+			request.Supplier,
+			request.Date,
+			request.SubTotal,
+			request.Tax,
+			request.Discount,
+			request.Amount,
+			request.Note
 		);
 
 		var purchaseResult = Purchase.Create(details);
@@ -44,7 +44,7 @@ public class PurchaseService(
 
 		var purchase = purchaseResult.Value;
 
-		foreach (var item in model.Items)
+		foreach (var item in request.Items)
 		{
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
@@ -68,13 +68,13 @@ public class PurchaseService(
 		context.Purchases.Add(purchase);
 		await context.SaveChangesAsync(ct);
 
-		logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, model.Items.Count);
+		logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
 		return purchase.Id;
 	}
 
-	public async Task<ErrorOr<int>> UpdatePurchaseAsync(int id, PurchaseFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdatePurchaseAsync(int id, PurchaseRequest request, CancellationToken ct = default)
 	{
-		if (model.Items.Count == 0)
+		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
 		
 		var existingPurchase = await context.Purchases
@@ -85,20 +85,20 @@ public class PurchaseService(
 			return PurchaseErrors.NotFound(id);
 
 		var details = new PurchaseDetails(
-			model.Supplier,
-			model.Date,
-			model.SubTotal,
-			model.Tax,
-			model.Discount,
-			model.Amount,
-			model.Note
+			request.Supplier,
+			request.Date,
+			request.SubTotal,
+			request.Tax,
+			request.Discount,
+			request.Amount,
+			request.Note
 		);
 
 		var updateResult = existingPurchase.Update(details);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		var submittedBatchIds = model.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
+		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
 
 		var batchesToRemoveIds = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).Select(b => b.Id).ToList();
 		
@@ -111,7 +111,7 @@ public class PurchaseService(
 				return removeResult.Errors;
 		}
 
-		foreach (var item in model.Items)
+		foreach (var item in request.Items)
 		{
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
@@ -149,7 +149,7 @@ public class PurchaseService(
 
 		await context.SaveChangesAsync(ct);
 
-		logger.LogInformation("Purchase {PurchaseId} updated with {BatchCount} batches", existingPurchase.Id, model.Items.Count);
+		logger.LogInformation("Purchase {PurchaseId} updated with {BatchCount} batches", existingPurchase.Id, request.Items.Count);
 		return existingPurchase.Id;
 	}
 

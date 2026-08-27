@@ -1,22 +1,24 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.SupplierAggregate;
-using PharmaPOS.MVC.Models;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class SupplierService(
 	ApplicationDbContext context,
 	ILogger<SupplierService> logger)
 {
-	public async Task<ErrorOr<int>> CreateSupplierAsync(SupplierViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreateSupplierAsync(SupplierRequest request, CancellationToken ct = default)
 	{
-		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email, ct))
+		if (await context.Suppliers.AnyAsync(s => s.Email == request.Email, ct))
 			return SupplierErrors.EmailNotUnique;
 
-		var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
+		var details = request.Adapt<SupplierDetails>();
 
 		var supplierResult = Supplier.Create(details);
 		if (supplierResult.IsError)
@@ -30,16 +32,16 @@ public class SupplierService(
 		return supplier.Id;
 	}
 
-	public async Task<ErrorOr<int>> UpdateSupplierAsync(int id, SupplierViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdateSupplierAsync(int id, SupplierRequest request, CancellationToken ct = default)
 	{
 		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == id, ct);
 		if (supplier == null)
 			return SupplierErrors.NotFound(id);
 
-		if (await context.Suppliers.AnyAsync(s => s.Email == model.Email && s.Id != id, ct))
+		if (await context.Suppliers.AnyAsync(s => s.Email == request.Email && s.Id != id, ct))
 			return SupplierErrors.EmailNotUnique;
 
-		var details = new SupplierDetails(model.Name, model.Email, model.Phone, model.Address);
+		var details = request.Adapt<SupplierDetails>();
 
 		var updateResult = supplier.Update(details);
 		if (updateResult.IsError)

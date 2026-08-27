@@ -1,9 +1,11 @@
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -48,8 +50,10 @@ public class MedicinesController(
 		{
 			return View(FormView, model);	
 		}
+		
+		var request = model.Adapt<MedicineRequest>();
 
-		var result = await medicineService.CreateMedicineAsync(model, ct);
+		var result = await medicineService.CreateMedicineAsync(request, ct);
 
 		if (result.IsError)
 		{
@@ -125,8 +129,10 @@ public class MedicinesController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<MedicineRequest>();
 
-		var result = await medicineService.UpdateMedicineAsync(id, model, ct);
+		var result = await medicineService.UpdateMedicineAsync(id, request, ct);
 
 		if (result.IsError)
 		{

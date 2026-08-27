@@ -7,7 +7,7 @@ using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.MVC.Services;
+using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.Application.Services;
 
@@ -20,7 +20,7 @@ public class BillingService(
 	/// <summary>
 	/// Gets filtered bills for DataTables.
 	/// </summary>
-	public async Task<DataTableResult<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
+	public async Task<DataTableResponse<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
 	{
 		var query = context.Bills.AsQueryable();
 		return await DataTableHelper.FilterAsync(query, request, columns, ct);
@@ -29,27 +29,29 @@ public class BillingService(
 	/// <summary>
 	/// Creates a new bill with items, adjusting inventory (batch sold quantities) within a transaction.
 	/// </summary>
-	public async Task<ErrorOr<int>> CreateBillAsync(BillingFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreateBillAsync(BillingRequest request, CancellationToken ct = default)
 	{
-		if (model.Items.Count == 0)
+		if (request.Items.Count == 0)
 			return BillErrors.MissingItems;
+
+		var customerRequest = CreateCustomerRequest(request);
 		
-		var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+		var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct);
 		if (customerResult.IsError)
 			return customerResult.Errors;
 
 		var billDetails = new BillDetails(
 			customerResult.Value,
-			model.Name,
-			model.Email,
-			model.Mobile,
-			model.Method,
-			model.Date,
-			model.SubTotal,
-			model.Tax,
-			model.Discount,
-			model.Amount,
-			model.Note
+			request.Name,
+			request.Email,
+			request.Mobile,
+			request.Method,
+			request.Date,
+			request.SubTotal,
+			request.Tax,
+			request.Discount,
+			request.Amount,
+			request.Note
 		);
 
 		var billResult = Bill.Create(billDetails);
@@ -59,12 +61,12 @@ public class BillingService(
 		var bill = billResult.Value;
 
 		// Pre-fetch all needed batches in a single query (fixes N+1)
-		var batchIds = model.Items.Select(i => i.Batch).Distinct().ToList();
+		var batchIds = request.Items.Select(i => i.Batch).Distinct().ToList();
 		var batches = await context.Batches
 			.Where(b => batchIds.Contains(b.Id))
 			.ToDictionaryAsync(b => b.Id, ct);
 
-		foreach (var item in model.Items)
+		foreach (var item in request.Items)
 		{
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
@@ -92,16 +94,40 @@ public class BillingService(
 		context.Bills.Add(bill);
 		await context.SaveChangesAsync(ct);
 
-		logger.LogInformation("Bill {BillId} created with {ItemCount} items", bill.Id, model.Items.Count);
+		logger.LogInformation("Bill {BillId} created with {ItemCount} items", bill.Id, request.Items.Count);
 		return bill.Id;
+	}
+
+	private static CustomerRequest CreateCustomerRequest(BillingRequest billingRequest)
+	{
+		
+		var nameParts = (billingRequest.Name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+		// Default to empty strings if the array is empty
+		var lastName = nameParts.Length > 0 ? nameParts[^1] : string.Empty;
+
+		var firstName = nameParts.Length > 1 
+			? string.Join(" ", nameParts[..^1]) 
+			: lastName;
+		
+		return new CustomerRequest(
+			Id: billingRequest.CustomerId,
+			FirstName: firstName,
+			LastName: lastName,
+			Email: billingRequest.Email,
+			Mobile: billingRequest.Mobile,
+			Gender: Gender.NotSpecified,
+			Status: Status.Active
+		);
+		
 	}
 
 	/// <summary>
 	/// Updates an existing bill: reverts old inventory, clears old items, adds new items, adjusts inventory.
 	/// </summary>
-	public async Task<ErrorOr<int>> UpdateBillAsync(int id, BillingFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdateBillAsync(int id, BillingRequest request, CancellationToken ct = default)
 	{
-		if (model.Items.Count == 0)
+		if (request.Items.Count == 0)
 			return BillErrors.MissingItems;
 		
 		var bill = await context.Bills
@@ -111,10 +137,13 @@ public class BillingService(
 		if (bill == null)
 			return BillErrors.NotFound(id);
 
-		var customerId = model.CustomerId ?? bill.CustomerId;
+		var customerId = request.CustomerId ?? bill.CustomerId;
 		if (customerId == 0)
 		{
-			var customerResult = await customerService.GetOrCreateCustomerAsync(model, ct);
+			
+			var customerRequest = CreateCustomerRequest(request);
+			
+			var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct);
 			if (customerResult.IsError)
 				return customerResult.Errors;
 			customerId = customerResult.Value;
@@ -122,16 +151,16 @@ public class BillingService(
 
 		var billDetails = new BillDetails(
 			customerId,
-			model.Name,
-			model.Email,
-			model.Mobile,
-			model.Method,
-			model.Date,
-			model.SubTotal,
-			model.Tax,
-			model.Discount,
-			model.Amount,
-			model.Note
+			request.Name,
+			request.Email,
+			request.Mobile,
+			request.Method,
+			request.Date,
+			request.SubTotal,
+			request.Tax,
+			request.Discount,
+			request.Amount,
+			request.Note
 		);
 
 		var updateResult = bill.Update(billDetails);
@@ -140,7 +169,7 @@ public class BillingService(
 
 		// Pre-fetch all batches for both old and new items in a single query
 		var oldBatchIds = bill.Items.Select(i => i.BatchId).ToList();
-		var newBatchIds = model.Items.Select(i => i.Batch).ToList();
+		var newBatchIds = request.Items.Select(i => i.Batch).ToList();
 		var allBatchIds = oldBatchIds.Union(newBatchIds).Distinct().ToList();
 
 		var batches = await context.Batches
@@ -160,7 +189,7 @@ public class BillingService(
 		bill.ClearItems();
 
 		// Add new items and update sold quantities
-		foreach (var item in model.Items)
+		foreach (var item in request.Items)
 		{
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
@@ -187,7 +216,7 @@ public class BillingService(
 
 		await context.SaveChangesAsync(ct);
 
-		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, model.Items.Count);
+		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, request.Items.Count);
 		return bill.Id;
 	}
 

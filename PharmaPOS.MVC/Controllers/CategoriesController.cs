@@ -1,10 +1,11 @@
-using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -40,8 +41,10 @@ public class CategoriesController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<MedicineCategoryRequest>();
 
-		var result = await categoryService.CreateCategoryAsync(model, ct);
+		var result = await categoryService.CreateCategoryAsync(request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Category.NameNotUnique"] = "Name" });
 
@@ -82,8 +85,10 @@ public class CategoriesController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<MedicineCategoryRequest>();
 
-		var result = await categoryService.UpdateCategoryAsync(id, model, ct);
+		var result = await categoryService.UpdateCategoryAsync(id, request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Category.NameNotUnique"] = "Name" });
 

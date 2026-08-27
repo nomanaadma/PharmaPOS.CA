@@ -1,10 +1,11 @@
-using ErrorOr;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -39,8 +40,10 @@ public class SuppliersController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<SupplierRequest>();
 
-		var result = await supplierService.CreateSupplierAsync(model, ct);
+		var result = await supplierService.CreateSupplierAsync(request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Supplier.EmailNotUnique"] = "Email" });
 
@@ -81,8 +84,10 @@ public class SuppliersController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<SupplierRequest>();
 
-		var result = await supplierService.UpdateSupplierAsync(id, model, ct);
+		var result = await supplierService.UpdateSupplierAsync(id, request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Supplier.EmailNotUnique"] = "Email" });
 

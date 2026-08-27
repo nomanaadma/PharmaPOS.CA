@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.IProviders;
+using PharmaPOS.Application.Services;
 using PharmaPOS.Domain.Common.Entities;
 using PharmaPOS.MVC.Extensions;
 using IOFile = System.IO.File;
@@ -9,7 +11,7 @@ namespace PharmaPOS.MVC.Controllers;
 
 [Authorize]
 [Route("media")]
-public class UploadController(IWebHostEnvironment env, PharmaPOS.MVC.Services.SettingService settingService) : BaseController
+public class UploadController(IFilePathProvider pathProvider, SettingService settingService) : BaseController
 {
 	[HttpGet("get")]
 	[Authorize(Policy = Permissions.Media.List)]
@@ -20,7 +22,7 @@ public class UploadController(IWebHostEnvironment env, PharmaPOS.MVC.Services.Se
 		
 		foreach (var value in result)
 		{
-			var filePath = env.UploadsFilePath(value.Filename);
+			var filePath = pathProvider.GetUploadsFilePath(value.Filename);
 			var (width, height) = settingService.GetImageDimensions(filePath);
 
 			html += $"""

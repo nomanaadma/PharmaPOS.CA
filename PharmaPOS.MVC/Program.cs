@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Localization;
 using PharmaPOS.Application;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Application.IProviders;
 using PharmaPOS.MVC.Middlewares;
+using PharmaPOS.MVC.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,9 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddApplication();
+
+builder.Services.AddScoped<IFilePathProvider, FilePathProvider>();
+
 
 var app = builder.Build();
 

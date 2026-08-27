@@ -1,12 +1,14 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
-using PharmaPOS.MVC.Models;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class CustomerService(ApplicationDbContext context, ILogger<CustomerService> logger)
 {
@@ -14,47 +16,32 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 	/// Resolves an existing customer by ID, or creates a new walk-in customer from the billing form data.
 	/// Returns ErrorOr&lt;int&gt; with the customer ID on success.
 	/// </summary>
-	public async Task<ErrorOr<int>> GetOrCreateCustomerAsync(BillingFormModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> GetOrCreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
-		if (model.CustomerId is > 0)
-			return model.CustomerId.Value;
+		if (request.Id is > 0)
+			return request.Id.Value;
 
-		if (string.IsNullOrWhiteSpace(model.Name))
+		if (string.IsNullOrWhiteSpace(request.FirstName))
 			return BillErrors.CustomerNameRequired;
-
-		var nameParts = model.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-		var lastName = nameParts[^1];
-		var firstName = nameParts.Length > 1
-			? string.Join(" ", nameParts[..^1])
-			: lastName;
-
-		var customerDetails = new CustomerDetails(
-			firstName,
-			lastName,
-			model.Email,
-			model.Mobile,
-			Gender.NotSpecified,
-			Status.Active
-		);
 		
-		return await SaveCustomerAsync(customerDetails, "Created walk-in customer {CustomerId} from billing form", ct);
+		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
 		
 	}
 	
 	
-	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email, ct))
+		if (await context.Customers.AnyAsync(c => c.Email == request.Email, ct))
 			return CustomerErrors.EmailNotUnique;
-
-		var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, Status.Active);
 		
-		return await SaveCustomerAsync(details, "Customer {CustomerId} created", ct);
+		return await SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
 		
 	}
 	
-	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerDetails details, string logMessage, CancellationToken ct)
+	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, string logMessage, CancellationToken ct)
 	{
+		var details = request.Adapt<CustomerDetails>();
+		
 		var customerResult = Customer.Create(details);
 		if (customerResult.IsError)
 			return customerResult.Errors;
@@ -68,17 +55,17 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 		return customer.Id;
 	}
 
-	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerViewModel model, CancellationToken ct = default)
+	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerRequest request, CancellationToken ct = default)
 	{
 		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
-		if (await context.Customers.AnyAsync(c => c.Email == model.Email && c.Id != id, ct))
+		if (await context.Customers.AnyAsync(c => c.Email == request.Email && c.Id != id, ct))
 			return CustomerErrors.EmailNotUnique;
-
-		var details = new CustomerDetails(model.FirstName, model.LastName, model.Email, model.Mobile, model.Gender!.Value, model.Status);
-
+		
+		var details = request.Adapt<CustomerDetails>();
+		
 		var updateResult = customer.Update(details);
 		if (updateResult.IsError)
 			return updateResult.Errors;

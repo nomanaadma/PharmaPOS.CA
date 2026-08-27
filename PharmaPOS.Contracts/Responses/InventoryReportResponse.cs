@@ -1,9 +1,9 @@
 
 using PharmaPOS.Domain.MedicineAggregate;
 
-namespace PharmaPOS.MVC.DTOs;
+namespace PharmaPOS.Contracts.Responses;
 
-public record InventoryReportDto(
+public record InventoryReportResponse(
     Medicine Medicine,
     decimal TotalPurchase,
     decimal TotalSales,

@@ -1,6 +1,6 @@
 ﻿using PharmaPOS.Domain.BillingAggregate;
 
-namespace PharmaPOS.MVC.Extensions;
+namespace PharmaPOS.Application.Extensions;
 
 public static class QueryExtension
 {

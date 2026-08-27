@@ -1,10 +1,11 @@
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -40,8 +41,10 @@ public class CustomersController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<CustomerRequest>();
 
-		var result = await customerService.CreateCustomerAsync(model, ct);
+		var result = await customerService.CreateCustomerAsync(request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Customer.EmailNotUnique"] = "Email" });
 
@@ -102,8 +105,10 @@ public class CustomersController(
 		{
 			return View(FormView, model);
 		}
+		
+		var request = model.Adapt<CustomerRequest>();
 
-		var result = await customerService.UpdateCustomerAsync(id, model, ct);
+		var result = await customerService.UpdateCustomerAsync(id, request, ct);
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView, model, new() { ["Customer.EmailNotUnique"] = "Email" });
 

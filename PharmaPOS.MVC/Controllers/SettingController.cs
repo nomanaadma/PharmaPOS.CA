@@ -1,11 +1,13 @@
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.MVC.Models;
 using PharmaPOS.Domain.SettingAggregate;
 using PharmaPOS.MVC.Mappers;
-using PharmaPOS.MVC.Services;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -37,8 +39,10 @@ public class SettingController(
 			NotifyError("Validation failed: " + errors);
 			return View("Info", model);
 		}
-
-		var result = await settingService.UpdateSettingsAsync(model, ct);
+		
+		var request = model.Adapt<SettingRequest>();
+		
+		var result = await settingService.UpdateSettingsAsync(request, ct);
 		if (result.IsError)
 		{
 			NotifyError(result.Errors[0].Description);

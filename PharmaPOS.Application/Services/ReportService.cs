@@ -1,20 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Extensions;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.MVC.DTOs;
-using PharmaPOS.MVC.Extensions;
 
-namespace PharmaPOS.MVC.Services;
+namespace PharmaPOS.Application.Services;
 
 public class ReportService(ApplicationDbContext context)
 {
-	public async Task<List<InventoryReportDto>> GetInventoryReportAsync(CancellationToken ct = default)
+	public async Task<List<InventoryReportResponse>> GetInventoryReportAsync(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 		
 		return await context.Medicines
 			.OrderByDescending(m => m.Id)
-			.Select(m => new InventoryReportDto
+			.Select(m => new InventoryReportResponse
 			(
 				m,
 				m.Batches
@@ -33,7 +33,7 @@ public class ReportService(ApplicationDbContext context)
 			.ToListAsync(ct);
 	}
 
-	public async Task<StatsReportDto> GetIncomeExpenseReportAsync(DateTime? start, DateTime? end, int? medicineId, string? medicineName, CancellationToken ct = default)
+	public async Task<StatsReportResponse> GetIncomeExpenseReportAsync(DateTime? start, DateTime? end, int? medicineId, string? medicineName, CancellationToken ct = default)
 	{
 		if (start.HasValue && end.HasValue)
 		{
@@ -102,7 +102,7 @@ public class ReportService(ApplicationDbContext context)
 		var taxAmount = medicineStats?.TaxAmount ?? 0m;
 		var discountAmount = medicineStats?.DiscountAmount ?? 0m;
 
-		return new StatsReportDto
+		return new StatsReportResponse
 		(
 			StartDate: start.Value,
 			EndDate: end.Value,

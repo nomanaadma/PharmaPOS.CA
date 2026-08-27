@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace PharmaPOS.MVC.Helpers;
+namespace PharmaPOS.Application.Helpers;
 
 /// <summary>
 /// Defines the type of searchable/sortable DataTable column.

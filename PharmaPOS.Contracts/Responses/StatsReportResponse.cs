@@ -1,6 +1,6 @@
-﻿namespace PharmaPOS.MVC.DTOs;
+﻿namespace PharmaPOS.Contracts.Responses;
 
-public record StatsReportDto
+public record StatsReportResponse
 (
 	DateTime StartDate,
 	DateTime EndDate,

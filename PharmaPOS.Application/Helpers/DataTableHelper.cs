@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 
-namespace PharmaPOS.MVC.Helpers;
+namespace PharmaPOS.Application.Helpers;
 
 /// <summary>
 /// Generic DataTables server-side processing helper.
@@ -17,7 +17,7 @@ public static class DataTableHelper
 	/// <summary>
 	/// Applies search, SearchBuilder, sorting, and pagination to the given query.
 	/// </summary>
-	public static async Task<DataTableResult<T>> FilterAsync<T>(
+	public static async Task<DataTableResponse<T>> FilterAsync<T>(
 		IQueryable<T> query,
 		DataTableRequest request,
 		DataTableColumnMap<T> columns,
@@ -63,7 +63,7 @@ public static class DataTableHelper
 
 		var data = await query.ToListAsync(ct);
 
-		return new DataTableResult<T>
+		return new DataTableResponse<T>
 		{
 			TotalRecords = totalRecords,
 			FilteredRecords = filteredRecords,

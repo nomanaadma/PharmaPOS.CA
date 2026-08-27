@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MedicineAggregate;
-using PharmaPOS.MVC.DTOs;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;
@@ -42,7 +42,7 @@ public static class MedicineMapper
 		return medicineResponse;
 	}
 	
-	public static IEnumerable<MedicineViewModel> MapToMedicinesWithStock(List<MedicineWithStockDto> medicines)
+	public static IEnumerable<MedicineViewModel> MapToMedicinesWithStock(List<MedicineStockResponse> medicines)
 	{
 		return medicines
 			.Select(data => 
