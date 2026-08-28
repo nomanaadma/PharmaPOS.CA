@@ -1,8 +1,9 @@
 using ErrorOr;
+using PharmaPOS.Domain.Common;
 
-namespace PharmaPOS.Domain.Common.Entities;
+namespace PharmaPOS.Domain.MediaAggregate;
 
-public class Media : EntityWithDate
+public class Media : Entity
 {
 	// EF Core parameterless constructor
 	private Media() { }
@@ -26,4 +27,6 @@ public class Media : EntityWithDate
 
 	public string Filename { get; private set; } = null!;
 	public string Ext { get; private set; } = null!;
+	
+	public DateTime CreatedDate { get; private init; }
 }

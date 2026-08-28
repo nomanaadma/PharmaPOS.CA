@@ -1,9 +1,9 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 
 namespace PharmaPOS.Domain.SupplierAggregate;
 
-public class Supplier : EntityWithDate, IAggregateRoot
+public class Supplier : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private Supplier() { }
@@ -17,6 +17,8 @@ public class Supplier : EntityWithDate, IAggregateRoot
 	public string Email { get; private set; } = null!;
 	public string Phone { get; private set; } = null!;
 	public string? Address { get; private set; }
+	public DateTime CreatedDate { get; private init; }
+
 
 	public static ErrorOr<Supplier> Create(SupplierDetails details)
 	{

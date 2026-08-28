@@ -1,12 +1,12 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.MedicineCategoryAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 
 
 namespace PharmaPOS.Domain.MedicineAggregate;
 
-public class Medicine : EntityWithDate, IAggregateRoot
+public class Medicine : AggregateRoot
 {
 	
 	// EF Core parameterless constructor
@@ -29,6 +29,8 @@ public class Medicine : EntityWithDate, IAggregateRoot
 	public string Unit { get; private set; } = null!;
 	public string? UnitPacking { get; private set; }
 	public string? Note { get; private set; }
+	public DateTime CreatedDate { get; private init; }
+
 	
 	public ICollection<Batch> Batches { get; init; } = [];
 

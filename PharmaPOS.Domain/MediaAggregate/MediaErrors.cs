@@ -1,6 +1,6 @@
 using ErrorOr;
 
-namespace PharmaPOS.Domain.Common.Entities;
+namespace PharmaPOS.Domain.MediaAggregate;
 
 public static class MediaErrors
 {

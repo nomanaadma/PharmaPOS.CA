@@ -1,9 +1,9 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 
 namespace PharmaPOS.Domain.MedicineCategoryAggregate;
 
-public class MedicineCategory : Entity, IAggregateRoot
+public class MedicineCategory : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private MedicineCategory() { }

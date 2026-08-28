@@ -1,10 +1,10 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Domain.PurchaseAggregate;
 
-public class Purchase : OrderDetails, IAggregateRoot
+public class Purchase : OrderDetails
 {
 	private readonly List<Batch> _batches = [];
 

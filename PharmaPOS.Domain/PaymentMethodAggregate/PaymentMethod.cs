@@ -1,10 +1,10 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Domain.PaymentMethodAggregate;
 
-public class PaymentMethod : EntityWithDate, IAggregateRoot
+public class PaymentMethod : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private PaymentMethod() { }
@@ -16,6 +16,8 @@ public class PaymentMethod : EntityWithDate, IAggregateRoot
 
 	public string Name { get; private set; } = null!;
 	public Status Status { get; private set; }
+	public DateTime CreatedDate { get; private init; }
+
 
 	public static ErrorOr<PaymentMethod> Create(PaymentMethodDetails details)
 	{

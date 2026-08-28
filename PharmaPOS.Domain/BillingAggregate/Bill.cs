@@ -1,11 +1,11 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Domain.BillingAggregate;
 
-public class Bill : OrderDetails, IAggregateRoot
+public class Bill : OrderDetails
 {
 	private readonly List<BillItem> _items = [];
 

@@ -26,13 +26,13 @@ public static class BillErrors
 		Error.Validation("Bill.InvalidAmount", "Amount cannot be negative.");
     
 	public static Error InvalidSubTotal =>
-		Error.Validation("Bill.InvalidAmount", "SubTotal cannot be negative.");
+		Error.Validation("Bill.InvalidSubTotal", "SubTotal cannot be negative.");
     
 	public static Error InvalidTax =>
-		Error.Validation("Bill.InvalidAmount", "Tax cannot be negative.");
+		Error.Validation("Bill.InvalidTax", "Tax cannot be negative.");
     
 	public static Error InvalidDiscount =>
-		Error.Validation("Bill.InvalidAmount", "Discount cannot be negative.");
+		Error.Validation("Bill.InvalidDiscount", "Discount cannot be negative.");
 	
 	public static Error NameRequired =>
 		Error.Validation("Bill.NameRequired", "Customer name is required.");

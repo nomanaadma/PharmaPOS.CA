@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Data;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Contracts.Requests;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.MediaAggregate;
 using PharmaPOS.Domain.SettingAggregate;
 
 namespace PharmaPOS.Application.Services;

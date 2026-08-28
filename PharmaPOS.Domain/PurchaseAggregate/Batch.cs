@@ -1,12 +1,12 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.Common.ValueObjects;
 using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Domain.PurchaseAggregate;
 
-public class Batch : EntityWithDate
+public class Batch : Entity
 {
 	// EF Core parameterless constructor
 	private Batch() { }
@@ -27,6 +27,8 @@ public class Batch : EntityWithDate
 	public int PurchaseId { get; private set; }
 	public Purchase Purchase { get; private set; } = null!;
 	public Status Status { get; private set; } = Status.Active;
+	public DateTime CreatedDate { get; private init; }
+
 
 	public static ErrorOr<Batch> Create(BatchDetails details)
 	{

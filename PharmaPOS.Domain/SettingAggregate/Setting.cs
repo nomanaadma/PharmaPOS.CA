@@ -1,9 +1,9 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 
 namespace PharmaPOS.Domain.SettingAggregate;
 
-public class Setting : Entity, IAggregateRoot
+public class Setting : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private Setting() { }

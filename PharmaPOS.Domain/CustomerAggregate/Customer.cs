@@ -1,10 +1,10 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Entities;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Domain.CustomerAggregate;
 
-public class Customer : EntityWithDate, IAggregateRoot
+public class Customer : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private Customer() { }
@@ -20,6 +20,7 @@ public class Customer : EntityWithDate, IAggregateRoot
 	public string? Mobile { get; private set; }
 	public Gender? Gender { get; private set; }
 	public Status Status { get; private set; }
+	public DateTime CreatedDate { get; private init; }
 
 	public static ErrorOr<Customer> Create(CustomerDetails details)
 	{
