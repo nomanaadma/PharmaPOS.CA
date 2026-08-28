@@ -6,7 +6,7 @@ using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Domain.MedicineAggregate;
 
-public class Medicine : EntityWithDate
+public class Medicine : EntityWithDate, IAggregateRoot
 {
 	
 	// EF Core parameterless constructor

@@ -11,7 +11,7 @@ namespace PharmaPOS.Application.Services;
 
 public class SupplierService(
 	ApplicationDbContext context,
-	ILogger<SupplierService> logger)
+	ILogger<SupplierService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreateSupplierAsync(SupplierRequest request, CancellationToken ct = default)
 	{

@@ -11,7 +11,7 @@ namespace PharmaPOS.Application.Services;
 
 public class PurchaseService(
 	ApplicationDbContext context,
-	ILogger<PurchaseService> logger)
+	ILogger<PurchaseService> logger) : IApplicationService
 {
 	public async Task<DataTableResponse<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
 	{

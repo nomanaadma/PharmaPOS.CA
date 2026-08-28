@@ -8,7 +8,7 @@ using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Application.Services;
 
-public class StockService(ApplicationDbContext context, ILogger<StockService> logger)
+public class StockService(ApplicationDbContext context, ILogger<StockService> logger) : IApplicationService
 {
 	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{

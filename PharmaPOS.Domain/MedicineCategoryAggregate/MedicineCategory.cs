@@ -3,7 +3,7 @@ using PharmaPOS.Domain.Common.Entities;
 
 namespace PharmaPOS.Domain.MedicineCategoryAggregate;
 
-public class MedicineCategory : Entity
+public class MedicineCategory : Entity, IAggregateRoot
 {
 	// EF Core parameterless constructor
 	private MedicineCategory() { }

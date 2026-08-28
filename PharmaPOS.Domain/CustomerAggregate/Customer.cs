@@ -4,7 +4,7 @@ using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Domain.CustomerAggregate;
 
-public class Customer : EntityWithDate
+public class Customer : EntityWithDate, IAggregateRoot
 {
 	// EF Core parameterless constructor
 	private Customer() { }

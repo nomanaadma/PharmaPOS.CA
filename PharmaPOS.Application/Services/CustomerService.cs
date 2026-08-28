@@ -10,7 +10,7 @@ using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.Application.Services;
 
-public class CustomerService(ApplicationDbContext context, ILogger<CustomerService> logger)
+public class CustomerService(ApplicationDbContext context, ILogger<CustomerService> logger) : IApplicationService
 {
 	/// <summary>
 	/// Resolves an existing customer by ID, or creates a new walk-in customer from the billing form data.

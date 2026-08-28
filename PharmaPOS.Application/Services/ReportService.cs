@@ -6,7 +6,7 @@ using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Application.Services;
 
-public class ReportService(ApplicationDbContext context)
+public class ReportService(ApplicationDbContext context) : IApplicationService
 {
 	public async Task<List<InventoryReportResponse>> GetInventoryReportAsync(CancellationToken ct = default)
 	{

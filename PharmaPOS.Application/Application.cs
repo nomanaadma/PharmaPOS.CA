@@ -11,17 +11,16 @@ public static class ApplicationServiceCollectionExtensions
     {
 	    public void AddApplication()
 	    {
-	    
-		    services.AddScoped<SettingService>();
-		    services.AddScoped<BillingService>();
-		    services.AddScoped<CustomerService>();
-		    services.AddScoped<PurchaseService>();
-		    services.AddScoped<PaymentMethodService>();
-		    services.AddScoped<SupplierService>();
-		    services.AddScoped<MedicineService>();
-		    services.AddScoped<CategoryService>();
-		    services.AddScoped<StockService>();
-		    services.AddScoped<ReportService>();
+		    
+		    var assembly = typeof(IApplicationMarker).Assembly;
+		    
+		    var scopedServices = assembly.GetTypes()
+			    .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IApplicationService).IsAssignableFrom(t));
+		    
+		    foreach (var type in scopedServices)
+		    {
+			    services.AddScoped(type);
+		    }
 		    
 	    }
 

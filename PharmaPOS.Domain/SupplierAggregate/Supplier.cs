@@ -3,7 +3,7 @@ using PharmaPOS.Domain.Common.Entities;
 
 namespace PharmaPOS.Domain.SupplierAggregate;
 
-public class Supplier : EntityWithDate
+public class Supplier : EntityWithDate, IAggregateRoot
 {
 	// EF Core parameterless constructor
 	private Supplier() { }

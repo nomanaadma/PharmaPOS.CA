@@ -9,7 +9,7 @@ using PharmaPOS.Domain.SettingAggregate;
 
 namespace PharmaPOS.Application.Services;
 
-public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pathProvider)
+public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pathProvider) : IApplicationService
 {
 
 	public async Task<Setting?> GetRawSettingsAsync(CancellationToken ct = default)

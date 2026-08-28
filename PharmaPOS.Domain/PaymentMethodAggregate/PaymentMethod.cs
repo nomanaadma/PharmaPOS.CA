@@ -4,7 +4,7 @@ using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Domain.PaymentMethodAggregate;
 
-public class PaymentMethod : EntityWithDate
+public class PaymentMethod : EntityWithDate, IAggregateRoot
 {
 	// EF Core parameterless constructor
 	private PaymentMethod() { }

@@ -14,7 +14,7 @@ namespace PharmaPOS.Application.Services;
 
 public class MedicineService(
 	ApplicationDbContext context,
-	ILogger<MedicineService> logger)
+	ILogger<MedicineService> logger) : IApplicationService
 {
 	/// <summary>
 	/// Creates a new medicine.

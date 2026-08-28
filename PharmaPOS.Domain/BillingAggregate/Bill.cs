@@ -5,7 +5,7 @@ using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Domain.BillingAggregate;
 
-public class Bill : OrderDetails
+public class Bill : OrderDetails, IAggregateRoot
 {
 	private readonly List<BillItem> _items = [];
 

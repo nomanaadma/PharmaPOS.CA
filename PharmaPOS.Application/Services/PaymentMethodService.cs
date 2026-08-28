@@ -12,7 +12,7 @@ namespace PharmaPOS.Application.Services;
 
 public class PaymentMethodService(
 	ApplicationDbContext context,
-	ILogger<PaymentMethodService> logger)
+	ILogger<PaymentMethodService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreatePaymentMethodAsync(PaymentMethodRequest request, CancellationToken ct = default)
 	{

@@ -14,7 +14,7 @@ namespace PharmaPOS.Application.Services;
 public class BillingService(
 	ApplicationDbContext context,
 	CustomerService customerService,
-	ILogger<BillingService> logger)
+	ILogger<BillingService> logger) : IApplicationService
 {
 
 	/// <summary>

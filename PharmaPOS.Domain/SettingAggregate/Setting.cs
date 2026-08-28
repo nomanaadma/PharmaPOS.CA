@@ -3,7 +3,7 @@ using PharmaPOS.Domain.Common.Entities;
 
 namespace PharmaPOS.Domain.SettingAggregate;
 
-public class Setting : Entity
+public class Setting : Entity, IAggregateRoot
 {
 	// EF Core parameterless constructor
 	private Setting() { }

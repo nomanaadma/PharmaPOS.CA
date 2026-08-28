@@ -10,7 +10,7 @@ namespace PharmaPOS.Application.Services;
 
 public class CategoryService(
 	ApplicationDbContext context,
-	ILogger<CategoryService> logger)
+	ILogger<CategoryService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
 	{

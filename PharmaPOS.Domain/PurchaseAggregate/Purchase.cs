@@ -4,7 +4,7 @@ using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Domain.PurchaseAggregate;
 
-public class Purchase : OrderDetails
+public class Purchase : OrderDetails, IAggregateRoot
 {
 	private readonly List<Batch> _batches = [];
 
