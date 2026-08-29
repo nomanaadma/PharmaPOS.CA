@@ -80,9 +80,5 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 			.HasForeignKey(mb => mb.MethodId)
 			.OnDelete(DeleteBehavior.Cascade);
 
-		builder.HasMany(mb => mb.Items)
-			.WithOne(bi => bi.Bill)
-			.HasForeignKey(bi => bi.BillId)
-			.OnDelete(DeleteBehavior.Cascade);
 	}
 }

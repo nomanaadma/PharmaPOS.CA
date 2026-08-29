@@ -92,11 +92,12 @@ public static class BillingMapper
         }).ToList();
     }
 
-    public static BillingFormModel MapToBillingForm((Bill, Dictionary<int, List<Batch>>) resultValue,
+    public static BillingFormModel MapToBillingForm(
+	    (Bill, Dictionary<int, List<Batch>>, Dictionary<int, string>) resultValue,
 	    IEnumerable<SelectListItem> paymentMethods)
     {
 
-	    var (bill, items) = resultValue;
+	    var (bill, items, medicineNames) = resultValue;
 	    
         return new BillingFormModel
         {
@@ -122,7 +123,7 @@ public static class BillingMapper
 	            {
 		            Id = bi.Id,
 		            MedicineId = bi.MedicineId,
-		            Name = bi.Medicine.Name,
+		            Name = medicineNames.GetValueOrDefault(bi.MedicineId, ""),
 		            Batch = bi.BatchId,
 		            BatchName = batch?.BatchName ?? "",
 		            Expiry = batch?.Expiry ?? "",
@@ -147,8 +148,12 @@ public static class BillingMapper
         };
     }
 
-    public static BillingViewModel MapToBillDetailsViewModel(Bill bill)
+    public static BillingViewModel MapToBillDetailsViewModel(
+	    (Bill, Dictionary<int, Batch>, Dictionary<int, string>) billBatch)
     {
+
+	    var (bill, batchesById, medicineNames) = billBatch;
+	    
         return new BillingViewModel
         {
             Id = bill.Id,
@@ -156,23 +161,27 @@ public static class BillingMapper
             Email = bill.Email,
             Mobile = bill.Mobile,
             Date = bill.Date,
-            PaymentMethodName = bill.PaymentMethod?.Name,
+            PaymentMethodName = bill.PaymentMethod.Name,
             SubTotal = bill.SubTotal,
             Discount = bill.Discount,
             Tax = bill.Tax,
             Amount = bill.Amount,
             Note = bill.Note,
-            Items = bill.Items.Select(i => new BillingItemViewModel
+            Items = bill.Items.Select(i =>
             {
-                MedicineName = i.Medicine.Name,
-                BatchName = i.Batch.BatchName,
-                Expiry = i.Batch.Expiry,
-                Qty = i.Pricing.Qty,
-                SalePrice = i.Pricing.SalePrice,
-                Gross = i.Pricing.Gross,
-                DiscountValue = i.Pricing.DiscountValue,
-                TaxPrice = i.Pricing.TaxPrice,
-                Price = i.Pricing.Price
+	            batchesById.TryGetValue(i.BatchId, out var batch);
+	            return new BillingItemViewModel
+	            {
+		            MedicineName = medicineNames.GetValueOrDefault(i.MedicineId, ""),
+		            BatchName = batch?.BatchName ?? "",
+		            Expiry = batch?.Expiry ?? "",
+		            Qty = i.Pricing.Qty,
+		            SalePrice = i.Pricing.SalePrice,
+		            Gross = i.Pricing.Gross,
+		            DiscountValue = i.Pricing.DiscountValue,
+		            TaxPrice = i.Pricing.TaxPrice,
+		            Price = i.Pricing.Price
+	            };
             }).ToList()
         };
     }

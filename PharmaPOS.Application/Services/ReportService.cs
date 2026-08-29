@@ -48,11 +48,12 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 			end = DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59); 
 		}
 		
-		var medicineStats = await context.BillItems
-			.IdOrNullWhere(medicineId ?? 0)
-			.Where(bi => 
-				bi.Bill.Date >= start.Value && 
-				bi.Bill.Date <= end.Value)
+		var medicineStats = await context.Bills
+			.Where(b => 
+				b.Date >= start.Value &&
+				b.Date <= end.Value)
+			.SelectMany(b => b.Items)
+			.Where(bi => medicineId == null || bi.MedicineId == medicineId)
 			.GroupBy(bi => 1)
 			.Select(g => new
 			{

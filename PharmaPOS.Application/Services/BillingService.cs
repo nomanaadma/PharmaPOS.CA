@@ -261,14 +261,14 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<(
 		Bill, 
-		Dictionary<int, List<Batch>>
+		Dictionary<int, List<Batch>>,
+		Dictionary<int, string>
 		)>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var bill = await context.Bills
 			.Include(b => b.Items)
-				.ThenInclude(bi => bi.Medicine)
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
@@ -299,28 +299,39 @@ public class BillingService(
 		var batchesByMedicine = activeBatches
 			.GroupBy(b => b.MedicineId)
 			.ToDictionary(g => g.Key, g => g.ToList());
+		
+		var medicineNames = await context.Medicines
+			.Where(m => medicineIds.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
 
-		return (bill, batchesByMedicine);
+		return (bill, batchesByMedicine, medicineNames);
 	}
 
 	/// <summary>
 	/// Loads a bill with all related data for the Details (view) action.
 	/// </summary>
-	public async Task<ErrorOr<Bill>> GetBillAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<(Bill, Dictionary<int, Batch>, Dictionary<int, string>)>> GetBillAsync(int id, CancellationToken ct = default)
 	{
 		var bill = await context.Bills
 			.Include(b => b.PaymentMethod)
 			.Include(b => b.Items)
-				.ThenInclude(bi => bi.Medicine)
-			.Include(b => b.Items)
-				.ThenInclude(bi => bi.Batch)
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
 			return BillErrors.NotFound(id);
 
-		return bill;
+		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
+		var batchesById = await context.Batches
+			.Where(b => batchIds.Contains(b.Id))
+			.ToDictionaryAsync(b => b.Id, ct);
+		
+		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await context.Medicines
+			.Where(m => medicineIds.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+
+		return (bill, batchesById, medicineNames);
 	}
 	
 	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)

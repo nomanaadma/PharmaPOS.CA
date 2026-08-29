@@ -23,11 +23,21 @@ public static class ReportMapper
 
     public static IncomeExpenseReportViewModel MapToStatsReport(StatsReportResponse stats)
     {
+
+	    var profit = stats.SalesAmount - stats.PurchaseAmount;
+	    var sales = stats.SalesAmount;
+	    var purchase = stats.PurchaseAmount;
+	    
+	    if (sales == 0 && profit < 0 && Math.Abs(profit) == purchase)
+	    {
+		    profit = 0;
+	    }
+	    
 	    return new IncomeExpenseReportViewModel
 	    {
-		    SalesAmount = stats.SalesAmount,
-		    PurchaseAmount = stats.PurchaseAmount,
-		    Profit = stats.SalesAmount - stats.PurchaseAmount,
+		    SalesAmount = sales,
+		    PurchaseAmount = purchase,
+		    Profit = profit,
 		    Quantity = stats.Quantity,
 		    TaxAmount = stats.TaxAmount,
 		    DiscountAmount = stats.DiscountAmount,

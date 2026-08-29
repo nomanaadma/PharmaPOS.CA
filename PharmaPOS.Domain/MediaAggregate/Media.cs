@@ -3,7 +3,7 @@ using PharmaPOS.Domain.Common;
 
 namespace PharmaPOS.Domain.MediaAggregate;
 
-public class Media : Entity
+public class Media : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private Media() { }

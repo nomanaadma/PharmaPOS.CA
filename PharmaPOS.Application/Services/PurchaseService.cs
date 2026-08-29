@@ -45,38 +45,53 @@ public class PurchaseService(
 
 		var purchase = purchaseResult.Value;
 		
-		context.Purchases.Add(purchase);
-
-		var batches = new List<Batch>();
-
-		foreach (var item in request.Items)
+		await using var transaction = await context.Database.BeginTransactionAsync(ct);
+		
+		try
 		{
-			var pricingResult = PricingHelper.CreatePricingDetails(item);
-			if (pricingResult.IsError) return pricingResult.Errors;
-
-			var batchDetails = new BatchDetails(
-				item.Batch,
-				item.Expiry,
-				item.Pqty,
-				pricingResult.Value,
-				item.Purchaseprice,
-				item.MedicineId,
-				purchase.Id
-			);
-
-			var batchResult = Batch.Create(batchDetails);
 			
-			if (batchResult.IsError)
-				return batchResult.Errors;
+			context.Purchases.Add(purchase);
+			await context.SaveChangesAsync(ct);
+
+			var batches = new List<Batch>();
+
+			foreach (var item in request.Items)
+			{
+				var pricingResult = PricingHelper.CreatePricingDetails(item);
+				if (pricingResult.IsError) return pricingResult.Errors;
+
+				var batchDetails = new BatchDetails(
+					item.Batch,
+					item.Expiry,
+					item.Pqty,
+					pricingResult.Value,
+					item.Purchaseprice,
+					item.MedicineId,
+					purchase.Id
+				);
+
+				var batchResult = Batch.Create(batchDetails);
 			
-			batches.Add(batchResult.Value);
+				if (batchResult.IsError)
+					return batchResult.Errors;
+			
+				batches.Add(batchResult.Value);
+			}
+
+			await context.Batches.AddRangeAsync(batches, ct);
+			await context.SaveChangesAsync(ct);
+			
+			await transaction.CommitAsync(ct);
+			
+			logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
+			return purchase.Id;
 		}
-
-		await context.Batches.AddRangeAsync(batches, ct);
-		await context.SaveChangesAsync(ct);
-
-		logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
-		return purchase.Id;
+		catch
+		{
+			await transaction.RollbackAsync(ct);
+			throw;
+		}
+		
 	}
 
 	public async Task<ErrorOr<int>> UpdatePurchaseAsync(int id, PurchaseRequest request, CancellationToken ct = default)
@@ -104,7 +119,7 @@ public class PurchaseService(
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
+		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToHashSet();
 		
 		var existingBatches = await context.Batches
 			.Where(b => b.PurchaseId == id)
@@ -118,8 +133,9 @@ public class PurchaseService(
 			if (batch.Sold > 0)
 				return BatchErrors.CannotDeleteSoldBatch(batch.BatchName);
 
-			context.Batches.Remove(batch);
 		}
+		
+		context.Batches.RemoveRange(batchesToRemove);
 		
 		var batches = new List<Batch>();
 
@@ -187,13 +203,11 @@ public class PurchaseService(
 		if (hasSoldBatches)
 			return BatchErrors.CannotDeletePurchaseWithSoldBatches;
 		
-		var batches = await context.Batches
+		await context.Batches
 			.Where(b => b.PurchaseId == id)
-			.ToListAsync(ct);
+			.ExecuteDeleteAsync(ct);
 		
-		context.Batches.RemoveRange(batches);
 		context.Purchases.Remove(purchase);
-		
 		await context.SaveChangesAsync(ct);
 
 		logger.LogInformation("Purchase {PurchaseId} deleted", id);

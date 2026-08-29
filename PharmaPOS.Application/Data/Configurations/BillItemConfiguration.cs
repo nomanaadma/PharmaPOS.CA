@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Application.Data.Configurations;
 
@@ -73,20 +75,21 @@ public class BillItemConfiguration : IEntityTypeConfiguration<BillItem>
 				.HasColumnType("decimal(10, 2)")
 				.IsRequired();
 		});
-
-		builder.HasOne(bi => bi.Bill)
-			.WithMany(mb => mb.Items)
+		
+		builder.HasOne<Bill>()
+			.WithMany(b => b.Items)
 			.HasForeignKey(bi => bi.BillId)
 			.OnDelete(DeleteBehavior.Cascade);
 
-		builder.HasOne(bi => bi.Medicine)
+		builder.HasOne<Medicine>()
 			.WithMany()
 			.HasForeignKey(bi => bi.MedicineId)
 			.OnDelete(DeleteBehavior.Cascade);
 
-		builder.HasOne(bi => bi.Batch)
+		builder.HasOne<Batch>()
 			.WithMany()
 			.HasForeignKey(bi => bi.BatchId)
 			.OnDelete(DeleteBehavior.Cascade);
+		
 	}
 }

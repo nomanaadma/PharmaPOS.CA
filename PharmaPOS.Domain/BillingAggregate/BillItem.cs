@@ -20,11 +20,8 @@ public class BillItem : Entity
 	}
 
 	public int BillId { get; private set; }
-	public Bill Bill { get; private set; } = null!;
 	public int MedicineId { get; private set; }
-	public Medicine Medicine { get; private set; } = null!;
 	public int BatchId { get; private set; }
-	public Batch Batch { get; private set; } = null!;
 	public PricingDetails Pricing { get; private set; } = null!;
 	
 	/// <summary>

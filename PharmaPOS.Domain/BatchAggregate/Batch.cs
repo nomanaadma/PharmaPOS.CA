@@ -2,11 +2,10 @@ using ErrorOr;
 using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.Common.ValueObjects;
-using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Domain.BatchAggregate;
 
-public class Batch : Entity
+public class Batch : AggregateRoot
 {
 	// EF Core parameterless constructor
 	private Batch() { }
