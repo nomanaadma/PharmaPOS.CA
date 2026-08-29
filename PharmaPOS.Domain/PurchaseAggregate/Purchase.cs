@@ -6,8 +6,6 @@ namespace PharmaPOS.Domain.PurchaseAggregate;
 
 public class Purchase : OrderDetails
 {
-	private readonly List<Batch> _batches = [];
-
 	// EF Core parameterless constructor
 	private Purchase() { }
 
@@ -18,9 +16,7 @@ public class Purchase : OrderDetails
 
 	public int SupplierId { get; private set; }
 	public Supplier Supplier { get; private set; } = null!;
-
-	public IReadOnlyCollection<Batch> Batches => _batches.AsReadOnly();
-
+	
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Purchase&gt;.
 	/// </summary>
@@ -43,29 +39,7 @@ public class Purchase : OrderDetails
 		SetDetails(details);
 		return Result.Updated;
 	}
-
-	public void AddBatch(Batch batch)
-	{
-		_batches.Add(batch);
-	}
-
-	public ErrorOr<Success> RemoveBatch(int batchId)
-	{
-		var batch = _batches.FirstOrDefault(b => b.Id == batchId);
-        
-		// If it doesn't exist, there is nothing to remove.
-		if (batch == null) 
-			return Result.Success; 
-
-		// The domain enforces its own business rules
-		if (batch.Sold > 0)
-			return PurchaseErrors.CannotDeleteSoldBatch(batch.BatchName);
-
-		_batches.Remove(batch);
-		return Result.Success;
-	}
-
-
+	
 	private void SetDetails(PurchaseDetails details)
 	{
 		SupplierId = details.SupplierId;

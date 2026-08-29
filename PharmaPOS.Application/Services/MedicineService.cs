@@ -6,6 +6,7 @@ using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Extensions;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;

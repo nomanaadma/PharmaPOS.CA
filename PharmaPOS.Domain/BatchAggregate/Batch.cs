@@ -4,7 +4,7 @@ using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.Common.ValueObjects;
 using PharmaPOS.Domain.MedicineAggregate;
 
-namespace PharmaPOS.Domain.PurchaseAggregate;
+namespace PharmaPOS.Domain.BatchAggregate;
 
 public class Batch : Entity
 {
@@ -25,7 +25,6 @@ public class Batch : Entity
 	public int MedicineId { get; private set; }
 	public Medicine Medicine { get; private set; } = null!;
 	public int PurchaseId { get; private set; }
-	public Purchase Purchase { get; private set; } = null!;
 	public Status Status { get; private set; } = Status.Active;
 	public DateTime CreatedDate { get; private init; }
 
@@ -65,23 +64,27 @@ public class Batch : Entity
 		Pricing = details.Pricing;
 		PurchasePrice = details.PurchasePrice;
 		MedicineId = details.MedicineId;
+		PurchaseId = details.PurchaseId;
 	}
 
 	private static List<Error> ValidateDetails(BatchDetails details)
 	{
 		var errors = new List<Error>();
-
+		
 		if (string.IsNullOrWhiteSpace(details.BatchName))
-			errors.Add(Error.Validation("Batch.BatchNameRequired", "Batch name is required."));
+			errors.Add(BatchErrors.BatchNameRequired);
 
 		if (details.MedicineId <= 0)
-			errors.Add(Error.Validation("Batch.MedicineRequired", "Medicine is required."));
+			errors.Add(BatchErrors.MedicineRequired);
+		
+		if (details.PurchaseId <= 0)
+			errors.Add(BatchErrors.PurchaseRequired);
 		
 		if (string.IsNullOrWhiteSpace(details.Expiry))
-			errors.Add(Error.Validation("Batch.Expiry", "Expiry is required."));
+			errors.Add(BatchErrors.ExpiryRequired);
 		
 		if (details.PurchasePrice < 0)
-			errors.Add(Error.Validation("Batch.PurchasePrice", "Purchase Price cannot be negative."));
+			errors.Add(BatchErrors.InvalidPurchasePrice);
 		
 		return errors;
 	}

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.Domain.MediaAggregate;

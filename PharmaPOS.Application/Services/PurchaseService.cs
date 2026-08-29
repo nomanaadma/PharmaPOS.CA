@@ -5,6 +5,7 @@ using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Services;
@@ -43,6 +44,10 @@ public class PurchaseService(
 			return purchaseResult.Errors;
 
 		var purchase = purchaseResult.Value;
+		
+		context.Purchases.Add(purchase);
+
+		var batches = new List<Batch>();
 
 		foreach (var item in request.Items)
 		{
@@ -55,17 +60,19 @@ public class PurchaseService(
 				item.Pqty,
 				pricingResult.Value,
 				item.Purchaseprice,
-				item.MedicineId
+				item.MedicineId,
+				purchase.Id
 			);
 
 			var batchResult = Batch.Create(batchDetails);
+			
 			if (batchResult.IsError)
 				return batchResult.Errors;
-
-			purchase.AddBatch(batchResult.Value);
+			
+			batches.Add(batchResult.Value);
 		}
 
-		context.Purchases.Add(purchase);
+		await context.Batches.AddRangeAsync(batches, ct);
 		await context.SaveChangesAsync(ct);
 
 		logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
@@ -78,7 +85,6 @@ public class PurchaseService(
 			return PurchaseErrors.MissingItems;
 		
 		var existingPurchase = await context.Purchases
-			.Include(mp => mp.Batches)
 			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 		if (existingPurchase == null)
@@ -99,17 +105,23 @@ public class PurchaseService(
 			return updateResult.Errors;
 
 		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
-
-		var batchesToRemoveIds = existingPurchase.Batches.Where(b => !submittedBatchIds.Contains(b.Id)).Select(b => b.Id).ToList();
 		
-		foreach (var batchId in batchesToRemoveIds)
+		var existingBatches = await context.Batches
+			.Where(b => b.PurchaseId == id)
+			.ToListAsync(ct);
+		
+		var batchesToRemove = existingBatches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
+		
+		foreach (var batch in batchesToRemove)
 		{
-			// Delegate the removal and rule validation to the aggregate
-			var removeResult = existingPurchase.RemoveBatch(batchId);
-    
-			if (removeResult.IsError)
-				return removeResult.Errors;
+			// Business rule: can't delete a batch that has been sold
+			if (batch.Sold > 0)
+				return BatchErrors.CannotDeleteSoldBatch(batch.BatchName);
+
+			context.Batches.Remove(batch);
 		}
+		
+		var batches = new List<Batch>();
 
 		foreach (var item in request.Items)
 		{
@@ -122,16 +134,18 @@ public class PurchaseService(
 				item.Pqty,
 				pricingResult.Value,
 				item.Purchaseprice,
-				item.MedicineId
+				item.MedicineId,
+				id
 			);
 
 			if (item.Id != 0)
 			{
-				var existingBatch = existingPurchase.Batches.FirstOrDefault(b => b.Id == item.Id);
+				var existingBatch = existingBatches.FirstOrDefault(b => b.Id == item.Id);
+
 				if (existingBatch == null) continue;
 
 				if (pricingResult.Value.Qty < existingBatch.Sold)
-					return PurchaseErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricingResult.Value.Qty, existingBatch.Sold);
+					return BatchErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricingResult.Value.Qty, existingBatch.Sold);
 
 				var batchUpdateResult = existingBatch.Update(batchDetails);
 				if (batchUpdateResult.IsError)
@@ -142,9 +156,15 @@ public class PurchaseService(
 				var batchResult = Batch.Create(batchDetails);
 				if (batchResult.IsError)
 					return batchResult.Errors;
-
-				existingPurchase.AddBatch(batchResult.Value);
+				
+				batches.Add(batchResult.Value);
+				
 			}
+		}
+
+		if (batches.Count != 0)
+		{
+			await context.Batches.AddRangeAsync(batches, ct);
 		}
 
 		await context.SaveChangesAsync(ct);
@@ -156,34 +176,46 @@ public class PurchaseService(
 	public async Task<ErrorOr<Deleted>> DeletePurchaseAsync(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
-			.Include(mp => mp.Batches)
 			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
-
-		if (purchase.Batches.Any(b => b.Sold > 0))
-			return PurchaseErrors.CannotDeletePurchaseWithSoldBatches;
-
+		
+		var hasSoldBatches = await context.Batches
+			.AnyAsync(b => b.PurchaseId == id && b.Sold > 0, ct);
+		
+		if (hasSoldBatches)
+			return BatchErrors.CannotDeletePurchaseWithSoldBatches;
+		
+		var batches = await context.Batches
+			.Where(b => b.PurchaseId == id)
+			.ToListAsync(ct);
+		
+		context.Batches.RemoveRange(batches);
 		context.Purchases.Remove(purchase);
+		
 		await context.SaveChangesAsync(ct);
 
 		logger.LogInformation("Purchase {PurchaseId} deleted", id);
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<Purchase>> GetPurchaseAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<(Purchase, List<Batch>)>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
-			.Include(mp => mp.Batches)
-				.ThenInclude(b => b.Medicine)
 			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
-
-		return purchase;
+		
+		// Fetch batches separately (respects aggregate boundary)
+		var batches = await context.Batches
+			.Where(b => b.PurchaseId == id)
+			.ToListAsync(ct);
+		
+		return (purchase, batches);
+		
 	}
 
 }

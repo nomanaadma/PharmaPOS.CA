@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
@@ -89,7 +90,9 @@ public static class PurchaseMapper
         }).ToList();
     }
 
-    public static PurchaseFormModel MapToPurchaseForm(Purchase purchase, IEnumerable<SelectListItem> suppliers)
+    public static PurchaseFormModel MapToPurchaseForm(
+	    Purchase purchase, IEnumerable<Batch> batches, 
+	    IEnumerable<SelectListItem> suppliers)
     {
         return new PurchaseFormModel
         {
@@ -102,7 +105,7 @@ public static class PurchaseMapper
             Discount = purchase.Discount,
             Amount = purchase.Amount,
             Suppliers = suppliers,
-            Items = purchase.Batches.Select(b => new PurchaseItemFormModel
+            Items = batches.Select(b => new PurchaseItemFormModel
             {
                 Id = b.Id,
                 MedicineId = b.MedicineId,
@@ -124,23 +127,26 @@ public static class PurchaseMapper
         };
     }
 
-    public static PurchaseViewModel MapToPurchaseView(Purchase purchase)
+    public static PurchaseViewModel MapToPurchaseView( 
+	    Purchase purchase, 
+	    IEnumerable<Batch> batches)
     {
+	    
         return new PurchaseViewModel
         {
             Id = purchase.Id,
-            SupplierName = purchase.Supplier?.Name ?? "",
-            SupplierEmail = purchase.Supplier?.Email,
-            SupplierPhone = purchase.Supplier?.Phone,
+            SupplierName = purchase.Supplier.Name,
+            SupplierEmail = purchase.Supplier.Email,
+            SupplierPhone = purchase.Supplier.Phone,
             Date = purchase.Date,
             SubTotal = purchase.SubTotal,
             Tax = purchase.Tax,
             Discount = purchase.Discount,
             Amount = purchase.Amount,
             Note = purchase.Note,
-            Items = purchase.Batches.Select(b => new PurchaseBatchViewModel
+            Items = batches.Select(b => new PurchaseBatchViewModel
             {
-                MedicineName = b.Medicine?.Name ?? "",
+                MedicineName = b.Medicine.Name,
                 BatchName = b.BatchName,
                 Expiry = b.Expiry,
                 Pqty = b.Pqty,

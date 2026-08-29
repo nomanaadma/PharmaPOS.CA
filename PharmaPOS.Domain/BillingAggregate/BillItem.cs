@@ -1,4 +1,5 @@
 using ErrorOr;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.ValueObjects;
 using PharmaPOS.Domain.MedicineAggregate;

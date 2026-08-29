@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.MVC.Models;
 

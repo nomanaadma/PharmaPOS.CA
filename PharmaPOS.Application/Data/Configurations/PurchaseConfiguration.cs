@@ -57,10 +57,6 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 			.WithMany()
 			.HasForeignKey(mp => mp.SupplierId)
 			.OnDelete(DeleteBehavior.Cascade);
-
-		builder.HasMany(mp => mp.Batches)
-			.WithOne(mb => mb.Purchase)
-			.HasForeignKey(mb => mb.PurchaseId)
-			.OnDelete(DeleteBehavior.Cascade);
+		
 	}
 }

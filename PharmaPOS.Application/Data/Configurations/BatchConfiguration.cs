@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.PurchaseAggregate;
 
@@ -113,9 +114,9 @@ public class BatchConfiguration : IEntityTypeConfiguration<Batch>
 			.WithMany()
 			.HasForeignKey(mb => mb.MedicineId)
 			.OnDelete(DeleteBehavior.Cascade);
-
-		builder.HasOne(mb => mb.Purchase)
-			.WithMany(mp => mp.Batches)
+		
+		builder.HasOne<Purchase>()
+			.WithMany()
 			.HasForeignKey(mb => mb.PurchaseId)
 			.OnDelete(DeleteBehavior.Cascade);
 	}
