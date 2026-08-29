@@ -13,7 +13,6 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{
 		var batchesQuery = context.Batches
-			.Include(b => b.Medicine)
 			.Where(b => b.Status == Status.Active)
 			.OrderBy(b => b.MedicineId)
 			.AsQueryable();
@@ -69,9 +68,14 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 		var batches = await batchesQuery.ToListAsync(ct);
 		var batchIds = batches.Select(b => b.Id).ToList();
 		
+		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await context.Medicines
+			.Where(m => medicineIds.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+		
 		var billItems = await context.BillItems
 			.Where(bi => batchIds.Contains(bi.BatchId))
-			.ToListAsync(ct);
+			.ToListAsync(ct);	
 		
 		return batches.Select(b =>
 		{
@@ -82,12 +86,12 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 			var unitPurchasePrice = Math.Round(b.Pricing.Price / b.Pricing.Qty, 2);
 			var totalPurchase = Math.Round(unitPurchasePrice * b.Sold, 2);
 
-			var batchBillItesm = billItems.Where(bi => bi.BatchId == b.Id).Where(bi => bi.MedicineId == b.MedicineId).ToList();
+			var batchBillItems = billItems.Where(bi => bi.BatchId == b.Id).Where(bi => bi.MedicineId == b.MedicineId).ToList();
 
 			var medicineSalePrice = 0m;
 			var medicineSaleQty = 0m;
 			
-			foreach (var billItem in batchBillItesm)
+			foreach (var billItem in batchBillItems)
 			{
 				medicineSalePrice += billItem.Pricing.Price;
 				medicineSaleQty += billItem.Pricing.Qty;
@@ -104,7 +108,7 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 				Id: b.Id,
 				MedicineId: b.MedicineId,
 				PurchaseId: b.PurchaseId,
-				Name: b.Medicine.Name,
+				Name: medicineNames.GetValueOrDefault(b.MedicineId, ""),
 				Batch: b.BatchName,
 				Expiry: b.Expiry,
 				PurchasePrice: unitPurchasePrice,

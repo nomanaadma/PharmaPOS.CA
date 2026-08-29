@@ -17,7 +17,8 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 			.Select(m => new InventoryReportResponse
 			(
 				m,
-				m.Batches
+				context.Batches
+					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Pricing.Qty > 0)
 					.Sum(b => (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold)) ?? 0,
 			
@@ -25,7 +26,8 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 					.Where(bi => bi.MedicineId == m.Id)
 					.Sum(bi => (decimal?)bi.Pricing.Price) ?? 0,
 			
-				m.Batches
+				context.Batches
+					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active && 
 								string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0

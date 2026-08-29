@@ -103,14 +103,15 @@ public class MedicineService(
 			.Select(m => new MedicineStockResponse
 			(
 				Medicine: m,
-				LiveStock: m.Batches
+				LiveStock: context.Batches
+					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
 			))
 			.ToListAsync(ct);
 	}
 
-	public async Task<(IEnumerable<Batch> LiveStock, IEnumerable<Batch> BadStock)> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
+	public async Task<(IEnumerable<Batch>, IEnumerable<Batch>, Dictionary<int, string>)> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
 	{
 		var today = DateTime.UtcNow.Date;
 		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
@@ -127,8 +128,14 @@ public class MedicineService(
 		var badBatches = batchesQuery.Where(b => 
 				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
 			.Where(b => b.Pricing.Qty > b.Sold);
+		
+		// Fetch medicine names for display
+		var medicineIds = batchesQuery.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await context.Medicines
+			.Where(m => medicineIds.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
             
-		return (liveBatches, badBatches);
+		return (liveBatches, badBatches, medicineNames);
 	}
 
 	public async Task<object> SearchMedicinesAsync(string term, CancellationToken ct = default)

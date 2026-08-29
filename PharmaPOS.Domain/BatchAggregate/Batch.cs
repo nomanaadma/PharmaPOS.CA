@@ -23,7 +23,6 @@ public class Batch : Entity
 	public decimal PurchasePrice { get; private set; }
 	public decimal Sold { get; private set; }
 	public int MedicineId { get; private set; }
-	public Medicine Medicine { get; private set; } = null!;
 	public int PurchaseId { get; private set; }
 	public Status Status { get; private set; } = Status.Active;
 	public DateTime CreatedDate { get; private init; }

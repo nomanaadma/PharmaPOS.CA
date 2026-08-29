@@ -75,13 +75,13 @@ public class MedicinesController(
 			return HandleErrors(result.Errors, FormView);
 
 		var medicine = result.Value;
-		var (liveBatches, badBatches) = await medicineService.GetMedicineStockSummaryAsync(id, ct);
+		var (liveBatches, badBatches, medicineNames) = await medicineService.GetMedicineStockSummaryAsync(id, ct);
 		
 		var model = new MedicineViewPageModel
 		{
 			Medicine = MedicineMapper.MapToMedicine(medicine),
-			LiveStock = StockMapper.MapToStocks(liveBatches),
-			BadStock = StockMapper.MapToStocks(badBatches)
+			LiveStock = StockMapper.MapToStocks(liveBatches, medicineNames),
+			BadStock = StockMapper.MapToStocks(badBatches, medicineNames)
 		};
 
 		return View(model);

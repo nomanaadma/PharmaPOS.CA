@@ -200,7 +200,7 @@ public class PurchaseService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<(Purchase, List<Batch>)>> GetPurchaseAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<(Purchase, List<Batch>, Dictionary<int, string>)>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
 			.Include(mp => mp.Supplier)
@@ -214,7 +214,13 @@ public class PurchaseService(
 			.Where(b => b.PurchaseId == id)
 			.ToListAsync(ct);
 		
-		return (purchase, batches);
+		// Fetch medicine names for display
+		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await context.Medicines
+			.Where(m => medicineIds.Contains(m.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+		
+		return (purchase, batches, medicineNames);
 		
 	}
 

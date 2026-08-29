@@ -1,9 +1,6 @@
 using ErrorOr;
-using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.MedicineCategoryAggregate;
-using PharmaPOS.Domain.PurchaseAggregate;
-
 
 namespace PharmaPOS.Domain.MedicineAggregate;
 
@@ -31,10 +28,7 @@ public class Medicine : AggregateRoot
 	public string? UnitPacking { get; private set; }
 	public string? Note { get; private set; }
 	public DateTime CreatedDate { get; private init; }
-
 	
-	public ICollection<Batch> Batches { get; init; } = [];
-
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Medicine&gt;.
 	/// </summary>

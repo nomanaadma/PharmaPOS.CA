@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Data.Configurations;
@@ -110,7 +111,7 @@ public class BatchConfiguration : IEntityTypeConfiguration<Batch>
 			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
-		builder.HasOne(mb => mb.Medicine)
+		builder.HasOne<Medicine>()
 			.WithMany()
 			.HasForeignKey(mb => mb.MedicineId)
 			.OnDelete(DeleteBehavior.Cascade);

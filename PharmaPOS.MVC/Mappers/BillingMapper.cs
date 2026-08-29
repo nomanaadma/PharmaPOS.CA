@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
@@ -91,8 +92,12 @@ public static class BillingMapper
         }).ToList();
     }
 
-    public static BillingFormModel MapToBillingForm(Bill bill, IEnumerable<SelectListItem> paymentMethods)
+    public static BillingFormModel MapToBillingForm((Bill, Dictionary<int, List<Batch>>) resultValue,
+	    IEnumerable<SelectListItem> paymentMethods)
     {
+
+	    var (bill, items) = resultValue;
+	    
         return new BillingFormModel
         {
             Id = bill.Id,
@@ -108,30 +113,36 @@ public static class BillingMapper
             Amount = bill.Amount,
             Note = bill.Note,
             PaymentMethods = paymentMethods,
-            Items = bill.Items.Select(bi => new BillingItemFormModel
+            Items = bill.Items.Select(bi =>
             {
-                Id = bi.Id,
-                MedicineId = bi.MedicineId,
-                Name = bi.Medicine.Name,
-                Batch = bi.BatchId,
-                BatchName = bi.Batch.BatchName,
-                Expiry = bi.Batch.Expiry,
-                Qty = bi.Pricing.Qty,
-                SalePrice = bi.Pricing.SalePrice,
-                Gross = bi.Pricing.Gross,
-                DiscountType = bi.Pricing.DiscountType,
-                Discount = bi.Pricing.Discount,
-                DiscountValue = bi.Pricing.DiscountValue,
-                Tax = bi.Pricing.Tax,
-                TaxPrice = bi.Pricing.TaxPrice,
-                Price = bi.Pricing.Price,
-                Batches = bi.Medicine.Batches.Select(mb => new BillingItemBatchesFormModel
-                {
-                    Id = mb.Id,
-                    Qty = mb.Pricing.Qty,
-                    Batch = mb.BatchName,
-                    Sold = mb.Sold
-                }).ToList()
+	            items.TryGetValue(bi.MedicineId, out var batches);
+	            var batch = batches?.FirstOrDefault(b => b.Id == bi.BatchId);
+
+	            return new BillingItemFormModel
+	            {
+		            Id = bi.Id,
+		            MedicineId = bi.MedicineId,
+		            Name = bi.Medicine.Name,
+		            Batch = bi.BatchId,
+		            BatchName = batch?.BatchName ?? "",
+		            Expiry = batch?.Expiry ?? "",
+		            Qty = bi.Pricing.Qty,
+		            SalePrice = bi.Pricing.SalePrice,
+		            Gross = bi.Pricing.Gross,
+		            DiscountType = bi.Pricing.DiscountType,
+		            Discount = bi.Pricing.Discount,
+		            DiscountValue = bi.Pricing.DiscountValue,
+		            Tax = bi.Pricing.Tax,
+		            TaxPrice = bi.Pricing.TaxPrice,
+		            Price = bi.Pricing.Price,
+		            Batches = (batches ?? []).Select(mb => new BillingItemBatchesFormModel
+		            {
+			            Id = mb.Id,
+			            Qty = mb.Pricing.Qty,
+			            Batch = mb.BatchName,
+			            Sold = mb.Sold
+		            }).ToList()
+	            };
             }).ToList()
         };
     }
@@ -153,9 +164,9 @@ public static class BillingMapper
             Note = bill.Note,
             Items = bill.Items.Select(i => new BillingItemViewModel
             {
-                MedicineName = i.Medicine?.Name ?? "",
-                BatchName = i.Batch?.BatchName ?? "",
-                Expiry = i.Batch?.Expiry ?? "",
+                MedicineName = i.Medicine.Name,
+                BatchName = i.Batch.BatchName,
+                Expiry = i.Batch.Expiry,
                 Qty = i.Pricing.Qty,
                 SalePrice = i.Pricing.SalePrice,
                 Gross = i.Pricing.Gross,

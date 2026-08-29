@@ -92,6 +92,7 @@ public static class PurchaseMapper
 
     public static PurchaseFormModel MapToPurchaseForm(
 	    Purchase purchase, IEnumerable<Batch> batches, 
+	    Dictionary<int, string> medicineNames,
 	    IEnumerable<SelectListItem> suppliers)
     {
         return new PurchaseFormModel
@@ -109,7 +110,7 @@ public static class PurchaseMapper
             {
                 Id = b.Id,
                 MedicineId = b.MedicineId,
-                Name = b.Medicine.Name,
+                Name = medicineNames.GetValueOrDefault(b.MedicineId, ""),
                 Batch = b.BatchName,
                 Expiry = b.Expiry,
                 Pqty = b.Pqty,
@@ -129,7 +130,8 @@ public static class PurchaseMapper
 
     public static PurchaseViewModel MapToPurchaseView( 
 	    Purchase purchase, 
-	    IEnumerable<Batch> batches)
+	    IEnumerable<Batch> batches,
+	    Dictionary<int, string> medicineNames)
     {
 	    
         return new PurchaseViewModel
@@ -146,7 +148,7 @@ public static class PurchaseMapper
             Note = purchase.Note,
             Items = batches.Select(b => new PurchaseBatchViewModel
             {
-                MedicineName = b.Medicine.Name,
+                MedicineName = medicineNames.GetValueOrDefault(b.MedicineId, ""),
                 BatchName = b.BatchName,
                 Expiry = b.Expiry,
                 Pqty = b.Pqty,

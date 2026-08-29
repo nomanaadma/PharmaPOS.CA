@@ -6,67 +6,24 @@ namespace PharmaPOS.MVC.Mappers;
 
 public static class StockMapper
 {
-   
-    public static IEnumerable<StockViewModel> MapToStocks(IEnumerable<Batch> batches)
+    public static IEnumerable<StockViewModel> MapToStocks(
+	    IEnumerable<Batch> batches, 
+	    Dictionary<int, string> medicineNames)
     {
-	    return batches.Select(batch => MapToStock(batch));
-    }
-
-    public static StockViewModel MapToStock(Batch batch,
-	    bool? single = true,
-	    decimal? unitPurchasePrice = null,
-	    decimal? unitSalePrice = null,
-	    decimal? totalPurchase = null,
-	    decimal? totalSales = null,
-	    decimal? profit = null
-	    )
-    {
-	    
-	    var stockViewModel =  new StockViewModel
+	    return batches.Select(batch => new StockViewModel
 	    {
 		    Id = batch.Id,
 		    MedicineId = batch.MedicineId,
 		    PurchaseId = batch.PurchaseId,
-		    Name = batch.Medicine.Name,
+		    Name = medicineNames.GetValueOrDefault(batch.MedicineId, ""),
 		    Batch = batch.BatchName,
 		    Expiry = batch.Expiry,
 		    Qty = batch.Pricing.Qty,
 		    Sold = batch.Sold,
-		    Available = batch.Pricing.Qty - batch.Sold
-	    };
-
-	    if (single == true)
-	    {
-		    stockViewModel.PurchasePrice = batch.PurchasePrice;
-		    stockViewModel.SalePrice = batch.Pricing.SalePrice;
-	    }
-	    else
-	    {
-		    
-		    if (unitPurchasePrice != null)
-		    {
-			    stockViewModel.PurchasePrice = unitPurchasePrice.Value;
-		    }
-		    if (unitSalePrice != null)
-		    {
-			    stockViewModel.SalePrice = unitSalePrice.Value;
-		    }
-		    if (totalPurchase != null)
-		    {
-			    stockViewModel.TotalPurchase = totalPurchase.Value;
-		    }
-		    if (totalSales != null)
-		    {
-			    stockViewModel.TotalSales = totalSales.Value;
-		    }
-		    if (profit != null)
-		    {
-			    stockViewModel.Profit = profit.Value;
-		    }    
-		    
-	    }
-
-	    return stockViewModel;
-
+		    Available = batch.Pricing.Qty - batch.Sold,
+		    PurchasePrice = batch.PurchasePrice,
+		    SalePrice = batch.Pricing.SalePrice
+	    });
     }
+    
 }

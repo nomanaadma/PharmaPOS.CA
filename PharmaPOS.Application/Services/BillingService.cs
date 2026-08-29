@@ -5,6 +5,7 @@ using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
@@ -101,7 +102,7 @@ public class BillingService(
 	private static CustomerRequest CreateCustomerRequest(BillingRequest billingRequest)
 	{
 		
-		var nameParts = (billingRequest.Name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		var nameParts = (billingRequest.Name).Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
 		// Default to empty strings if the array is empty
 		var lastName = nameParts.Length > 0 ? nameParts[^1] : string.Empty;
@@ -258,39 +259,48 @@ public class BillingService(
 	/// <summary>
 	/// Loads a bill with all related data for the Edit GET action.
 	/// </summary>
-	public async Task<ErrorOr<Bill>> GetBillForEditAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<(
+		Bill, 
+		Dictionary<int, List<Batch>>
+		)>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var bill = await context.Bills
 			.Include(b => b.Items)
 				.ThenInclude(bi => bi.Medicine)
-					.ThenInclude(m => m.Batches
-						.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-						.Where(b => b.Status == Status.Active))
-			.Include(b => b.Items)
-				.ThenInclude(bi => bi.Batch)
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
 			return BillErrors.NotFound(id);
 
-		// Ensure each item's own batch is in the Medicine.Batches collection
-		// (it may be expired/inactive, but we still need to display it)
-		foreach (var item in bill.Items)
-		{
-			var batchAlreadyLoaded = item.Medicine.Batches.Any(b => b.Id == item.BatchId);
-			if (batchAlreadyLoaded) continue;
+		var medicineIds = bill.Items.Select(i => i.MedicineId).Distinct().ToList();
+		var itemBatchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
 
-			var activeBatch = await context.Batches.FirstOrDefaultAsync(b => b.Id == item.BatchId, ct);
-			if (activeBatch != null)
-			{
-				item.Medicine.Batches.Add(activeBatch);
-			}
+		// Get active, non-expired batches for the medicines
+		var activeBatches = await context.Batches
+			.Where(b => medicineIds.Contains(b.MedicineId))
+			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+			.Where(b => b.Status == Status.Active)
+			.ToListAsync(ct);
+
+		// Also include the item's own batch even if expired/inactive
+		var missingBatchIds = itemBatchIds.Except(activeBatches.Select(b => b.Id)).ToList();
+		if (missingBatchIds.Count > 0)
+		{
+			var extraBatches = await context.Batches
+				.Where(b => missingBatchIds.Contains(b.Id))
+				.ToListAsync(ct);
+			activeBatches.AddRange(extraBatches);
+
 		}
 
-		return bill;
+		var batchesByMedicine = activeBatches
+			.GroupBy(b => b.MedicineId)
+			.ToDictionary(g => g.Key, g => g.ToList());
+
+		return (bill, batchesByMedicine);
 	}
 
 	/// <summary>
