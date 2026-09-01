@@ -15,6 +15,8 @@ namespace PharmaPOS.Application.Services;
 public class BillingService(
 	ApplicationDbContext context,
 	CustomerService customerService,
+	MedicineService medicineService,
+	BatchService batchService,
 	ILogger<BillingService> logger) : IApplicationService
 {
 
@@ -63,9 +65,7 @@ public class BillingService(
 
 		// Pre-fetch all needed batches in a single query (fixes N+1)
 		var batchIds = request.Items.Select(i => i.Batch).Distinct().ToList();
-		var batches = await context.Batches
-			.Where(b => batchIds.Contains(b.Id))
-			.ToDictionaryAsync(b => b.Id, ct);
+		var batches = await batchService.GetBatchByIdsAsync(batchIds, ct);
 
 		foreach (var item in request.Items)
 		{
@@ -173,9 +173,8 @@ public class BillingService(
 		var newBatchIds = request.Items.Select(i => i.Batch).ToList();
 		var allBatchIds = oldBatchIds.Union(newBatchIds).Distinct().ToList();
 
-		var batches = await context.Batches
-			.Where(b => allBatchIds.Contains(b.Id))
-			.ToDictionaryAsync(b => b.Id, ct);
+		
+		var batches = await batchService.GetBatchByIdsAsync(allBatchIds, ct);
 
 		// Revert sold quantities for old items
 		foreach (var oldItem in bill.Items)
@@ -236,10 +235,8 @@ public class BillingService(
 
 		// Pre-fetch all batches in a single query
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
-		var batches = await context.Batches
-			.Where(b => batchIds.Contains(b.Id))
-			.ToDictionaryAsync(b => b.Id, ct);
-
+		var batches = await batchService.GetBatchByIdsAsync(batchIds, ct);
+		 
 		// Revert sold quantities
 		foreach (var item in bill.Items)
 		{
@@ -265,7 +262,6 @@ public class BillingService(
 		Dictionary<int, string>
 		)>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
-		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var bill = await context.Bills
 			.Include(b => b.Items)
@@ -278,31 +274,21 @@ public class BillingService(
 		var medicineIds = bill.Items.Select(i => i.MedicineId).Distinct().ToList();
 		var itemBatchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
 
-		// Get active, non-expired batches for the medicines
-		var activeBatches = await context.Batches
-			.Where(b => medicineIds.Contains(b.MedicineId))
-			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-			.Where(b => b.Status == Status.Active)
-			.ToListAsync(ct);
+		var activeBatches = await batchService.GetNonExpiredBatchesAsync(medicineIds, ct);
 
 		// Also include the item's own batch even if expired/inactive
 		var missingBatchIds = itemBatchIds.Except(activeBatches.Select(b => b.Id)).ToList();
 		if (missingBatchIds.Count > 0)
 		{
-			var extraBatches = await context.Batches
-				.Where(b => missingBatchIds.Contains(b.Id))
-				.ToListAsync(ct);
+			var extraBatches = (await batchService.GetBatchByIdsAsync(missingBatchIds, ct)).Values.ToList();
 			activeBatches.AddRange(extraBatches);
-
 		}
 
 		var batchesByMedicine = activeBatches
 			.GroupBy(b => b.MedicineId)
 			.ToDictionary(g => g.Key, g => g.ToList());
 		
-		var medicineNames = await context.Medicines
-			.Where(m => medicineIds.Contains(m.Id))
-			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 
 		return (bill, batchesByMedicine, medicineNames);
 	}
@@ -322,15 +308,11 @@ public class BillingService(
 			return BillErrors.NotFound(id);
 
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
-		var batchesById = await context.Batches
-			.Where(b => batchIds.Contains(b.Id))
-			.ToDictionaryAsync(b => b.Id, ct);
+		var batchesById = await batchService.GetBatchByIdsAsync(batchIds, ct);
 		
 		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
-		var medicineNames = await context.Medicines
-			.Where(m => medicineIds.Contains(m.Id))
-			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
-
+		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
+		
 		return (bill, batchesById, medicineNames);
 	}
 	

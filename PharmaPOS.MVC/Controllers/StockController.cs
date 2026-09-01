@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
+using PharmaPOS.MVC.Mappers;
 
 namespace PharmaPOS.MVC.Controllers;
 
@@ -14,6 +15,7 @@ public class StockController(StockService stockService) : BaseController
 	public async Task<IActionResult> Index(string? type, CancellationToken ct = default)
 	{
 		var result = await stockService.GetStockListAsync(type, ct);
+		var response = StockMapper.MapToStockList(result);
 
 		var pageTitle = type switch
 		{
@@ -28,7 +30,7 @@ public class StockController(StockService stockService) : BaseController
 		ViewData["DeleteMsg"] = "Stock will be removed from Inventory.";
 		ViewData["Title"] = pageTitle;
 		
-		return View(result);
+		return View(response);
 	}
 
 	[HttpPost]

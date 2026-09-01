@@ -15,7 +15,8 @@ namespace PharmaPOS.MVC.Controllers;
 [Route("Medicines/Billing/[action]")]
 public class BillingController(
 	BillingService billingService,
-	PaymentMethodService paymentMethodService
+	PaymentMethodService paymentMethodService,
+	BatchService batchService
 ) : BaseController
 {
 	private const string FormView = "BillingForm";
@@ -157,6 +158,65 @@ public class BillingController(
 		var model = BillingMapper.MapToBillDetailsViewModel(result.Value);
 
 		return View(model);
+	}
+	
+	[HttpPost("/getbatch")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> GetBatch(int id, CancellationToken ct = default)
+	{
+		
+		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		
+		if (!canAdd && !canEdit)
+		{
+			return Forbid();
+		}
+		
+		var batches = await batchService.GetNonExpiredBatchesForMedicineAsync(id, ct);
+		
+		if (batches.Count == 0)
+		{
+			return Json(new { error = true, message = "No active batches found for this medicine." });
+		}
+
+		var resultHtml = "<option value=\"\">Select Batch</option>";
+		foreach (var batch in batches)
+		{
+			resultHtml += $"<option value=\"{batch.Id}\">{batch.BatchName}</option>";
+		}
+
+		return Json(new { error = false, result = resultHtml });
+	}
+
+	[HttpPost("/getbatchdata")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> GetBatchData(int medicine, int batch, CancellationToken ct = default)
+	{
+		
+		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
+		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
+		
+		if (!canAdd && !canEdit)
+		{
+			return Forbid();
+		}
+		
+		var mBatch = await batchService.GetSingleBatchAsync(medicine, batch, ct);
+
+		if (mBatch == null)
+		{
+			return Json(new { error = true, message = "Batch not found." });
+		}
+
+		var result = new
+		{
+			expiry = mBatch.Expiry,
+			available_quantity = mBatch.Pricing.Qty - mBatch.Sold,
+			saleprice = mBatch.Pricing.SalePrice
+		};
+
+		return Json(new { error = false, result });
 	}
 
 }

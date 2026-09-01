@@ -12,6 +12,8 @@ namespace PharmaPOS.Application.Services;
 
 public class PurchaseService(
 	ApplicationDbContext context,
+	MedicineService medicineService,
+	BatchService batchService,
 	ILogger<PurchaseService> logger) : IApplicationService
 {
 	public async Task<DataTableResponse<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
@@ -120,10 +122,8 @@ public class PurchaseService(
 			return updateResult.Errors;
 
 		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToHashSet();
-		
-		var existingBatches = await context.Batches
-			.Where(b => b.PurchaseId == id)
-			.ToListAsync(ct);
+
+		var existingBatches = await batchService.GetBatchesByPurchaseIdAsync(id, ct);
 		
 		var batchesToRemove = existingBatches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 		
@@ -197,15 +197,12 @@ public class PurchaseService(
 		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
 		
-		var hasSoldBatches = await context.Batches
-			.AnyAsync(b => b.PurchaseId == id && b.Sold > 0, ct);
+		var hasSoldBatches = await batchService.HasSoldBatchesAsync(id, ct);
 		
 		if (hasSoldBatches)
 			return BatchErrors.CannotDeletePurchaseWithSoldBatches;
 		
-		await context.Batches
-			.Where(b => b.PurchaseId == id)
-			.ExecuteDeleteAsync(ct);
+		await batchService.DeleteBatchesByPurchaseIdAsync(id, ct);
 		
 		context.Purchases.Remove(purchase);
 		await context.SaveChangesAsync(ct);
@@ -224,15 +221,12 @@ public class PurchaseService(
 			return PurchaseErrors.NotFound(id);
 		
 		// Fetch batches separately (respects aggregate boundary)
-		var batches = await context.Batches
-			.Where(b => b.PurchaseId == id)
-			.ToListAsync(ct);
+		var batches = await batchService.GetBatchesByPurchaseIdAsync(id, ct);
 		
 		// Fetch medicine names for display
 		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
-		var medicineNames = await context.Medicines
-			.Where(m => medicineIds.Contains(m.Id))
-			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+		
+		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
 		return (purchase, batches, medicineNames);
 		

@@ -4,18 +4,20 @@ using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Extensions;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Application.Services;
 
-public class StockService(ApplicationDbContext context, ILogger<StockService> logger) : IApplicationService
+public class StockService(
+	ApplicationDbContext context,
+	MedicineService medicineService,
+	BatchService batchService,
+	ILogger<StockService> logger) : IApplicationService
 {
 	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{
-		var batchesQuery = context.Batches
-			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.MedicineId)
-			.AsQueryable();
+		var batchesQuery = batchService.ActiveBatchesQuery();
 
 		var today = DateTime.UtcNow.Date;
 		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
@@ -69,9 +71,7 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 		var batchIds = batches.Select(b => b.Id).ToList();
 		
 		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
-		var medicineNames = await context.Medicines
-			.Where(m => medicineIds.Contains(m.Id))
-			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
 		var billItems = await context.BillItems
 			.Where(bi => batchIds.Contains(bi.BatchId))
@@ -120,17 +120,14 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 				Sold: b.Sold,
 				Available: b.Pricing.Qty - b.Sold
 			);
-
-			// return StockMapper.MapToStock(b, false, unitPurchasePrice, unitSalePrice, totalPurchase, totalSales, profit);
-
+			
 		}).ToList();
 	}
 
 	public async Task<ErrorOr<Success>> UpdateStockAvailableAsync(int id, int medicineId, decimal available, CancellationToken ct = default)
 	{
-		var batch = await context.Batches
-			.FirstOrDefaultAsync(b => b.Id == id && b.MedicineId == medicineId, ct);
-
+		var batch = await batchService.GetSingleBatchAsync(medicineId, id, ct);
+		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");
 
@@ -143,8 +140,7 @@ public class StockService(ApplicationDbContext context, ILogger<StockService> lo
 
 	public async Task<ErrorOr<Success>> DeleteStockAsync(int id, CancellationToken ct = default)
 	{
-		var batch = await context.Batches
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
+		var batch = await batchService.GetSingleBatchByIdAsync(id, ct);
 		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");

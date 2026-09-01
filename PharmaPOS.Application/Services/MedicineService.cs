@@ -15,6 +15,7 @@ namespace PharmaPOS.Application.Services;
 
 public class MedicineService(
 	ApplicationDbContext context,
+	BatchService batchService,
 	ILogger<MedicineService> logger) : IApplicationService
 {
 	/// <summary>
@@ -95,8 +96,9 @@ public class MedicineService(
 	/// </summary>
 	public async Task<List<MedicineStockResponse>> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
-		var currentMonth = DateTime.UtcNow.ExpiryFormat();
-
+		
+		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
+		
 		return await context.Medicines
 			.Include(m => m.Category)
 			.OrderByDescending(m => m.CreatedDate)
@@ -116,11 +118,7 @@ public class MedicineService(
 		var today = DateTime.UtcNow.Date;
 		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
 
-		var batchesQuery = await context.Batches
-			.Where(b => b.MedicineId == medicineId)
-			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.MedicineId).Include(batch => batch.Pricing)
-			.ToListAsync(ct);
+		var batchesQuery = await batchService.GetActiveBatchesByMedicineAsync(medicineId, ct);
 		
 		var liveBatches = batchesQuery.Where(b => 
 				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
@@ -131,11 +129,17 @@ public class MedicineService(
 		
 		// Fetch medicine names for display
 		var medicineIds = batchesQuery.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await GetMedicineNamesByIds(medicineIds, ct);
+            
+		return (liveBatches, badBatches, medicineNames);
+	}
+
+	public async Task<Dictionary<int, string>> GetMedicineNamesByIds(List<int> medicineIds, CancellationToken ct)
+	{
 		var medicineNames = await context.Medicines
 			.Where(m => medicineIds.Contains(m.Id))
 			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
-            
-		return (liveBatches, badBatches, medicineNames);
+		return medicineNames;
 	}
 
 	public async Task<object> SearchMedicinesAsync(string term, CancellationToken ct = default)
@@ -151,24 +155,6 @@ public class MedicineService(
 			})
 			.ToListAsync(ct);
 	}
-
-	public async Task<List<Batch>> GetActiveBatchesForMedicineAsync(int medicineId, CancellationToken ct = default)
-	{
-		var currentMonth = DateTime.UtcNow.ExpiryFormat();
-
-		return await context.Batches
-			.Where(b => b.MedicineId == medicineId)
-			.Where(b => string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
-			.Where(b => (b.Pricing.Qty - b.Sold) > 0)
-			.Where(b => b.Status == Status.Active)
-			.OrderBy(b => b.Expiry)
-			.ToListAsync(ct);
-	}
-
-	public async Task<Batch?> GetBatchDataAsync(int medicineId, int batchId, CancellationToken ct = default)
-	{
-		return await context.Batches.Include(b => b.Pricing)
-			.FirstOrDefaultAsync(b => b.MedicineId == medicineId && b.Id == batchId, ct);
-	}
+	
 	
 }

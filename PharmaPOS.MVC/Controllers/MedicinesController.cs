@@ -80,8 +80,8 @@ public class MedicinesController(
 		var model = new MedicineViewPageModel
 		{
 			Medicine = MedicineMapper.MapToMedicine(medicine),
-			LiveStock = StockMapper.MapToStocks(liveBatches, medicineNames),
-			BadStock = StockMapper.MapToStocks(badBatches, medicineNames)
+			LiveStock = StockMapper.MapToStocksBatch(liveBatches, medicineNames),
+			BadStock = StockMapper.MapToStocksBatch(badBatches, medicineNames)
 		};
 
 		return View(model);
@@ -187,65 +187,6 @@ public class MedicinesController(
 		var results = await medicineService.SearchMedicinesAsync(term, ct);
 
 		return Json(results);
-	}
-
-	[HttpPost("/getbatch")]
-	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> GetBatch(int id, CancellationToken ct = default)
-	{
-		
-		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
-		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
-		
-		if (!canAdd && !canEdit)
-		{
-			return Forbid();
-		}
-		
-		var batches = await medicineService.GetActiveBatchesForMedicineAsync(id, ct);
-		
-		if (batches.Count == 0)
-		{
-			return Json(new { error = true, message = "No active batches found for this medicine." });
-		}
-
-		var resultHtml = "<option value=\"\">Select Batch</option>";
-		foreach (var batch in batches)
-		{
-			resultHtml += $"<option value=\"{batch.Id}\">{batch.BatchName}</option>";
-		}
-
-		return Json(new { error = false, result = resultHtml });
-	}
-
-	[HttpPost("/getbatchdata")]
-	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> GetBatchData(int medicine, int batch, CancellationToken ct = default)
-	{
-		
-		var canAdd = User.HasClaim("Permission", Permissions.Billing.Add);
-		var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);
-		
-		if (!canAdd && !canEdit)
-		{
-			return Forbid();
-		}
-		
-		var mBatch = await medicineService.GetBatchDataAsync(medicine, batch, ct);
-
-		if (mBatch == null)
-		{
-			return Json(new { error = true, message = "Batch not found." });
-		}
-
-		var result = new
-		{
-			expiry = mBatch.Expiry,
-			available_quantity = mBatch.Pricing.Qty - mBatch.Sold,
-			saleprice = mBatch.Pricing.SalePrice
-		};
-
-		return Json(new { error = false, result });
 	}
 
 }
