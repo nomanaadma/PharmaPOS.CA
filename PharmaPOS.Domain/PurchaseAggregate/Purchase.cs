@@ -55,20 +55,16 @@ public class Purchase : OrderDetails
 	{
 		var errors = new List<Error>();
 
-		if (details.SupplierId <= 0)
-			errors.Add(PurchaseErrors.SupplierRequired);
+		DomainValidator<Purchase>.ValidateIds(errors,
+			(details.SupplierId, nameof(details.SupplierId))
+		);
 
-		if (details.Amount < 0)
-			errors.Add(PurchaseErrors.InvalidAmount);
-		
-		if (details.SubTotal < 0)
-			errors.Add(PurchaseErrors.InvalidSubTotal);
-		
-		if (details.Tax < 0)
-			errors.Add(PurchaseErrors.InvalidTax);
-		
-		if (details.Discount < 0)
-			errors.Add(PurchaseErrors.InvalidDiscount);
+		DomainValidator<Purchase>.ValidateNonNegativeNumbers(errors,
+			(details.Amount, nameof(details.Amount)),
+			(details.SubTotal, nameof(details.SubTotal)),
+			(details.Tax, nameof(details.Tax)),
+			(details.Discount, nameof(details.Discount))
+		);
 		
 		return errors;
 	}

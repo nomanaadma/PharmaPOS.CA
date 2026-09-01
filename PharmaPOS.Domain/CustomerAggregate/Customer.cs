@@ -52,16 +52,18 @@ public class Customer : AggregateRoot
 	private static List<Error> ValidateDetails(CustomerDetails details)
 	{
 		var errors = new List<Error>();
-
-		if (string.IsNullOrWhiteSpace(details.FirstName))
-			errors.Add(CustomerErrors.FirstNameRequired);
-		if (string.IsNullOrWhiteSpace(details.LastName))
-			errors.Add(CustomerErrors.LastNameRequired);
-		if (!Enum.IsDefined(details.Gender))
-			errors.Add(CustomerErrors.InvalidGender);
-		if (!Enum.IsDefined(details.Status))
-			errors.Add(CustomerErrors.InvalidStatus);
-
+		
+		DomainValidator<Customer>.ValidateRequiredStrings(errors,
+			(details.FirstName, nameof(details.FirstName)),
+			(details.LastName, nameof(details.LastName))
+		);
+		
+		// Standard DomainValidator approach
+		DomainValidator<Customer>.ValidateEnums(errors,
+			(details.Gender, nameof(details.Gender)),
+			(details.Status, nameof(details.Status))
+		);
+		
 		return errors;
 	}
 }

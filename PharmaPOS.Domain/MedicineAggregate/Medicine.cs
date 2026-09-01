@@ -70,17 +70,18 @@ public class Medicine : AggregateRoot
 	private static List<Error> ValidateDetails(MedicineDetails details)
 	{
 		var errors = new List<Error>();
+		
+		DomainValidator<Medicine>.ValidateRequiredStrings(errors,
+			(details.Name, nameof(details.Name)),
+			(details.Company, nameof(details.Company)),
+			(details.Generic, nameof(details.Generic)),
+			(details.Unit, nameof(details.Unit))
+		);
 
-		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(MedicineErrors.NameRequired);
-		if (string.IsNullOrWhiteSpace(details.Company))
-			errors.Add(MedicineErrors.CompanyRequired);
-		if (string.IsNullOrWhiteSpace(details.Generic))
-			errors.Add(MedicineErrors.GenericRequired);
-		if (details.CategoryId <= 0)
-			errors.Add(MedicineErrors.CategoryRequired);
-		if (string.IsNullOrWhiteSpace(details.Unit))
-			errors.Add(MedicineErrors.UnitRequired);
+		DomainValidator<Medicine>.ValidateIds(errors,
+			(details.CategoryId, nameof(details.CategoryId))
+		);
+		
 
 		return errors;
 	}

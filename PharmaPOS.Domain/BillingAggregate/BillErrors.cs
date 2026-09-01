@@ -21,29 +21,6 @@ public static class BillErrors
 	public static Error MissingItems =>
 		Error.Validation("Bill.MissingItems", "Bill must have at least one item.");
 	
-	
-	public static Error InvalidAmount =>
-		Error.Validation("Bill.InvalidAmount", "Amount cannot be negative.");
-    
-	public static Error InvalidSubTotal =>
-		Error.Validation("Bill.InvalidSubTotal", "SubTotal cannot be negative.");
-    
-	public static Error InvalidTax =>
-		Error.Validation("Bill.InvalidTax", "Tax cannot be negative.");
-    
-	public static Error InvalidDiscount =>
-		Error.Validation("Bill.InvalidDiscount", "Discount cannot be negative.");
-	
-	public static Error NameRequired =>
-		Error.Validation("Bill.NameRequired", "Customer name is required.");
-	
-	public static Error InvalidCustomer =>
-		Error.Validation("Bill.InvalidCustomer", "A valid customer is required.");
-    
-	public static Error InvalidPaymentMethod =>
-		Error.Validation("Bill.InvalidPaymentMethod", "A valid payment method is required.");
-	
-	
 	public static Error InvalidMedicine =>
 		Error.Validation("BillItem.InvalidMedicine", "Valid Medicine is required.");
     

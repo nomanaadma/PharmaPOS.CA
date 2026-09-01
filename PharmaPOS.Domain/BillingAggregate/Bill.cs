@@ -78,27 +78,22 @@ public class Bill : OrderDetails
 	private static List<Error> ValidateDetails(BillDetails details)
 	{
 		var errors = new List<Error>();
-
-		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(BillErrors.NameRequired);
-
-		if (details.CustomerId <= 0)
-			errors.Add(BillErrors.InvalidCustomer);
-
-		if (details.MethodId <= 0)
-			errors.Add(BillErrors.InvalidPaymentMethod);
 		
-		if (details.Amount < 0)
-			errors.Add(BillErrors.InvalidAmount);
+		DomainValidator<Bill>.ValidateRequiredStrings(errors,
+			(details.Name, nameof(details.Name))
+		);
 		
-		if (details.SubTotal < 0)
-			errors.Add(BillErrors.InvalidSubTotal);
+		DomainValidator<Bill>.ValidateIds(errors,
+			(details.CustomerId, nameof(details.CustomerId)),
+			(details.MethodId, "PaymentMethod")
+		);
 		
-		if (details.Tax < 0)
-			errors.Add(BillErrors.InvalidTax);
-		
-		if (details.Discount < 0)
-			errors.Add(BillErrors.InvalidDiscount);
+		DomainValidator<Bill>.ValidateNonNegativeNumbers(errors,
+			(details.Amount, nameof(details.Amount)),
+			(details.SubTotal, nameof(details.SubTotal)),
+			(details.Tax, nameof(details.Tax)),
+			(details.Discount, nameof(details.Discount))
+		);
 		
 		return errors;
 	}

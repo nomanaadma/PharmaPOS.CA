@@ -69,20 +69,20 @@ public class Batch : AggregateRoot
 	{
 		var errors = new List<Error>();
 		
-		if (string.IsNullOrWhiteSpace(details.BatchName))
-			errors.Add(BatchErrors.BatchNameRequired);
+		DomainValidator<Batch>.ValidateRequiredStrings(errors,
+			(details.BatchName, nameof(details.BatchName)),
+			(details.Expiry, nameof(details.Expiry))
+		);
 
-		if (details.MedicineId <= 0)
-			errors.Add(BatchErrors.MedicineRequired);
+		DomainValidator<Batch>.ValidateIds(errors,
+			(details.MedicineId, nameof(details.MedicineId)),
+			(details.PurchaseId, nameof(details.PurchaseId))
+		);
+
+		DomainValidator<Batch>.ValidateNonNegativeNumbers(errors,
+			(details.PurchasePrice, nameof(details.PurchasePrice))
+		);
 		
-		if (details.PurchaseId <= 0)
-			errors.Add(BatchErrors.PurchaseRequired);
-		
-		if (string.IsNullOrWhiteSpace(details.Expiry))
-			errors.Add(BatchErrors.ExpiryRequired);
-		
-		if (details.PurchasePrice < 0)
-			errors.Add(BatchErrors.InvalidPurchasePrice);
 		
 		return errors;
 	}

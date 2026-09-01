@@ -46,10 +46,13 @@ public class PaymentMethod : AggregateRoot
 	{
 		var errors = new List<Error>();
 
-		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(PaymentMethodErrors.NameRequired);
-		if (!Enum.IsDefined(details.Status))
-			errors.Add(PaymentMethodErrors.InvalidStatus);
+		DomainValidator<PaymentMethod>.ValidateRequiredStrings(errors,
+			(details.Name, nameof(details.Name))
+		);
+
+		DomainValidator<PaymentMethod>.ValidateEnums(errors,
+			(details.Status, nameof(details.Status))
+		);
 
 		return errors;
 	}

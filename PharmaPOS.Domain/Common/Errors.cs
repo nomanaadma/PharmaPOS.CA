@@ -1,6 +1,21 @@
-﻿namespace PharmaPOS.Domain.Common;
+﻿using ErrorOr;
 
-public class Errors
+namespace PharmaPOS.Domain.Common;
+
+public static class CommonErrors<T>
 {
+	private static readonly string Prefix = typeof(T).Name;
+
+	public static Error Required(string fieldName) =>
+		Error.Validation($"{Prefix}.{fieldName}Required", $"{fieldName} is required.");
+
+	public static Error InvalidId(string fieldName, string? customMessage = null) =>
+		Error.Validation($"{Prefix}.Invalid{fieldName}", customMessage ?? $"A valid {fieldName} is required.");
+	
+	public static Error InvalidNumber(string fieldName, string? customMessage = null) =>
+		Error.Validation($"{Prefix}.Invalid{fieldName}", customMessage ?? $"{fieldName} cannot be negative.");
+	
+	public static Error InvalidEnum(string fieldName, string? customMessage = null) =>
+		Error.Validation($"{Prefix}.Invalid{fieldName}", customMessage ?? $"Invalid {fieldName} value.");
 	
 }

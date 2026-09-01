@@ -49,12 +49,11 @@ public class Supplier : AggregateRoot
 	{
 		var errors = new List<Error>();
 
-		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(SupplierErrors.NameRequired);
-		if (string.IsNullOrWhiteSpace(details.Email))
-			errors.Add(SupplierErrors.EmailRequired);
-		if (string.IsNullOrWhiteSpace(details.Phone))
-			errors.Add(SupplierErrors.PhoneRequired);
+		DomainValidator<Supplier>.ValidateRequiredStrings(errors,
+			(details.Name, nameof(details.Name)),
+			(details.Email, nameof(details.Email)),
+			(details.Phone, nameof(details.Phone))
+		);
 
 		return errors;
 	}

@@ -15,7 +15,7 @@ public class CategoryService(
 	public async Task<ErrorOr<int>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
 	{
 		if (await context.MedicineCategories.AnyAsync(c => c.Name == request.Name, ct))
-			return CategoryErrors.NameNotUnique;
+			return MedicineCategoryErrors.NameNotUnique;
 
 		var categoryResult = MedicineCategory.Create(request.Name);
 		if (categoryResult.IsError)
@@ -33,10 +33,10 @@ public class CategoryService(
 	{
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(id);
+			return MedicineCategoryErrors.NotFound(id);
 
 		if (await context.MedicineCategories.AnyAsync(c => c.Name == request.Name && c.Id != id, ct))
-			return CategoryErrors.NameNotUnique;
+			return MedicineCategoryErrors.NameNotUnique;
 
 		var updateResult = category.Update(request.Name);
 		if (updateResult.IsError)
@@ -52,7 +52,7 @@ public class CategoryService(
 	{
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(id);
+			return MedicineCategoryErrors.NotFound(id);
 
 		context.MedicineCategories.Remove(category);
 		await context.SaveChangesAsync(ct);
@@ -65,7 +65,7 @@ public class CategoryService(
 	{
 		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(id);
+			return MedicineCategoryErrors.NotFound(id);
 
 		return category;
 	}

@@ -17,10 +17,18 @@ public class Media : AggregateRoot
 
 	public static ErrorOr<Media> Create(string filename, string ext, DateTime createdDate)
 	{
-		if (string.IsNullOrWhiteSpace(filename))
-			return MediaErrors.FilenameRequired;
-		if (string.IsNullOrWhiteSpace(ext))
-			return MediaErrors.ExtensionRequired;
+		var errors = new List<Error>();
+		
+		// Standard DomainValidator approach
+		DomainValidator<Media>.ValidateRequiredStrings(errors,
+			(filename, nameof(filename)),
+			(ext, nameof(ext))
+		);
+
+		if (errors.Count != 0)
+		{
+			return errors;
+		}
 
 		return new Media(filename, ext, createdDate);
 	}

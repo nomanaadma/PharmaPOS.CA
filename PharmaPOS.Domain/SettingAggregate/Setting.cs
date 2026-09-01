@@ -45,17 +45,13 @@ public class Setting : AggregateRoot
 	{
 		var errors = new List<Error>();
 		
-		if (string.IsNullOrWhiteSpace(details.Name))
-			errors.Add(SettingErrors.NameRequired);
-		
-		if (string.IsNullOrWhiteSpace(details.LegalName))
-			errors.Add(SettingErrors.LegalNameRequired);
-		
-		if (string.IsNullOrWhiteSpace(details.Mail))
-			errors.Add(SettingErrors.MailRequired);
-		
-		if (string.IsNullOrWhiteSpace(details.Phone))
-			errors.Add(SettingErrors.PhoneRequired);
+		// Standard DomainValidator approach
+		DomainValidator<Setting>.ValidateRequiredStrings(errors,
+			(details.Name, nameof(details.Name)),
+			(details.LegalName, nameof(details.LegalName)),
+			(details.Mail, nameof(details.Mail)),
+			(details.Phone, nameof(details.Phone))
+		);
 		
 		return errors;
 	}
