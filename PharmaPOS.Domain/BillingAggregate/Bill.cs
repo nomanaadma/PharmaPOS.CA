@@ -50,9 +50,17 @@ public class Bill : OrderDetails
 		return Result.Updated;
 	}
 
-	public void AddItem(BillItem item)
+	public ErrorOr<Success> AddItem(BillItemDetails billItemDetails)
 	{
-		_items.Add(item);
+		var itemResult = BillItem.Create(billItemDetails);
+		
+		if (itemResult.IsError)
+			return itemResult.Errors;
+		
+		_items.Add(itemResult.Value);
+		
+		return Result.Success;
+		
 	}
 
 	public void ClearItems()

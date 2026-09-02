@@ -73,13 +73,11 @@ public class BillingService(
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
-			var billItemResult = BillItem.Create(billItemDetails);
 
-			if (billItemResult.IsError)
-				return billItemResult.Errors;
-
-			// Use aggregate root method
-			bill.AddItem(billItemResult.Value);
+			var addResult = bill.AddItem(billItemDetails);
+			
+			if (addResult.IsError)
+				return addResult.Errors;
 
 			if (!batches.TryGetValue(item.Batch, out var batch))
 				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
@@ -89,7 +87,9 @@ public class BillingService(
 			if (item.Qty > available)
 				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
 
-			batch.UpdateSold(batch.Sold + item.Qty);
+			var soldResult = batch.UpdateSold(item.Qty);
+			if (soldResult.IsError)
+				return soldResult.Errors;
 		}
 
 		context.Bills.Add(bill);
@@ -182,7 +182,9 @@ public class BillingService(
 			if (!batches.TryGetValue(oldItem.BatchId, out var batch))
 				return BillErrors.BatchNotFound(oldItem.BatchId, oldItem.MedicineId);
 
-			batch.UpdateSold(batch.Sold - oldItem.Pricing.Qty);
+			var soldResult = batch.UpdateSold(-oldItem.Pricing.Qty);
+			if (soldResult.IsError)
+				return soldResult.Errors;
 		}
 
 		// Clear old items using aggregate root method
@@ -195,13 +197,12 @@ public class BillingService(
 			if (pricingResult.IsError) return pricingResult.Errors;
 
 			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
-			var billItemResult = BillItem.Create(billItemDetails);
 			
-			if (billItemResult.IsError)
-				return billItemResult.Errors;
-
 			// Use aggregate root method
-			bill.AddItem(billItemResult.Value);
+			var addResult = bill.AddItem(billItemDetails);
+			
+			if (addResult.IsError)
+				return addResult.Errors;
 			
 			if (!batches.TryGetValue(item.Batch, out var batch))
 				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
@@ -210,8 +211,11 @@ public class BillingService(
 			var available = batch.Pricing.Qty - batch.Sold;
 			if (item.Qty > available)
 				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
-
-			batch.UpdateSold(batch.Sold + item.Qty);
+			
+			var soldResult = batch.UpdateSold(item.Qty);
+			if (soldResult.IsError)
+				return soldResult.Errors;
+			
 		}
 
 		await context.SaveChangesAsync(ct);
@@ -243,7 +247,9 @@ public class BillingService(
 			if (!batches.TryGetValue(item.BatchId, out var batch))
 				return BillErrors.BatchNotFound(item.BatchId, item.MedicineId);
 
-			batch.UpdateSold(batch.Sold - item.Pricing.Qty);
+			var soldResult = batch.UpdateSold(-item.Pricing.Qty);
+			if (soldResult.IsError)
+				return soldResult.Errors;
 		}
 
 		context.Bills.Remove(bill);

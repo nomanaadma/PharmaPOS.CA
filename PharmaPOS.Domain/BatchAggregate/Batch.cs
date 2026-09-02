@@ -44,9 +44,12 @@ public class Batch : AggregateRoot
 		return Result.Updated;
 	}
 
-	public void UpdateSold(decimal sold)
+	public ErrorOr<Success> UpdateSold(decimal quantity)
 	{
-		Sold = sold;
+		if (quantity <= 0) return BatchErrors.InvalidSaleQuantity;
+		if (Sold + quantity > Pricing.Qty) return BatchErrors.InsufficientStock;
+		Sold += quantity;
+		return Result.Success;
 	}
 
 	public void UpdateStatus(Status status)

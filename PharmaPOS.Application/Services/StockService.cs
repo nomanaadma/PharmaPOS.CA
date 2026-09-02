@@ -130,8 +130,14 @@ public class StockService(
 		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");
+		
+		var targetTotalSold = batch.Pricing.Qty - available;
+		var quantityJustSold = targetTotalSold - batch.Sold;
 
-		batch.UpdateSold(batch.Pricing.Qty - available);
+		var soldResult = batch.UpdateSold(quantityJustSold);
+		if (soldResult.IsError)
+			return soldResult.Errors;
+		
 		await context.SaveChangesAsync(ct);
 		
 		logger.LogInformation("Stock {BatchId} for Medicine {MedicineId} updated to available: {Available}", id, medicineId, available);
