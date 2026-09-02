@@ -10,7 +10,7 @@ public static class BillErrors
 	public static Error BatchNotFound(int batchId, int medicineId) =>
 		Error.NotFound("Bill.BatchNotFound", $"Batch {batchId} not found for Medicine {medicineId}.");
 
-	public static Error CustomerNameRequired =>
+	public static readonly Error CustomerNameRequired =
 		Error.Validation("Bill.CustomerNameRequired",
 			"Customer name is required when no existing customer is selected.");
 	
@@ -18,13 +18,16 @@ public static class BillErrors
 		Error.Validation("Bill.InsufficientStock",
 			$"Insufficient stock for batch {batchName}. Available: {available}, Requested: {requested}");
 
-	public static Error MissingItems =>
+	public static readonly Error MissingItems =
 		Error.Validation("Bill.MissingItems", "Bill must have at least one item.");
 	
-	public static Error InvalidMedicine =>
+	public static readonly Error InvalidMedicine =
 		Error.Validation("BillItem.InvalidMedicine", "Valid Medicine is required.");
     
-	public static Error InvalidBatch =>
+	public static readonly Error InvalidBatch =
 		Error.Validation("BillItem.InvalidBatch", "Valid Batch is required.");
+	
+	public static Error PaymentMethodNotFound(int paymentMethodId) =>
+		Error.NotFound("Bill.PaymentMethodNotFound", $"Payment Method {paymentMethodId} does not exist.");
 	
 }

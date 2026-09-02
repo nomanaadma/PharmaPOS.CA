@@ -9,6 +9,7 @@ using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.MedicineAggregate;
+using PharmaPOS.Domain.MedicineCategoryAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Services;
@@ -79,28 +80,34 @@ public class MedicineService(
 	/// <summary>
 	/// Loads a medicine with category for the View action.
 	/// </summary>
-	public async Task<ErrorOr<Medicine>> GetMedicineAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<MedicineDetailsResponse>> GetMedicineAsync(int id, CancellationToken ct = default)
 	{
 		var medicine = await context.Medicines
-			.Include(m => m.Category)
 			.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
+		
+		var categoryName = await context.MedicineCategories
+			.Where(c => c.Id == medicine.CategoryId)
+			.Select(c => c.Name)
+			.FirstOrDefaultAsync(ct);
 
-		return medicine;
+		if (categoryName == null)
+			return MedicineErrors.CategoryNotFound(medicine.CategoryId);
+
+		return new MedicineDetailsResponse(medicine, categoryName);
 	}
 
 	/// <summary>
 	/// Returns all medicines with live stock for the Index page.
 	/// </summary>
-	public async Task<List<MedicineStockResponse>> GetMedicinesWithStockAsync(CancellationToken ct = default)
+	public async Task<MedicinesWithStockResponse> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
 		
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 		
-		return await context.Medicines
-			.Include(m => m.Category)
+		var medicines = await context.Medicines
 			.OrderByDescending(m => m.CreatedDate)
 			.Select(m => new MedicineStockResponse
 			(
@@ -111,9 +118,18 @@ public class MedicineService(
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
 			))
 			.ToListAsync(ct);
+		
+		var medicineCategoryIds = medicines.Select(msr => msr.Medicine.CategoryId).Distinct().ToList();
+		
+		var categoriesNames = await context.MedicineCategories
+			.Where(c => medicineCategoryIds.Contains(c.Id))
+			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
+
+
+		return new MedicinesWithStockResponse(medicines, categoriesNames);
 	}
 
-	public async Task<(IEnumerable<Batch>, IEnumerable<Batch>, Dictionary<int, string>)> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
+	public async Task<MedicineStockSummaryResponse> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
 	{
 		var today = DateTime.UtcNow.Date;
 		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
@@ -131,7 +147,7 @@ public class MedicineService(
 		var medicineIds = batchesQuery.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await GetMedicineNamesByIds(medicineIds, ct);
             
-		return (liveBatches, badBatches, medicineNames);
+		return new MedicineStockSummaryResponse(liveBatches, badBatches, medicineNames);
 	}
 
 	public async Task<Dictionary<int, string>> GetMedicineNamesByIds(List<int> medicineIds, CancellationToken ct)

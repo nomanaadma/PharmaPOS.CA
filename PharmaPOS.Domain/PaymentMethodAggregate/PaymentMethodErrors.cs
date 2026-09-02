@@ -7,6 +7,6 @@ public static class PaymentMethodErrors
 	public static Error NotFound(int id) =>
 		Error.NotFound("PaymentMethod.NotFound", $"Payment method {id} does not exist.");
 
-	public static Error NameNotUnique =>
+	public static readonly Error NameNotUnique =
 		Error.Conflict("PaymentMethod.NameNotUnique", "Payment Method Name must be unique.");
 }

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Domain.CustomerAggregate;
+using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Application.Data.Configurations;
 
@@ -70,12 +72,12 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
 			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
-		builder.HasOne(mb => mb.Customer)
+		builder.HasOne<Customer>()
 			.WithMany()
 			.HasForeignKey(mb => mb.CustomerId)
 			.OnDelete(DeleteBehavior.Cascade);
 
-		builder.HasOne(mb => mb.PaymentMethod)
+		builder.HasOne<PaymentMethod>()
 			.WithMany()
 			.HasForeignKey(mb => mb.MethodId)
 			.OnDelete(DeleteBehavior.Cascade);

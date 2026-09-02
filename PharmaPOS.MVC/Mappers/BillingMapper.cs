@@ -1,6 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS.Domain.BatchAggregate;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
@@ -93,11 +93,11 @@ public static class BillingMapper
     }
 
     public static BillingFormModel MapToBillingForm(
-	    (Bill, Dictionary<int, List<Batch>>, Dictionary<int, string>) resultValue,
+	    BillEditResponse response,
 	    IEnumerable<SelectListItem> paymentMethods)
     {
 
-	    var (bill, items, medicineNames) = resultValue;
+	    var (bill, items, medicineNames) = response;
 	    
         return new BillingFormModel
         {
@@ -149,10 +149,10 @@ public static class BillingMapper
     }
 
     public static BillingViewModel MapToBillDetailsViewModel(
-	    (Bill, Dictionary<int, Batch>, Dictionary<int, string>) billBatch)
+	    BillDetailsResponse response)
     {
 
-	    var (bill, batchesById, medicineNames) = billBatch;
+	    var (bill, batchesById, medicineNames, paymentMethodName) = response;
 	    
         return new BillingViewModel
         {
@@ -161,7 +161,7 @@ public static class BillingMapper
             Email = bill.Email,
             Mobile = bill.Mobile,
             Date = bill.Date,
-            PaymentMethodName = bill.PaymentMethod.Name,
+            PaymentMethodName = paymentMethodName,
             SubTotal = bill.SubTotal,
             Discount = bill.Discount,
             Tax = bill.Tax,

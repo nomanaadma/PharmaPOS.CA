@@ -20,8 +20,8 @@ public class MedicinesController(
 	[Authorize(Policy = Permissions.Medicine.List)]
 	public async Task<IActionResult> Index(CancellationToken ct = default)
 	{
-		var medicines = await medicineService.GetMedicinesWithStockAsync(ct);
-		var medicineResponse = MedicineMapper.MapToMedicinesWithStock(medicines);
+		var medicinesCategories = await medicineService.GetMedicinesWithStockAsync(ct);
+		var medicineResponse = MedicineMapper.MapToMedicinesWithStock(medicinesCategories);
 		
 		return View(medicineResponse);
 	}
@@ -74,14 +74,14 @@ public class MedicinesController(
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView);
 
-		var medicine = result.Value;
-		var (liveBatches, badBatches, medicineNames) = await medicineService.GetMedicineStockSummaryAsync(id, ct);
+		var medicineCategory = result.Value;
+		var stockSummary = await medicineService.GetMedicineStockSummaryAsync(id, ct);
 		
 		var model = new MedicineViewPageModel
 		{
-			Medicine = MedicineMapper.MapToMedicine(medicine),
-			LiveStock = StockMapper.MapToStocksBatch(liveBatches, medicineNames),
-			BadStock = StockMapper.MapToStocksBatch(badBatches, medicineNames)
+			Medicine = MedicineMapper.MapToMedicine(medicineCategory),
+			LiveStock = StockMapper.MapToStocksBatch(stockSummary.ActiveBatches, stockSummary.MedicineNames),
+			BadStock = StockMapper.MapToStocksBatch(stockSummary.ExpiredBatches, stockSummary.MedicineNames)
 		};
 
 		return View(model);

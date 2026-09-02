@@ -1,23 +1,23 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Helpers;
-using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.MVC.Helpers;
 
 /// <summary>
 /// Column configuration for Purchase entity DataTables filtering.
-/// Maps DataTables origData names to Purchase/Supplier entity expressions.
+/// Maps DataTables origData names to PurchaseListDto expressions.
 /// </summary>
 public static class PurchaseColumns
 {
-	public static DataTableColumnMap<Purchase> GetColumnMap() => new()
+	public static DataTableColumnMap<PurchaseListResponse> GetColumnMap() => new()
 	{
 		GlobalSearchFilter = (query, search) =>
 		{
 			
 			return query.Where(mp =>
-				EF.Functions.ILike(mp.Supplier.Name, $"%{search}%") ||
+				EF.Functions.ILike(mp.SupplierName, $"%{search}%") ||
     
 				(mp.Note != null &&
 				 EF.Functions.ILike(mp.Note, $"%{search}%")) ||
@@ -30,12 +30,12 @@ public static class PurchaseColumns
 			
 		},
 
-		Columns = new Dictionary<string, DataTableColumn<Purchase>>
+		Columns = new Dictionary<string, DataTableColumn<PurchaseListResponse>>
 		{
 			["name"] = new()
 			{
 				Type = ColumnType.String,
-				StringSelector = mp => mp.Supplier.Name
+				StringSelector = mp => mp.SupplierName
 			},
 			["total"] = new()
 			{
@@ -64,9 +64,9 @@ public static class PurchaseColumns
 			}
 		},
 
-		SortColumns = new Dictionary<string, Expression<Func<Purchase, object>>>
+		SortColumns = new Dictionary<string, Expression<Func<PurchaseListResponse, object>>>
 		{
-			["1"] = mp => mp.Supplier.Name,
+			["1"] = mp => mp.SupplierName,
 			["2"] = mp => mp.SubTotal,
 			["3"] = mp => mp.Tax,
 			["4"] = mp => mp.Discount,

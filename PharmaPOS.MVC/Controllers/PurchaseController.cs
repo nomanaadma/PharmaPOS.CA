@@ -61,8 +61,7 @@ public class PurchaseController(
 		if (result.IsError)
 			return HandleErrors(result.Errors, FormView);
 
-		var (purchase, batches, medicineNames) = result.Value;
-		var model = PurchaseMapper.MapToPurchaseView(purchase, batches, medicineNames);
+		var model = PurchaseMapper.MapToPurchaseView(result.Value);
 
 		return View(model);
 	}
@@ -114,8 +113,7 @@ public class PurchaseController(
 		
 		var suppliers = await supplierService.GetSuppliersAsync(ct);
 		
-		var (purchase, batches, medicineNames) = result.Value;
-		var model = PurchaseMapper.MapToPurchaseForm(purchase, batches, medicineNames, suppliers);
+		var model = PurchaseMapper.MapToPurchaseForm(result.Value, suppliers);
 
 		return View(FormView, model);
 	}

@@ -7,6 +7,7 @@ using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Application.Services;
 
@@ -16,11 +17,22 @@ public class PurchaseService(
 	BatchService batchService,
 	ILogger<PurchaseService> logger) : IApplicationService
 {
-	public async Task<DataTableResponse<Purchase>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<Purchase> columns, CancellationToken ct = default)
+	public async Task<DataTableResponse<PurchaseListResponse>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<PurchaseListResponse> columns, CancellationToken ct = default)
 	{
+		
 		var query = context.Purchases
-			.Include(mp => mp.Supplier)
-			.AsQueryable();
+			.AsNoTracking()
+			.Join(context.Suppliers, p => p.SupplierId, s => s.Id, (p, s) => new PurchaseListResponse
+			{
+				Id = p.Id,
+				Date = p.Date,
+				SubTotal = p.SubTotal,
+				Tax = p.Tax,
+				Discount = p.Discount,
+				Amount = p.Amount,
+				Note = p.Note,
+				SupplierName = s.Name
+			});
 
 		return await DataTableHelper.FilterAsync(query, request, columns, ct);
 	}
@@ -211,15 +223,18 @@ public class PurchaseService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<(Purchase, List<Batch>, Dictionary<int, string>)>> GetPurchaseAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<PurchaseDetailsResponse>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
 		var purchase = await context.Purchases
-			.Include(mp => mp.Supplier)
 			.FirstOrDefaultAsync(mp => mp.Id == id, ct);
 
 		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
 		
+		var supplier = await context.Suppliers.FirstOrDefaultAsync(s => s.Id == purchase.SupplierId, ct);
+		if (supplier == null)
+			return PurchaseErrors.SupplierNotFound(id); // Or a specific supplier error
+
 		// Fetch batches separately (respects aggregate boundary)
 		var batches = await batchService.GetBatchesByPurchaseIdAsync(id, ct);
 		
@@ -228,7 +243,7 @@ public class PurchaseService(
 		
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
-		return (purchase, batches, medicineNames);
+		return new PurchaseDetailsResponse(purchase, batches, medicineNames, supplier);
 		
 	}
 

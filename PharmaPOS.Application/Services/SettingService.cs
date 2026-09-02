@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Data;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MediaAggregate;
 using PharmaPOS.Domain.SettingAggregate;
 
@@ -104,7 +105,7 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 		return await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync(ct);
 	}
 
-	public async Task<ErrorOr<(Media Media, int Width, int Height)>> UploadMediaFileAsync(IFormFile file, CancellationToken ct = default)
+	public async Task<ErrorOr<MediaUploadResponse>> UploadMediaFileAsync(IFormFile file, CancellationToken ct = default)
 	{
 		if (file.Length == 0)
 			return Error.Validation(description: "No file uploaded.");
@@ -129,7 +130,7 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 
 		var (width, height) = GetImageDimensions(filePath);
 
-		return (media, width, height);
+		return new MediaUploadResponse(media, width, height);
 	}
 
 	public async Task<ErrorOr<Success>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)

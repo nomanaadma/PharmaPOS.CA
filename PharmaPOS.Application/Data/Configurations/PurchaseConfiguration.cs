@@ -53,7 +53,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
-		builder.HasOne(mp => mp.Supplier)
+		builder.HasOne<PharmaPOS.Domain.SupplierAggregate.Supplier>()
 			.WithMany()
 			.HasForeignKey(mp => mp.SupplierId)
 			.OnDelete(DeleteBehavior.Cascade);

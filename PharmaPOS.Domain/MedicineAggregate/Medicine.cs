@@ -20,7 +20,6 @@ public class Medicine : AggregateRoot
 	public string Generic { get; private set; } = null!;
 	public string? MedicineGroup { get; private set; }
 	public int CategoryId { get; private set; }
-	public MedicineCategory Category { get; private set; } = null!;
 	public string? StoreBox { get; private set; }
 	public decimal? MinLevel { get; private set; }
 	public decimal? ReOrderLevel { get; private set; }

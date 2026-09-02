@@ -1,6 +1,5 @@
 using ErrorOr;
 using PharmaPOS.Domain.Common;
-using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Domain.PurchaseAggregate;
 
@@ -15,7 +14,6 @@ public class Purchase : OrderDetails
 	}
 
 	public int SupplierId { get; private set; }
-	public Supplier Supplier { get; private set; } = null!;
 	
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Purchase&gt;.

@@ -1,7 +1,9 @@
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 using PharmaPOS.MVC.Extensions;
 using PharmaPOS.MVC.Models;
 
@@ -9,7 +11,7 @@ namespace PharmaPOS.MVC.Mappers;
 
 public static class PurchaseMapper
 {
-    public static IEnumerable<object> MapToPurchases(IEnumerable<Purchase> purchases, bool canView, bool canEdit, bool canDelete)
+    public static IEnumerable<object> MapToPurchases(IEnumerable<PurchaseListResponse> purchases, bool canView, bool canEdit, bool canDelete)
     {
         var canAction = canView || canEdit || canDelete;
         
@@ -79,7 +81,7 @@ public static class PurchaseMapper
             return new
             {
                 id = mp.Id,
-                name = mp.Supplier.Name,
+                name = mp.SupplierName,
                 subtotal = mp.SubTotal.ToCrF2(),
                 tax = mp.Tax.ToCrF2(),
                 discount = mp.Discount.ToCrF2(),
@@ -91,10 +93,10 @@ public static class PurchaseMapper
     }
 
     public static PurchaseFormModel MapToPurchaseForm(
-	    Purchase purchase, IEnumerable<Batch> batches, 
-	    Dictionary<int, string> medicineNames,
+	    PurchaseDetailsResponse response,
 	    IEnumerable<SelectListItem> suppliers)
     {
+	    var (purchase, batches, medicineNames, _) = response;
         return new PurchaseFormModel
         {
             Id = purchase.Id,
@@ -128,18 +130,16 @@ public static class PurchaseMapper
         };
     }
 
-    public static PurchaseViewModel MapToPurchaseView( 
-	    Purchase purchase, 
-	    IEnumerable<Batch> batches,
-	    Dictionary<int, string> medicineNames)
+    public static PurchaseViewModel MapToPurchaseView(PurchaseDetailsResponse response)
     {
+	    var (purchase, batches, medicineNames, supplier) = response;
 	    
         return new PurchaseViewModel
         {
             Id = purchase.Id,
-            SupplierName = purchase.Supplier.Name,
-            SupplierEmail = purchase.Supplier.Email,
-            SupplierPhone = purchase.Supplier.Phone,
+            SupplierName = supplier.Name,
+            SupplierEmail = supplier.Email,
+            SupplierPhone = supplier.Phone,
             Date = purchase.Date,
             SubTotal = purchase.SubTotal,
             Tax = purchase.Tax,

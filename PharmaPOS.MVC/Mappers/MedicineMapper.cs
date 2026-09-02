@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MedicineAggregate;
+using PharmaPOS.Domain.MedicineCategoryAggregate;
 using PharmaPOS.MVC.Models;
 
 namespace PharmaPOS.MVC.Mappers;
 
 public static class MedicineMapper
 {
-	public static MedicineViewModel MapToMedicine(Medicine medicine, 
+	public static MedicineViewModel MapToMedicine(MedicineDetailsResponse response, 
 		IEnumerable<SelectListItem>? medicineCategories = null, decimal? liveStock = null)
 	{
+
+		var (medicine, category) = response;
 		
 		var medicineResponse = new MedicineViewModel
 		{
@@ -19,7 +22,7 @@ public static class MedicineMapper
 			Generic = medicine.Generic,
 			MedicineGroup = medicine.MedicineGroup,
 			CategoryId = medicine.CategoryId,
-			CategoryName = medicine.Category?.Name,
+			CategoryName = category,
 			StoreBox = medicine.StoreBox,
 			MinLevel = medicine.MinLevel,
 			ReOrderLevel = medicine.ReOrderLevel,
@@ -42,11 +45,18 @@ public static class MedicineMapper
 		return medicineResponse;
 	}
 	
-	public static IEnumerable<MedicineViewModel> MapToMedicinesWithStock(List<MedicineStockResponse> medicines)
+	public static IEnumerable<MedicineViewModel> MapToMedicinesWithStock(MedicinesWithStockResponse response)
 	{
+
+		var (medicines, categories) = response;
+		
 		return medicines
-			.Select(data => 
-				MedicineMapper.MapToMedicine(data.Medicine, null, data.LiveStock))
+			.Select(data =>
+			{
+				var categoryName = categories.GetValueOrDefault(data.Medicine.CategoryId, "");
+				var detailsResponse = new MedicineDetailsResponse(data.Medicine, categoryName);
+				return MedicineMapper.MapToMedicine(detailsResponse, null, data.LiveStock);
+			})
 			.ToList();
 	}
 	

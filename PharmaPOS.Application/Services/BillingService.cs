@@ -262,11 +262,7 @@ public class BillingService(
 	/// <summary>
 	/// Loads a bill with all related data for the Edit GET action.
 	/// </summary>
-	public async Task<ErrorOr<(
-		Bill, 
-		Dictionary<int, List<Batch>>,
-		Dictionary<int, string>
-		)>> GetBillForEditAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<BillEditResponse>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
 
 		var bill = await context.Bills
@@ -296,16 +292,15 @@ public class BillingService(
 		
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 
-		return (bill, batchesByMedicine, medicineNames);
+		return new BillEditResponse(bill, batchesByMedicine, medicineNames);
 	}
 
 	/// <summary>
 	/// Loads a bill with all related data for the Details (view) action.
 	/// </summary>
-	public async Task<ErrorOr<(Bill, Dictionary<int, Batch>, Dictionary<int, string>)>> GetBillAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<BillDetailsResponse>> GetBillAsync(int id, CancellationToken ct = default)
 	{
 		var bill = await context.Bills
-			.Include(b => b.PaymentMethod)
 			.Include(b => b.Items)
 			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
@@ -319,7 +314,15 @@ public class BillingService(
 		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
-		return (bill, batchesById, medicineNames);
+		var paymentMethodName = await context.PaymentMethods
+			.Where(pm => pm.Id == bill.MethodId)
+			.Select(pm => pm.Name)
+			.FirstOrDefaultAsync(ct);
+		
+		if (paymentMethodName == null)
+			return BillErrors.PaymentMethodNotFound(bill.MethodId);
+		
+		return new BillDetailsResponse(bill, batchesById, medicineNames, paymentMethodName);
 	}
 	
 	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)

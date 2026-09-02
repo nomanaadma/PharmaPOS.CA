@@ -67,38 +67,26 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 		decimal purchaseAmount;
 		var salesQty = 0m; 
 
-		if (medicineId is > 0)
+		if (medicineId > 0)
 		{
-			var batchTotals = await context.Batches
+			purchaseAmount = await context.Batches
 				.Where(b => b.Status == Status.Active && b.MedicineId == medicineId)
-				.GroupBy(b => 1) 
-				.Select(g => new 
-				{
-					TotalQty = g.Sum(b => (decimal?)b.Pricing.Qty) ?? 0m,
-					TotalPrice = g.Sum(b => (decimal?)b.Pricing.Price) ?? 0m,
-					TotalSold = g.Sum(b => (decimal?)b.Sold) ?? 0m
-				})
-				.FirstOrDefaultAsync(ct);
+				.SumAsync(b => b.Pricing.Qty > 0 
+					? (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold) 
+					: 0m, ct) ?? 0m;
 			
-			var totalQty = batchTotals?.TotalQty ?? 0m;
-			var totalPrice = batchTotals?.TotalPrice ?? 0m;
-			var totalSold = batchTotals?.TotalSold ?? 0m;
-			
-			purchaseAmount = totalQty > 0 ? (totalPrice / totalQty) * totalSold : 0m;
 			salesQty = medicineStats?.Quantity ?? 0m;
 		}
 		else
 		{
-			var purchaseStats = await context.Purchases
+			purchaseAmount = await context.Purchases
 				.Where(p => p.Date >= start.Value && p.Date <= end.Value)
-				.GroupBy(p => 1)
-				.Select(g => new
-				{
-					PurchaseAmount = g.Sum(p => p.Amount)
-				})
-				.FirstOrDefaultAsync(ct);
-
-			purchaseAmount = purchaseStats?.PurchaseAmount ?? 0;
+				.Join(context.Batches,
+					purchase => purchase.Id,
+					batch => batch.PurchaseId,
+					(purchase, batch) => batch)
+				.Where(b => b.Sold > 0 && b.Pricing.Qty > 0)
+				.SumAsync(b => (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold), ct) ?? 0m;
 		}
 		
 		var salesAmount = medicineStats?.SalesAmount ?? 0m;

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS.Domain.MedicineAggregate;
+using PharmaPOS.Domain.MedicineCategoryAggregate;
 
 namespace PharmaPOS.Application.Data.Configurations;
 
@@ -64,7 +65,7 @@ public class MedicineConfiguration : IEntityTypeConfiguration<Medicine>
 			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
-		builder.HasOne(m => m.Category)
+		builder.HasOne<MedicineCategory>()
 			.WithMany()
 			.HasForeignKey(m => m.CategoryId)
 			.OnDelete(DeleteBehavior.Cascade);

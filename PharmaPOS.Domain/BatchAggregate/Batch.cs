@@ -46,7 +46,6 @@ public class Batch : AggregateRoot
 
 	public ErrorOr<Success> UpdateSold(decimal quantity)
 	{
-		if (quantity <= 0) return BatchErrors.InvalidSaleQuantity;
 		if (Sold + quantity > Pricing.Qty) return BatchErrors.InsufficientStock;
 		Sold += quantity;
 		return Result.Success;

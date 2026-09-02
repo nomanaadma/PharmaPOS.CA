@@ -18,12 +18,10 @@ public class Bill : OrderDetails
 	}
 
 	public int CustomerId { get; private set; }
-	public Customer Customer { get; private set; } = null!;
 	public string Name { get; private set; } = null!;
 	public string? Email { get; private set; }
 	public string? Mobile { get; private set; }
 	public int MethodId { get; private set; }
-	public PaymentMethod PaymentMethod { get; private set; } = null!;
 
 	public IReadOnlyCollection<BillItem> Items => _items.AsReadOnly();
 

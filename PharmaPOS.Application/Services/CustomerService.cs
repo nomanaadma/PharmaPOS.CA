@@ -18,7 +18,7 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 	/// </summary>
 	public async Task<ErrorOr<int>> GetOrCreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
-		if (request.Id is > 0)
+		if (request.Id > 0)
 			return request.Id.Value;
 
 		if (string.IsNullOrWhiteSpace(request.FirstName))
