@@ -205,47 +205,47 @@ var discountTypeOptionsHtml;
 function itemHtml(count) {
 	var item_html = '<tr class="item-row">'+
 	'<td>'+
-	'<input type="text" name="Items['+count+'].Name" class="form-control item-name" required>'+
-	'<input type="hidden" name="Items['+count+'].MedicineId" class="form-control item-medicine-id" required>'+
+	'<input type="text" name="Input.Items['+count+'].Name" class="form-control item-name" required>'+
+	'<input type="hidden" name="Input.Items['+count+'].MedicineId" class="form-control item-medicine-id" required>'+
 	'</td>'+
 	'<td>'+
-	'<select name="Items['+count+'].Batch" class="custom-select item-batch" required></select>'+
-	'<input type="hidden" name="Items['+count+'].BatchName" class="item-batch-name">'+
+	'<select name="Input.Items['+count+'].Batch" class="custom-select item-batch" required></select>'+
+	'<input type="hidden" name="Input.Items['+count+'].BatchName" class="item-batch-name">'+
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="Items['+count+'].Expiry" class="form-control item-expiry bg-white" required readonly>'+
+	'<input type="text" name="Input.Items['+count+'].Expiry" class="form-control item-expiry bg-white" required readonly>'+
 	'</td>'+
 	'<td>'+
 	'<div class="input-group">'+
-	'<input type="text" name="Items['+count+'].Qty" class="form-control item-qty" required>'+
+	'<input type="text" name="Input.Items['+count+'].Qty" class="form-control item-qty" required>'+
 	'<div class="input-group-prepend"><span class="item-available-qty input-group-text">0</span></div>'+
 	'</div>'+
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="Items['+count+'].SalePrice" class="form-control item-sale" required>'+
+	'<input type="text" name="Input.Items['+count+'].SalePrice" class="form-control item-sale" required>'+
 	'</td>'+
 	'<td>'+
- 	'<input type="text" readonly class="item-gross" name="Items['+count+'].Gross" />'+
+ 	'<input type="text" readonly class="item-gross" name="Input.Items['+count+'].Gross" />'+
  	'</td>'+
 	'<td class="">'+
     '<div class="row no-gutters">'+
     '<div class="col">'+
-    '<select name="Items['+count+'].DiscountType" class="custom-select border-light item-discounttype">'
+    '<select name="Input.Items['+count+'].DiscountType" class="custom-select border-light item-discounttype">'
         + discountTypeOptionsHtml +
     '</select>'+
     '</div>'+
     '<div class="col">'+
-    '<textarea type="text" name="Items['+count+'].Discount" class="item-discount">0</textarea>'+
-    '<input type="text" readonly name="Items['+count+'].DiscountValue" class="item-discountvalue" value="0">'+
+    '<textarea type="text" name="Input.Items['+count+'].Discount" class="item-discount">0</textarea>'+
+    '<input type="text" readonly name="Input.Items['+count+'].DiscountValue" class="item-discountvalue" value="0">'+
     '</div>'+
     '</div>'+
     '</td>'+
 	'<td class="invoice-tax">'+
-	'<input type="text" name="Items['+count+'].Tax" class="item-tax" value="0">' +
-	'<input type="text" readonly name="Items['+count+'].TaxPrice" class="item-taxprice" value="0">' +
+	'<input type="text" name="Input.Items['+count+'].Tax" class="item-tax" value="0">' +
+	'<input type="text" readonly name="Input.Items['+count+'].TaxPrice" class="item-taxprice" value="0">' +
 	'</td>'+
 	'<td>'+
-	'<input type="text" name="Items['+count+'].Price" class="form-control bg-white item-price" required readonly>'+
+	'<input type="text" name="Input.Items['+count+'].Price" class="form-control bg-white item-price" required readonly>'+
 	'</td>'+
 	'<td>'+
 	'<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>'+

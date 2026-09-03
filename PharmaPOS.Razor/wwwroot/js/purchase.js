@@ -184,50 +184,50 @@ var discountTypeOptionsHtml;
 function itemHtml(count) {
 	var item_html = '<tr class="item-row">' +
 		'<td>' +
-		'<textarea class="item-name" name="Items[' + count + '].Name" required></textarea>' +
-		'<input type="hidden" class="item-id" name="Items[' + count + '].MedicineId">' +
-		'<input type="hidden" name="Items[' + count + '].Id" value="0">' +
+		'<textarea class="item-name" name="Input.Items[' + count + '].Name" required></textarea>' +
+		'<input type="hidden" class="item-id" name="Input.Items[' + count + '].MedicineId">' +
+		'<input type="hidden" name="Input.Items[' + count + '].Id" value="0">' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-batch" name="Items[' + count + '].Batch" required></textarea>' +
+		'<textarea class="item-batch" name="Input.Items[' + count + '].Batch" required></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="Items[' + count + '].Expiry" required>' +
+		'<input type="text" class="item-expiry exp-date p-2 datetimepicker-input bg-white" name="Input.Items[' + count + '].Expiry" required>' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-pqty" name="Items[' + count + '].Pqty"></textarea>' +
+		'<textarea class="item-pqty" name="Input.Items[' + count + '].Pqty"></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-qty" name="Items[' + count + '].Qty" required></textarea>' +
+		'<textarea class="item-qty" name="Input.Items[' + count + '].Qty" required></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-purchaseprice" name="Items[' + count + '].Purchaseprice" required></textarea>' +
+		'<textarea class="item-purchaseprice" name="Input.Items[' + count + '].Purchaseprice" required></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="item-saleprice" name="Items[' + count + '].SalePrice" required></textarea>' +
+		'<textarea class="item-saleprice" name="Input.Items[' + count + '].SalePrice" required></textarea>' +
 		'</td>' +
 		'<td>' +
-		'<input class="item-gross" readonly name="Items[' + count + '].Gross" value="0" />' +
+		'<input class="item-gross" readonly name="Input.Items[' + count + '].Gross" value="0" />' +
 		'</td>' +
 		'<td class="">' +
 		'<div class="row no-gutters">' +
 		'<div class="col">' +
-		'<select name="Items[' + count + '].DiscountType" class="custom-select border-light item-discounttype">'
+		'<select name="Input.Items[' + count + '].DiscountType" class="custom-select border-light item-discounttype">'
             + discountTypeOptionsHtml +
 		'</select>' +
 		'</div>' +
 		'<div class="col">' +
-		'<textarea type="text" name="Items[' + count + '].Discount" class="item-discount">0</textarea>' +
-		'<input type="text" readonly name="Items[' + count + '].DiscountValue" class="item-discountvalue" value="0">' +
+		'<textarea type="text" name="Input.Items[' + count + '].Discount" class="item-discount">0</textarea>' +
+		'<input type="text" readonly name="Input.Items[' + count + '].DiscountValue" class="item-discountvalue" value="0">' +
 		'</div>' +
 		'</div>' +
 		'</td>' +
 		'<td class="invoice-tax">' +
-		'<input type="text" name="Items[' + count + '].Tax" class="item-tax" value="0">' +
-		'<input type="text" readonly name="Items[' + count + '].TaxPrice" class="item-taxprice" value="0">' +
+		'<input type="text" name="Input.Items[' + count + '].Tax" class="item-tax" value="0">' +
+		'<input type="text" readonly name="Input.Items[' + count + '].TaxPrice" class="item-taxprice" value="0">' +
 		'</td>' +
 		'<td>' +
-		'<textarea class="bg-white item-price" name="Items[' + count + '].Price" required readonly></textarea>' +
+		'<textarea class="bg-white item-price" name="Input.Items[' + count + '].Price" required readonly></textarea>' +
 		'</td>' +
 		'<td>' +
 		'<a class="badge badge-danger badge-sm badge-pill delete m-1">Delete</a>' +

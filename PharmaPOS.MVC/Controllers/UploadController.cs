@@ -4,7 +4,6 @@ using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Application.Services;
 using PharmaPOS.MVC.Extensions;
-using IOFile = System.IO.File;
 
 namespace PharmaPOS.MVC.Controllers;
 

@@ -1,0 +1,29 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Services;
+
+namespace PharmaPOS.Razor.Pages.Billing;
+
+[Authorize(Policy = Permissions.Billing.List)]
+public class IndexModel(BillingService billingService) : BasePageModel
+{
+    public void OnGet()
+    {
+        ViewData["DeleteMsg"] = "Inventory will be updated and those Stock will be added in Inventory.";
+    }
+
+    public async Task<IActionResult> OnPostDeleteAsync(int id, CancellationToken ct)
+    {
+        var hasPermission = User.HasClaim("Permission", Permissions.Billing.Delete);
+        if (!hasPermission)
+            return Forbid();
+
+        var result = await billingService.DeleteBillAsync(id, ct);
+        if (result.IsError)
+            return HandleErrors(result.Errors);
+
+        NotifySuccess("Bill deleted successfully.");
+        return RedirectToPage();
+    }
+}

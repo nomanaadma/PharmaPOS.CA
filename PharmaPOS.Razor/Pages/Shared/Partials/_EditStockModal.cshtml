@@ -7,7 +7,7 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<form asp-controller="Stock" asp-action="Update" method="post">
+			<form asp-page="/Stock/Index" asp-page-handler="Update" method="post">
 				@Html.AntiForgeryToken()
 				<input type="hidden" name="id" value="">
 				<input type="hidden" name="medicineId" value="">

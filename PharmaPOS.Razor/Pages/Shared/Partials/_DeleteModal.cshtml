@@ -8,7 +8,7 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<form asp-controller="@Model" asp-action="Delete" method="post">
+			<form asp-page="@Model" asp-page-handler="Delete" method="post">
 				@Html.AntiForgeryToken()
 				<div class="modal-body">
 					<p class="m-0">Are you sure you want to delete?</p>
