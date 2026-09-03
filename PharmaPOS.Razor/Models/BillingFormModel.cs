@@ -38,4 +38,3 @@ public class BillingItemBatchesFormModel : Model
 	public string Batch { get; init; } = null!;
 	
 }
-}
