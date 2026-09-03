@@ -1,53 +1,62 @@
-﻿<!DOCTYPE html>
+@using PharmaPOS.Application.Authorization
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+	var siteInfo = await SiteInfo.GetSettingsAsync();
+	var notificationMessage =
+		TempData["Message"]?.ToString() ?? Context.Items["NotifyMessage"]?.ToString();
+	TempData.Remove("Message");
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<title>@ViewData["Title"] - PharmaPOS.Razor</title>
-	<script type="importmap"></script>
-	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-	<link rel="stylesheet" href="~/PharmaPOS.Razor.styles.css" asp-append-version="true"/>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@ViewData["Title"] | @siteInfo.Name</title>
+	<link rel="icon" type="image/x-icon" href="@siteInfo.Favicon">
+	<!-- Include css files -->
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+	<link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css" />
+	<link rel="stylesheet" href="https://cdn.datatables.net/searchbuilder/1.7.0/css/searchBuilder.dataTables.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+	<link rel="stylesheet" type="text/css" href="~/css/style.min.css" asp-append-version="true" />
+	<!-- Include js files -->
+	<script type="text/javascript" src="~/js/vendor.min.js" asp-append-version="true"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+	<script src="~/js/dataTables.dateTime.js" asp-append-version="true"></script>
+	<script type="text/javascript" src="~/js/dataTables.searchBuilder.js" asp-append-version="true"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+	<script type="text/javascript" src="~/js/admin.js" asp-append-version="true"></script>
+	<script>
+		const common_currency = "@CurrencyExtensions.Currency";
+		const xsrfToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
+	</script>
 </head>
-<body>
-<header>
-	<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-		<div class="container">
-			<a class="navbar-brand" asp-area="" asp-page="/Index">PharmaPOS.Razor</a>
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-			        aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-				<ul class="navbar-nav flex-grow-1">
-					<li class="nav-item">
-						<a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-					</li>
-				</ul>
-				<partial name="_LoginPartial"/>
-			</div>
-		</div>
-	</nav>
-</header>
-<div class="container">
-	<main role="main" class="pb-3">
-		@RenderBody()
-	</main>
-</div>
 
-<footer class="border-top footer text-muted">
-	<div class="container">
-		&copy; 2026 - PharmaPOS.Razor - <a asp-area="" asp-page="/Privacy">Privacy</a>
-	</div>
-</footer>
+<body data-reports="@User.HasPermission(Permissions.Reports.View)">
+    <div class="wrapper">
+	    <!-- Main Container -->
+	    <div id="main-wrapper">
+		    
+		    <partial name="Partials/_Menu.cshtml"/>
+		    <partial name="Partials/_Topbar.cshtml" model="@siteInfo" />
+		    
+		    <div class="page-wrapper">
+			    <div class="page-body">
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
+				    @RenderBody() 
+				    
+				    @if (!string.IsNullOrEmpty(notificationMessage))
+				    {
+					    <input type="hidden"
+					           class="alert-message"
+					           value="@notificationMessage" />
+				    }
 
-@await RenderSectionAsync("Scripts", required: false)
+			    </div>
+		    </div>
+	    </div>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
