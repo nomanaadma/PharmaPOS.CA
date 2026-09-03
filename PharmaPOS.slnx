@@ -3,4 +3,5 @@
   <Project Path="PharmaPOS.Contracts/PharmaPOS.Contracts.csproj" />
   <Project Path="PharmaPOS.Domain/PharmaPOS.Domain.csproj" />
   <Project Path="PharmaPOS.MVC/PharmaPOS.MVC.csproj" />
+  <Project Path="PharmaPOS.Razor/PharmaPOS.Razor.csproj" />
 </Solution>
