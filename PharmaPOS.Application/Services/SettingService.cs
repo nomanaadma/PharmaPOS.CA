@@ -1,7 +1,6 @@
 using ErrorOr;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
@@ -10,18 +9,19 @@ using PharmaPOS.Domain.SettingAggregate;
 
 namespace PharmaPOS.Application.Services;
 
-public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pathProvider) : IApplicationService
+public class SettingService(
+	IRepository<Setting> settingRepo,
+	IRepository<Media> mediaRepo,
+	IFilePathProvider pathProvider) : IApplicationService
 {
-
 	public async Task<Setting?> GetRawSettingsAsync(CancellationToken ct = default)
 	{
-		return await dbContext.Settings.FirstOrDefaultAsync(ct);
+		return await settingRepo.FirstOrDefaultAsync(ct);
 	}
 
 	public async Task<Setting> GetSettingsAsync(CancellationToken ct = default)
 	{
-		
-		var settings = await dbContext.Settings.AsNoTracking().OrderBy(s => s.Id).FirstOrDefaultAsync(cancellationToken: ct);
+		var settings = await settingRepo.AsNoTracking().OrderBy(s => s.Id).FirstOrDefaultAsync(ct);
 	
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)
@@ -34,30 +34,25 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 		}
 		
 		var logo = "/images/logo.png";
-		
-		if (!string.IsNullOrEmpty(settings.Logo) && File.Exists( pathProvider.GetUploadsFilePath(settings.Logo) ))
+		if (!string.IsNullOrEmpty(settings.Logo) && File.Exists(pathProvider.GetUploadsFilePath(settings.Logo)))
 		{
 			logo = $"/uploads/{settings.Logo}";
 		}
 		
-		
 		var logoIcon = "/images/icon.png";
-
-		if (!string.IsNullOrEmpty(settings.LogoIcon) && File.Exists( pathProvider.GetUploadsFilePath(settings.LogoIcon) ))
+		if (!string.IsNullOrEmpty(settings.LogoIcon) && File.Exists(pathProvider.GetUploadsFilePath(settings.LogoIcon)))
 		{
 			logoIcon = $"/uploads/{settings.LogoIcon}";
 		}
 		
 		var favicon = "/images/favicon.png";
-
-		if (!string.IsNullOrEmpty(settings.Favicon) && File.Exists( pathProvider.GetUploadsFilePath(settings.Favicon) ))
+		if (!string.IsNullOrEmpty(settings.Favicon) && File.Exists(pathProvider.GetUploadsFilePath(settings.Favicon)))
 		{
 			favicon = $"/uploads/{settings.Favicon}";
 		}
 		
 		var lgBackground = "/images/login-bg.jpg";
-
-		if (!string.IsNullOrEmpty(settings.LgBackground) && File.Exists( pathProvider.GetUploadsFilePath(settings.LgBackground) ))
+		if (!string.IsNullOrEmpty(settings.LgBackground) && File.Exists(pathProvider.GetUploadsFilePath(settings.LgBackground)))
 		{
 			lgBackground = $"/uploads/{settings.LgBackground}";
 		}
@@ -65,13 +60,11 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 		settings.UpdateImages(logo, logoIcon, lgBackground, favicon);
 		
 		return settings;
-		
-		
 	}
 
 	public async Task<ErrorOr<Success>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
 	{
-		var settings = await dbContext.Settings.FirstOrDefaultAsync(ct);
+		var settings = await settingRepo.FirstOrDefaultAsync(ct);
 		var details = new SettingDetails(request.Name, request.LegalName, request.Mail, request.Phone);
 		
 		if (settings == null)
@@ -82,7 +75,7 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 				return settingsResult.Errors;
 			}
 			settings = settingsResult.Value;
-			dbContext.Settings.Add(settings);
+			await settingRepo.AddAsync(settings, ct);
 		}
 		else
 		{
@@ -96,28 +89,28 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 		settings.UpdateImages(request.Logo, request.LogoIcon, request.LgBackground, request.Favicon);
 		settings.UpdateAddress(new Address(request.AddressLine1, request.AddressLine2, request.City, request.Country, request.Postal));
 
-		await dbContext.SaveChangesAsync(ct);
+		await settingRepo.SaveChangesAsync(ct);
 		return Result.Success;
 	}
 
 	public async Task<List<Media>> GetMediaListAsync(CancellationToken ct = default)
 	{
-		return await dbContext.Media.OrderBy(m => m.CreatedDate).ToListAsync(ct);
+		return await mediaRepo.Query().OrderBy(m => m.CreatedDate).ToListAsync(ct);
 	}
 
-	public async Task<ErrorOr<MediaUploadResponse>> UploadMediaFileAsync(IFormFile file, CancellationToken ct = default)
+	public async Task<ErrorOr<MediaUploadResponse>> UploadMediaFileAsync(Stream fileStream, string originalFileName, long length, CancellationToken ct = default)
 	{
-		if (file.Length == 0)
+		if (length == 0)
 			return Error.Validation(description: "No file uploaded.");
 
-		var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+		var ext = Path.GetExtension(originalFileName).TrimStart('.').ToLower();
 		var uniqueId = Guid.NewGuid().ToString("N")[..8];
 		var fileName = $"media-{uniqueId}.{ext}";
 		var filePath = pathProvider.GetUploadsFilePath(fileName);
 
-		await using (var stream = new FileStream(filePath, FileMode.Create))
+		await using (var destinationStream = new FileStream(filePath, FileMode.Create))
 		{
-			await file.CopyToAsync(stream, ct);
+			await fileStream.CopyToAsync(destinationStream, ct);
 		}
 
 		var mediaResult = Media.Create(fileName, ext, DateTime.UtcNow);
@@ -125,8 +118,8 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 			return mediaResult.Errors;
 
 		var media = mediaResult.Value;
-		dbContext.Media.Add(media);
-		await dbContext.SaveChangesAsync(ct);
+		await mediaRepo.AddAsync(media, ct);
+		await mediaRepo.SaveChangesAsync(ct);
 
 		var (width, height) = GetImageDimensions(filePath);
 
@@ -135,7 +128,7 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 
 	public async Task<ErrorOr<Success>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)
 	{
-		var media = await dbContext.Media.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name, ct);
+		var media = await mediaRepo.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name, ct);
 		if (media == null)
 			return Error.NotFound(description: "File is wrong or does not exist.");
 
@@ -152,8 +145,8 @@ public class SettingService(ApplicationDbContext dbContext, IFilePathProvider pa
 			}
 		}
 
-		dbContext.Media.Remove(media);
-		await dbContext.SaveChangesAsync(ct);
+		mediaRepo.Remove(media);
+		await mediaRepo.SaveChangesAsync(ct);
 
 		return Result.Success;
 	}

@@ -19,6 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
       <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
+      <ProjectReference Include="..\PharmaPOS.Infrastructure\PharmaPOS.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

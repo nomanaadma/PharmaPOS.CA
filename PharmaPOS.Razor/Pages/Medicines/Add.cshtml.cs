@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Medicines;
@@ -16,13 +17,13 @@ public class AddModel(MedicineService medicineService, CategoryService categoryS
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.Categories = await categoryService.GetCategoriesAsync(ct);
+        Input.Categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.Categories = await categoryService.GetCategoriesAsync(ct);
+        Input.Categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

@@ -2,20 +2,21 @@ using ErrorOr;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Extensions;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.Domain.MedicineCategoryAggregate;
-using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class MedicineService(
-	ApplicationDbContext context,
+	IRepository<Medicine> medicineRepo,
+	IRepository<MedicineCategory> categoryRepo,
+	IRepository<Batch> batchRepo,
 	BatchService batchService,
 	ILogger<MedicineService> logger) : IApplicationService
 {
@@ -31,8 +32,8 @@ public class MedicineService(
 			return medicineResult.Errors;
 
 		var medicine = medicineResult.Value;
-		context.Medicines.Add(medicine);
-		await context.SaveChangesAsync(ct);
+		await medicineRepo.AddAsync(medicine, ct);
+		await medicineRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Medicine {MedicineId} '{Name}' created", medicine.Id, medicine.Name);
 		return medicine.Id;
@@ -43,7 +44,7 @@ public class MedicineService(
 	/// </summary>
 	public async Task<ErrorOr<int>> UpdateMedicineAsync(int id, MedicineRequest request, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
+		var medicine = await medicineRepo.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
@@ -54,7 +55,7 @@ public class MedicineService(
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await context.SaveChangesAsync(ct);
+		await medicineRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Medicine {MedicineId} '{Name}' updated", medicine.Id, medicine.Name);
 		return medicine.Id;
@@ -65,13 +66,13 @@ public class MedicineService(
 	/// </summary>
 	public async Task<ErrorOr<Deleted>> DeleteMedicineAsync(int id, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines.FirstOrDefaultAsync(m => m.Id == id, ct);
+		var medicine = await medicineRepo.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
 
-		context.Medicines.Remove(medicine);
-		await context.SaveChangesAsync(ct);
+		medicineRepo.Remove(medicine);
+		await medicineRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Medicine {MedicineId} deleted", id);
 		return Result.Deleted;
@@ -82,13 +83,12 @@ public class MedicineService(
 	/// </summary>
 	public async Task<ErrorOr<MedicineDetailsResponse>> GetMedicineAsync(int id, CancellationToken ct = default)
 	{
-		var medicine = await context.Medicines
-			.FirstOrDefaultAsync(m => m.Id == id, ct);
+		var medicine = await medicineRepo.FirstOrDefaultAsync(m => m.Id == id, ct);
 
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
 		
-		var categoryName = await context.MedicineCategories
+		var categoryName = await categoryRepo.Query()
 			.Where(c => c.Id == medicine.CategoryId)
 			.Select(c => c.Name)
 			.FirstOrDefaultAsync(ct);
@@ -104,15 +104,14 @@ public class MedicineService(
 	/// </summary>
 	public async Task<MedicinesWithStockResponse> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
-		
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 		
-		var medicines = await context.Medicines
+		var medicines = await medicineRepo.Query()
 			.OrderByDescending(m => m.CreatedDate)
 			.Select(m => new MedicineStockResponse
 			(
-				Medicine: m,
-				LiveStock: context.Batches
+				m,
+				batchRepo.Query()
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
@@ -121,10 +120,9 @@ public class MedicineService(
 		
 		var medicineCategoryIds = medicines.Select(msr => msr.Medicine.CategoryId).Distinct().ToList();
 		
-		var categoriesNames = await context.MedicineCategories
+		var categoriesNames = await categoryRepo.Query()
 			.Where(c => medicineCategoryIds.Contains(c.Id))
 			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
-
 
 		return new MedicinesWithStockResponse(medicines, categoriesNames);
 	}
@@ -152,16 +150,16 @@ public class MedicineService(
 
 	public async Task<Dictionary<int, string>> GetMedicineNamesByIds(List<int> medicineIds, CancellationToken ct)
 	{
-		var medicineNames = await context.Medicines
+		return await medicineRepo.Query()
 			.Where(m => medicineIds.Contains(m.Id))
 			.ToDictionaryAsync(m => m.Id, m => m.Name, ct);
-		return medicineNames;
 	}
 
 	public async Task<object> SearchMedicinesAsync(string term, CancellationToken ct = default)
 	{
-		return await context.Medicines
-			.Where(m => EF.Functions.ILike(m.Name, $"%{term}%"))
+		var termLower = term.ToLower();
+		return await medicineRepo.Query()
+			.Where(m => m.Name.ToLower().Contains(termLower))
 			.Take(10)
 			.Select(m => new
 			{
@@ -171,6 +169,4 @@ public class MedicineService(
 			})
 			.ToListAsync(ct);
 	}
-	
-	
 }

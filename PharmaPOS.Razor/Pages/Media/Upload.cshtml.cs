@@ -17,7 +17,8 @@ public class UploadModel(SettingService settingService) : PageModel
             return new JsonResult(new { error = true, message = "No file uploaded." });
         }
 
-        var uploadResult = await settingService.UploadMediaFileAsync(file, ct);
+        await using var stream = file.OpenReadStream();
+        var uploadResult = await settingService.UploadMediaFileAsync(stream, file.FileName, file.Length, ct);
         if (uploadResult.IsError)
             return new JsonResult(new { error = true, message = uploadResult.Errors[0].Description });
 

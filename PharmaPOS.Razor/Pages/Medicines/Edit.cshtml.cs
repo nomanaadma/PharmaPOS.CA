@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
 
@@ -22,7 +23,7 @@ public class EditModel(MedicineService medicineService, CategoryService category
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var medicineCategories = await categoryService.GetCategoriesAsync(ct);
+        var medicineCategories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
         Input = MedicineMapper.MapToMedicine(result.Value, medicineCategories);
         
         return Page();
@@ -30,7 +31,7 @@ public class EditModel(MedicineService medicineService, CategoryService category
 
     public async Task<IActionResult> OnPostAsync(int id, CancellationToken ct)
     {
-        Input.Categories = await categoryService.GetCategoriesAsync(ct);
+        Input.Categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
             
         if (id != Input.Id)
         {

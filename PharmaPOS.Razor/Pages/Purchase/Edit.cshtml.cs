@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
 
@@ -22,7 +23,7 @@ public class EditModel(PurchaseService purchaseService, SupplierService supplier
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var suppliers = await supplierService.GetSuppliersAsync(ct);
+        var suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
         
         Input = PurchaseMapper.MapToPurchaseForm(result.Value, suppliers);
         return Page();
@@ -36,7 +37,7 @@ public class EditModel(PurchaseService purchaseService, SupplierService supplier
             return BadRequest();
         }
         
-        Input.Suppliers = await supplierService.GetSuppliersAsync(ct);
+        Input.Suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {

@@ -1,20 +1,20 @@
 using ErrorOr;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MedicineCategoryAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class CategoryService(
-	ApplicationDbContext context,
+	IRepository<MedicineCategory> categoryRepo,
 	ILogger<CategoryService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
 	{
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == request.Name, ct))
+		if (await categoryRepo.AnyAsync(c => c.Name == request.Name, ct))
 			return MedicineCategoryErrors.NameNotUnique;
 
 		var categoryResult = MedicineCategory.Create(request.Name);
@@ -22,8 +22,8 @@ public class CategoryService(
 			return categoryResult.Errors;
 
 		var category = categoryResult.Value;
-		context.MedicineCategories.Add(category);
-		await context.SaveChangesAsync(ct);
+		await categoryRepo.AddAsync(category, ct);
+		await categoryRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Category {CategoryId} '{Name}' created", category.Id, category.Name);
 		return category.Id;
@@ -31,18 +31,18 @@ public class CategoryService(
 
 	public async Task<ErrorOr<int>> UpdateCategoryAsync(int id, MedicineCategoryRequest request, CancellationToken ct = default)
 	{
-		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var category = await categoryRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
 			return MedicineCategoryErrors.NotFound(id);
 
-		if (await context.MedicineCategories.AnyAsync(c => c.Name == request.Name && c.Id != id, ct))
+		if (await categoryRepo.AnyAsync(c => c.Name == request.Name && c.Id != id, ct))
 			return MedicineCategoryErrors.NameNotUnique;
 
 		var updateResult = category.Update(request.Name);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await context.SaveChangesAsync(ct);
+		await categoryRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Category {CategoryId} updated", id);
 		return category.Id;
@@ -50,12 +50,12 @@ public class CategoryService(
 
 	public async Task<ErrorOr<Deleted>> DeleteCategoryAsync(int id, CancellationToken ct = default)
 	{
-		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var category = await categoryRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
 			return MedicineCategoryErrors.NotFound(id);
 
-		context.MedicineCategories.Remove(category);
-		await context.SaveChangesAsync(ct);
+		categoryRepo.Remove(category);
+		await categoryRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Category {CategoryId} deleted", id);
 		return Result.Deleted;
@@ -63,7 +63,7 @@ public class CategoryService(
 
 	public async Task<ErrorOr<MedicineCategory>> GetCategoryAsync(int id, CancellationToken ct = default)
 	{
-		var category = await context.MedicineCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var category = await categoryRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (category == null)
 			return MedicineCategoryErrors.NotFound(id);
 
@@ -72,24 +72,19 @@ public class CategoryService(
 
 	public async Task<List<MedicineCategory>> GetAllCategoriesAsync(CancellationToken ct = default)
 	{
-		return await context.MedicineCategories
+		return await categoryRepo.Query()
 			.OrderBy(c => c.Id)
 			.ToListAsync(ct);
 	}
 	
 	/// <summary>
-	/// Returns active medicine categories as SelectListItems for dropdowns.
+	/// Returns active medicine categories as LookupItems for dropdowns.
 	/// </summary>
-	public async Task<IEnumerable<SelectListItem>> GetCategoriesAsync(CancellationToken ct = default)
+	public async Task<IEnumerable<LookupItem>> GetCategoriesAsync(CancellationToken ct = default)
 	{
-		return await context.MedicineCategories
+		return await categoryRepo.Query()
 			.OrderBy(c => c.Name)
-			.Select(c => new SelectListItem
-			{
-				Value = c.Id.ToString(),
-				Text = c.Name
-			})
+			.Select(c => new LookupItem(c.Id.ToString(), c.Name))
 			.ToListAsync(ct);
 	}
-	
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
 
@@ -22,7 +23,7 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        var paymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
+        var paymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
         
         Input = BillingMapper.MapToBillingForm(result.Value, paymentMethods);
         return Page();
@@ -36,7 +37,7 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
             return BadRequest();
         }
         
-        Input.PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
+        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {

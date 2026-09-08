@@ -1,16 +1,17 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Extensions;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.BatchAggregate;
+using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Application.Services;
 
 public class StockService(
-	ApplicationDbContext context,
+	IRepository<BillItem> billItemRepo,
+	IUnitOfWork unitOfWork,
 	MedicineService medicineService,
 	BatchService batchService,
 	ILogger<StockService> logger) : IApplicationService
@@ -73,7 +74,7 @@ public class StockService(
 		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
-		var billItems = await context.BillItems
+		var billItems = await billItemRepo.Query()
 			.Where(bi => batchIds.Contains(bi.BatchId))
 			.ToListAsync(ct);	
 		
@@ -138,7 +139,7 @@ public class StockService(
 		if (soldResult.IsError)
 			return soldResult.Errors;
 		
-		await context.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 		
 		logger.LogInformation("Stock {BatchId} for Medicine {MedicineId} updated to available: {Available}", id, medicineId, available);
 		return Result.Success;
@@ -152,7 +153,7 @@ public class StockService(
 			return Error.NotFound(description: "Stock does not exist in database!");
 		
 		batch.UpdateStatus(Status.InActive);
-		await context.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 		
 		logger.LogInformation("Stock {BatchId} marked as InActive", id);
 		return Result.Success;

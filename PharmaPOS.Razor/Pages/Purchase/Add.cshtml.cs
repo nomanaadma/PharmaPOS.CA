@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Purchase;
@@ -16,13 +17,13 @@ public class AddModel(PurchaseService purchaseService, SupplierService supplierS
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.Suppliers = await supplierService.GetSuppliersAsync(ct);
+        Input.Suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.Suppliers = await supplierService.GetSuppliersAsync(ct);
+        Input.Suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

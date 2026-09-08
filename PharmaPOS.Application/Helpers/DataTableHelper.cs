@@ -196,14 +196,16 @@ public static class DataTableHelper
 	{
 		var param = selector.Parameters[0];
 		var body = selector.Body;
-		var patternExpr = Expression.Constant(pattern);
+		var toLowerMethod = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+		var lowerBody = Expression.Call(body, toLowerMethod);
+		var patternExpr = Expression.Constant(pattern.ToLower());
 
-		var iLikeMethod = typeof(NpgsqlDbFunctionsExtensions).GetMethod(
-			nameof(NpgsqlDbFunctionsExtensions.ILike),
+		var likeMethod = typeof(DbFunctionsExtensions).GetMethod(
+			nameof(DbFunctionsExtensions.Like),
 			[typeof(DbFunctions), typeof(string), typeof(string)])!;
 
 		var efFunctions = Expression.Property(null, typeof(EF), nameof(EF.Functions));
-		var call = Expression.Call(iLikeMethod, efFunctions, body, patternExpr);
+		var call = Expression.Call(likeMethod, efFunctions, lowerBody, patternExpr);
 
 		return Expression.Lambda<Func<T, bool>>(call, param);
 	}

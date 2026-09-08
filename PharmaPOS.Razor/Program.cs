@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using PharmaPOS.Application;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Data;
 using PharmaPOS.Application.IProviders;
+using PharmaPOS.Infrastructure;
+using PharmaPOS.Infrastructure.Data;
 using PharmaPOS.Razor.Middlewares;
 using PharmaPOS.Razor.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDatabase(builder.Configuration.GetConnectionString("DefaultConnection"));
+builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

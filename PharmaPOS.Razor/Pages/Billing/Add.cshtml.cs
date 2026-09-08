@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Billing;
@@ -16,13 +17,13 @@ public class AddModel(BillingService billingService, PaymentMethodService paymen
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
+        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = await paymentMethodService.GetPaymentMethodsAsync(ct);
+        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

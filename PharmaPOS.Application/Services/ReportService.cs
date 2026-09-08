@@ -1,32 +1,41 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Extensions;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
+using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.MedicineAggregate;
+using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Services;
 
-public class ReportService(ApplicationDbContext context) : IApplicationService
+public class ReportService(
+	IRepository<Medicine> medicineRepo,
+	IRepository<Batch> batchRepo,
+	IRepository<BillItem> billItemRepo,
+	IRepository<Bill> billRepo,
+	IRepository<Purchase> purchaseRepo) : IApplicationService
 {
 	public async Task<List<InventoryReportResponse>> GetInventoryReportAsync(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
 		
-		return await context.Medicines
+		return await medicineRepo.Query()
 			.OrderByDescending(m => m.Id)
 			.Select(m => new InventoryReportResponse
 			(
 				m,
-				context.Batches
+				batchRepo.Query()
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Pricing.Qty > 0)
 					.Sum(b => (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold)) ?? 0,
 			
-				context.BillItems
+				billItemRepo.Query()
 					.Where(bi => bi.MedicineId == m.Id)
 					.Sum(bi => (decimal?)bi.Pricing.Price) ?? 0,
 			
-				context.Batches
+				batchRepo.Query()
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active && 
 								string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
@@ -48,7 +57,7 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 			end = DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59); 
 		}
 		
-		var medicineStats = await context.Bills
+		var medicineStats = await billRepo.Query()
 			.Where(b => 
 				b.Date >= start.Value &&
 				b.Date <= end.Value)
@@ -69,7 +78,7 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 
 		if (medicineId > 0)
 		{
-			purchaseAmount = await context.Batches
+			purchaseAmount = await batchRepo.Query()
 				.Where(b => b.Status == Status.Active && b.MedicineId == medicineId)
 				.SumAsync(b => b.Pricing.Qty > 0 
 					? (decimal?)((b.Pricing.Price / b.Pricing.Qty) * b.Sold) 
@@ -79,9 +88,9 @@ public class ReportService(ApplicationDbContext context) : IApplicationService
 		}
 		else
 		{
-			purchaseAmount = await context.Purchases
+			purchaseAmount = await purchaseRepo.Query()
 				.Where(p => p.Date >= start.Value && p.Date <= end.Value)
-				.Join(context.Batches,
+				.Join(batchRepo.Query(),
 					purchase => purchase.Id,
 					batch => batch.PurchaseId,
 					(purchase, batch) => batch)

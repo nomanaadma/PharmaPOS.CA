@@ -1,31 +1,33 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Data;
 using PharmaPOS.Application.Helpers;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
+using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class BillingService(
-	ApplicationDbContext context,
+	IRepository<Bill> billRepo,
+	IRepository<PaymentMethod> paymentMethodRepo,
+	IUnitOfWork unitOfWork,
 	CustomerService customerService,
 	MedicineService medicineService,
 	BatchService batchService,
 	ILogger<BillingService> logger) : IApplicationService
 {
-
 	/// <summary>
 	/// Gets filtered bills for DataTables.
 	/// </summary>
 	public async Task<DataTableResponse<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
 	{
-		var query = context.Bills.AsQueryable();
+		var query = billRepo.Query();
 		return await DataTableHelper.FilterAsync(query, request, columns, ct);
 	}
 
@@ -92,8 +94,8 @@ public class BillingService(
 				return soldResult.Errors;
 		}
 
-		context.Bills.Add(bill);
-		await context.SaveChangesAsync(ct);
+		await billRepo.AddAsync(bill, ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Bill {BillId} created with {ItemCount} items", bill.Id, request.Items.Count);
 		return bill.Id;
@@ -101,7 +103,6 @@ public class BillingService(
 
 	private static CustomerRequest CreateCustomerRequest(BillingRequest billingRequest)
 	{
-		
 		var nameParts = (billingRequest.Name).Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
 		// Default to empty strings if the array is empty
@@ -120,7 +121,6 @@ public class BillingService(
 			Gender: Gender.NotSpecified,
 			Status: Status.Active
 		);
-		
 	}
 
 	/// <summary>
@@ -131,7 +131,7 @@ public class BillingService(
 		if (request.Items.Count == 0)
 			return BillErrors.MissingItems;
 		
-		var bill = await context.Bills
+		var bill = await billRepo.Query()
 			.Include(b => b.Items)
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
@@ -141,7 +141,6 @@ public class BillingService(
 		var customerId = request.CustomerId ?? bill.CustomerId;
 		if (customerId == 0)
 		{
-			
 			var customerRequest = CreateCustomerRequest(request);
 			
 			var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct);
@@ -173,7 +172,6 @@ public class BillingService(
 		var newBatchIds = request.Items.Select(i => i.Batch).ToList();
 		var allBatchIds = oldBatchIds.Union(newBatchIds).Distinct().ToList();
 
-		
 		var batches = await batchService.GetBatchByIdsAsync(allBatchIds, ct);
 
 		// Revert sold quantities for old items
@@ -215,10 +213,9 @@ public class BillingService(
 			var soldResult = batch.UpdateSold(item.Qty);
 			if (soldResult.IsError)
 				return soldResult.Errors;
-			
 		}
 
-		await context.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, request.Items.Count);
 		return bill.Id;
@@ -229,8 +226,7 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<Deleted>> DeleteBillAsync(int id, CancellationToken ct = default)
 	{
-
-		var bill = await context.Bills
+		var bill = await billRepo.Query()
 			.Include(b => b.Items)
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
@@ -252,8 +248,8 @@ public class BillingService(
 				return soldResult.Errors;
 		}
 
-		context.Bills.Remove(bill);
-		await context.SaveChangesAsync(ct);
+		billRepo.Remove(bill);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Bill {BillId} deleted, {ItemCount} items reverted", id, bill.Items.Count);
 		return Result.Deleted;
@@ -264,10 +260,8 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<BillEditResponse>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
-
-		var bill = await context.Bills
+		var bill = await billRepo.Query()
 			.Include(b => b.Items)
-			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
@@ -300,9 +294,8 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<BillDetailsResponse>> GetBillAsync(int id, CancellationToken ct = default)
 	{
-		var bill = await context.Bills
+		var bill = await billRepo.Query()
 			.Include(b => b.Items)
-			.AsSplitQuery()
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 
 		if (bill == null)
@@ -314,7 +307,7 @@ public class BillingService(
 		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
-		var paymentMethodName = await context.PaymentMethods
+		var paymentMethodName = await paymentMethodRepo.Query()
 			.Where(pm => pm.Id == bill.MethodId)
 			.Select(pm => pm.Name)
 			.FirstOrDefaultAsync(ct);
@@ -327,11 +320,10 @@ public class BillingService(
 	
 	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
 	{
-		return await context.Bills
+		return await billRepo.Query()
 			.Where(b => b.CustomerId == customerId || (email != null && b.Email == email))
 			.OrderByDescending(b => b.Date)
 			.Take(20)
 			.ToListAsync(ct);
 	}
-	
 }

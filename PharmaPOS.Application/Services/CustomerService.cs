@@ -2,15 +2,16 @@ using ErrorOr;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Data;
+using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.BillingAggregate;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.Application.Services;
 
-public class CustomerService(ApplicationDbContext context, ILogger<CustomerService> logger) : IApplicationService
+public class CustomerService(
+	IRepository<Customer> customerRepo,
+	ILogger<CustomerService> logger) : IApplicationService
 {
 	/// <summary>
 	/// Resolves an existing customer by ID, or creates a new walk-in customer from the billing form data.
@@ -25,17 +26,14 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 			return BillErrors.CustomerNameRequired;
 		
 		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
-		
 	}
-	
-	
+
 	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
-		if (await context.Customers.AnyAsync(c => c.Email == request.Email, ct))
+		if (await customerRepo.AnyAsync(c => c.Email == request.Email, ct))
 			return CustomerErrors.EmailNotUnique;
 		
 		return await SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
-		
 	}
 	
 	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, string logMessage, CancellationToken ct)
@@ -47,9 +45,8 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 			return customerResult.Errors;
 
 		var customer = customerResult.Value;
-		context.Customers.Add(customer);
-    
-		await context.SaveChangesAsync(ct);
+		await customerRepo.AddAsync(customer, ct);
+		await customerRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation(logMessage, customer.Id);
 		return customer.Id;
@@ -57,11 +54,11 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 
 	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerRequest request, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
-		if (await context.Customers.AnyAsync(c => c.Email == request.Email && c.Id != id, ct))
+		if (await customerRepo.AnyAsync(c => c.Email == request.Email && c.Id != id, ct))
 			return CustomerErrors.EmailNotUnique;
 		
 		var details = request.Adapt<CustomerDetails>();
@@ -70,7 +67,7 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await context.SaveChangesAsync(ct);
+		await customerRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Customer {CustomerId} updated", id);
 		return customer.Id;
@@ -78,12 +75,12 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 
 	public async Task<ErrorOr<Deleted>> DeleteCustomerAsync(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
-		context.Customers.Remove(customer);
-		await context.SaveChangesAsync(ct);
+		customerRepo.Remove(customer);
+		await customerRepo.SaveChangesAsync(ct);
 
 		logger.LogInformation("Customer {CustomerId} deleted", id);
 		return Result.Deleted;
@@ -91,7 +88,7 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 
 	public async Task<ErrorOr<Customer>> GetCustomerAsync(int id, CancellationToken ct = default)
 	{
-		var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
@@ -100,17 +97,18 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 
 	public async Task<List<Customer>> GetAllCustomersAsync(CancellationToken ct = default)
 	{
-		return await context.Customers
+		return await customerRepo.Query()
 			.OrderByDescending(c => c.CreatedDate)
 			.ToListAsync(ct);
 	}
 
 	public async Task<object> SearchCustomersAsync(string term, CancellationToken ct = default)
 	{
-		return await context.Customers
-			.Where(c => EF.Functions.ILike(c.FirstName, $"%{term}%") || 
-			            EF.Functions.ILike(c.LastName, $"%{term}%") || 
-			            EF.Functions.ILike(c.Mobile ?? string.Empty, $"%{term}%"))
+		var termLower = term.ToLower();
+		return await customerRepo.Query()
+			.Where(c => c.FirstName.ToLower().Contains(termLower) || 
+			            c.LastName.ToLower().Contains(termLower) || 
+			            (c.Mobile != null && c.Mobile.Contains(termLower)))
 			.Take(7)
 			.Select(c => new 
 			{
@@ -121,5 +119,4 @@ public class CustomerService(ApplicationDbContext context, ILogger<CustomerServi
 			})
 			.ToListAsync(ct);
 	}
-	
 }
