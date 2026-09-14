@@ -1,5 +1,4 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
@@ -7,36 +6,21 @@ using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
-using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class PurchaseService(
-	IRepository<Purchase> purchaseRepo,
-	IRepository<Supplier> supplierRepo,
-	IRepository<Batch> batchRepo,
+	IPurchaseRepository purchaseRepo,
+	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
-	MedicineService medicineService,
-	BatchService batchService,
 	ILogger<PurchaseService> logger) : IApplicationService
 {
-	public async Task<DataTableResponse<PurchaseListResponse>> GetFilteredPurchasesAsync(DataTableRequest request, DataTableColumnMap<PurchaseListResponse> columns, CancellationToken ct = default)
+	public async Task<DataTableResponse<PurchaseListResponse>> GetFilteredPurchasesAsync(
+		DataTableRequest request, 
+		DataTableColumnMap<PurchaseListResponse> columns, 
+		CancellationToken ct = default)
 	{
-		var query = purchaseRepo.Query()
-			.AsNoTracking()
-			.Join(supplierRepo.Query(), p => p.SupplierId, s => s.Id, (p, s) => new PurchaseListResponse
-			{
-				Id = p.Id,
-				Date = p.Date,
-				SubTotal = p.SubTotal,
-				Tax = p.Tax,
-				Discount = p.Discount,
-				Amount = p.Amount,
-				Note = p.Note,
-				SupplierName = s.Name
-			});
-
-		return await DataTableHelper.FilterAsync(query, request, columns, ct);
+		return await purchaseRepo.GetFilteredPurchasesAsync(request, columns, ct);
 	}
 
 	public async Task<ErrorOr<int>> CreatePurchaseAsync(PurchaseRequest request, CancellationToken ct = default)
@@ -112,7 +96,7 @@ public class PurchaseService(
 		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
 		
-		var existingPurchase = await purchaseRepo.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+		var existingPurchase = await purchaseRepo.GetByIdAsync(id, ct);
 
 		if (existingPurchase == null)
 			return PurchaseErrors.NotFound(id);
@@ -133,7 +117,7 @@ public class PurchaseService(
 
 		var submittedBatchIds = request.Items.Where(i => i.Id != 0).Select(i => i.Id).ToHashSet();
 
-		var existingBatches = await batchService.GetBatchesByPurchaseIdAsync(id, ct);
+		var existingBatches = await batchRepo.GetBatchesByPurchaseIdAsync(id, ct);
 		
 		var batchesToRemove = existingBatches.Where(b => !submittedBatchIds.Contains(b.Id)).ToList();
 		
@@ -199,17 +183,17 @@ public class PurchaseService(
 
 	public async Task<ErrorOr<Deleted>> DeletePurchaseAsync(int id, CancellationToken ct = default)
 	{
-		var purchase = await purchaseRepo.FirstOrDefaultAsync(mp => mp.Id == id, ct);
+		var purchase = await purchaseRepo.GetByIdAsync(id, ct);
 
 		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
 		
-		var hasSoldBatches = await batchService.HasSoldBatchesAsync(id, ct);
+		var hasSoldBatches = await batchRepo.HasSoldBatchesAsync(id, ct);
 		
 		if (hasSoldBatches)
 			return BatchErrors.CannotDeletePurchaseWithSoldBatches;
 		
-		await batchService.DeleteBatchesByPurchaseIdAsync(id, ct);
+		await batchRepo.DeleteBatchesByPurchaseIdAsync(id, ct);
 		
 		purchaseRepo.Remove(purchase);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -220,23 +204,10 @@ public class PurchaseService(
 
 	public async Task<ErrorOr<PurchaseDetailsResponse>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
-		var purchase = await purchaseRepo.FirstOrDefaultAsync(mp => mp.Id == id, ct);
-
-		if (purchase == null)
+		var result = await purchaseRepo.GetPurchaseDetailsAsync(id, ct);
+		if (result == null)
 			return PurchaseErrors.NotFound(id);
-		
-		var supplier = await supplierRepo.FirstOrDefaultAsync(s => s.Id == purchase.SupplierId, ct);
-		if (supplier == null)
-			return PurchaseErrors.SupplierNotFound(id);
 
-		// Fetch batches separately (respects aggregate boundary)
-		var batches = await batchService.GetBatchesByPurchaseIdAsync(id, ct);
-		
-		// Fetch medicine names for display
-		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
-		
-		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
-		
-		return new PurchaseDetailsResponse(purchase, batches, medicineNames, supplier);
+		return result;
 	}
 }

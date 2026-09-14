@@ -1,6 +1,5 @@
 using ErrorOr;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
@@ -10,12 +9,13 @@ using PharmaPOS.Domain.SupplierAggregate;
 namespace PharmaPOS.Application.Services;
 
 public class SupplierService(
-	IRepository<Supplier> supplierRepo,
+	ISupplierRepository supplierRepo,
+	IUnitOfWork unitOfWork,
 	ILogger<SupplierService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreateSupplierAsync(SupplierRequest request, CancellationToken ct = default)
 	{
-		if (await supplierRepo.AnyAsync(s => s.Email == request.Email, ct))
+		if (await supplierRepo.ExistsByEmailAsync(request.Email, null, ct))
 			return SupplierErrors.EmailNotUnique;
 
 		var details = request.Adapt<SupplierDetails>();
@@ -26,7 +26,7 @@ public class SupplierService(
 
 		var supplier = supplierResult.Value;
 		await supplierRepo.AddAsync(supplier, ct);
-		await supplierRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Supplier {SupplierId} '{Name}' created", supplier.Id, supplier.Name);
 		return supplier.Id;
@@ -34,11 +34,11 @@ public class SupplierService(
 
 	public async Task<ErrorOr<int>> UpdateSupplierAsync(int id, SupplierRequest request, CancellationToken ct = default)
 	{
-		var supplier = await supplierRepo.FirstOrDefaultAsync(s => s.Id == id, ct);
+		var supplier = await supplierRepo.GetByIdAsync(id, ct);
 		if (supplier == null)
 			return SupplierErrors.NotFound(id);
 
-		if (await supplierRepo.AnyAsync(s => s.Email == request.Email && s.Id != id, ct))
+		if (await supplierRepo.ExistsByEmailAsync(request.Email, id, ct))
 			return SupplierErrors.EmailNotUnique;
 
 		var details = request.Adapt<SupplierDetails>();
@@ -47,7 +47,8 @@ public class SupplierService(
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await supplierRepo.SaveChangesAsync(ct);
+		supplierRepo.Update(supplier);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Supplier {SupplierId} updated", id);
 		return supplier.Id;
@@ -55,12 +56,12 @@ public class SupplierService(
 
 	public async Task<ErrorOr<Deleted>> DeleteSupplierAsync(int id, CancellationToken ct = default)
 	{
-		var supplier = await supplierRepo.FirstOrDefaultAsync(s => s.Id == id, ct);
+		var supplier = await supplierRepo.GetByIdAsync(id, ct);
 		if (supplier == null)
 			return SupplierErrors.NotFound(id);
 
 		supplierRepo.Remove(supplier);
-		await supplierRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Supplier {SupplierId} deleted", id);
 		return Result.Deleted;
@@ -68,7 +69,7 @@ public class SupplierService(
 
 	public async Task<ErrorOr<Supplier>> GetSupplierAsync(int id, CancellationToken ct = default)
 	{
-		var supplier = await supplierRepo.FirstOrDefaultAsync(s => s.Id == id, ct);
+		var supplier = await supplierRepo.GetByIdAsync(id, ct);
 		if (supplier == null)
 			return SupplierErrors.NotFound(id);
 
@@ -77,9 +78,7 @@ public class SupplierService(
 
 	public async Task<List<Supplier>> GetAllSuppliersAsync(CancellationToken ct = default)
 	{
-		return await supplierRepo.Query()
-			.OrderBy(s => s.Id)
-			.ToListAsync(ct);
+		return await supplierRepo.GetAllAsync(ct);
 	}
 
 	/// <summary>
@@ -87,9 +86,6 @@ public class SupplierService(
 	/// </summary>
 	public async Task<IEnumerable<LookupItem>> GetSuppliersAsync(CancellationToken ct = default)
 	{
-		return await supplierRepo.Query()
-			.OrderBy(s => s.Name)
-			.Select(s => new LookupItem(s.Id.ToString(), s.Name))
-			.ToListAsync(ct);
+		return await supplierRepo.GetLookupListAsync(ct);
 	}
 }

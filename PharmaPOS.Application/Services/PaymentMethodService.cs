@@ -1,22 +1,21 @@
 using ErrorOr;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class PaymentMethodService(
-	IRepository<PaymentMethod> paymentMethodRepo,
+	IPaymentMethodRepository paymentMethodRepo,
+	IUnitOfWork unitOfWork,
 	ILogger<PaymentMethodService> logger) : IApplicationService
 {
 	public async Task<ErrorOr<int>> CreatePaymentMethodAsync(PaymentMethodRequest request, CancellationToken ct = default)
 	{
-		if (await paymentMethodRepo.AnyAsync(p => p.Name == request.Name, ct))
+		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, null, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
 		var details = request.Adapt<PaymentMethodDetails>();
@@ -27,7 +26,7 @@ public class PaymentMethodService(
 
 		var method = methodResult.Value;
 		await paymentMethodRepo.AddAsync(method, ct);
-		await paymentMethodRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Payment method {MethodId} '{Name}' created", method.Id, method.Name);
 		return method.Id;
@@ -35,11 +34,11 @@ public class PaymentMethodService(
 
 	public async Task<ErrorOr<int>> UpdatePaymentMethodAsync(int id, PaymentMethodRequest request, CancellationToken ct = default)
 	{
-		var method = await paymentMethodRepo.FirstOrDefaultAsync(p => p.Id == id, ct);
+		var method = await paymentMethodRepo.GetByIdAsync(id, ct);
 		if (method == null)
 			return PaymentMethodErrors.NotFound(id);
 
-		if (await paymentMethodRepo.AnyAsync(p => p.Name == request.Name && p.Id != id, ct))
+		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, id, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
 		var details = request.Adapt<PaymentMethodDetails>();
@@ -48,7 +47,8 @@ public class PaymentMethodService(
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await paymentMethodRepo.SaveChangesAsync(ct);
+		paymentMethodRepo.Update(method);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Payment method {MethodId} updated", id);
 		return method.Id;
@@ -56,12 +56,12 @@ public class PaymentMethodService(
 
 	public async Task<ErrorOr<Deleted>> DeletePaymentMethodAsync(int id, CancellationToken ct = default)
 	{
-		var method = await paymentMethodRepo.FirstOrDefaultAsync(p => p.Id == id, ct);
+		var method = await paymentMethodRepo.GetByIdAsync(id, ct);
 		if (method == null)
 			return PaymentMethodErrors.NotFound(id);
 
 		paymentMethodRepo.Remove(method);
-		await paymentMethodRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Payment method {MethodId} deleted", id);
 		return Result.Deleted;
@@ -69,7 +69,7 @@ public class PaymentMethodService(
 
 	public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodAsync(int id, CancellationToken ct = default)
 	{
-		var method = await paymentMethodRepo.FirstOrDefaultAsync(p => p.Id == id, ct);
+		var method = await paymentMethodRepo.GetByIdAsync(id, ct);
 		if (method == null)
 			return PaymentMethodErrors.NotFound(id);
 
@@ -78,9 +78,7 @@ public class PaymentMethodService(
 
 	public async Task<List<PaymentMethod>> GetAllPaymentMethodsAsync(CancellationToken ct = default)
 	{
-		return await paymentMethodRepo.Query()
-			.OrderBy(p => p.Id)
-			.ToListAsync(ct);
+		return await paymentMethodRepo.GetAllAsync(ct);
 	}
 
 	/// <summary>
@@ -88,9 +86,6 @@ public class PaymentMethodService(
 	/// </summary>
 	public async Task<IEnumerable<LookupItem>> GetPaymentMethodsAsync(CancellationToken ct = default)
 	{
-		return await paymentMethodRepo.Query()
-			.Where(pm => pm.Status == Status.Active)
-			.Select(pm => new LookupItem(pm.Id.ToString(), pm.Name))
-			.ToListAsync(ct);
+		return await paymentMethodRepo.GetActiveLookupListAsync(ct);
 	}
 }

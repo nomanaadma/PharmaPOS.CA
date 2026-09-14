@@ -1,6 +1,3 @@
 ﻿namespace PharmaPOS.Application.Services;
 
-public interface IApplicationService
-{
-	
-}
+public interface IApplicationService;

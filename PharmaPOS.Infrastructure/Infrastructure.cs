@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Interfaces;
@@ -23,9 +24,32 @@ public static class InfrastructureServiceCollectionExtensions
 		});
 
 		services.AddScoped<DbInitializer>();
-		services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-		services.AddScoped<IUnitOfWork, UnitOfWork>();
+		
+		var assembly = Assembly.GetExecutingAssembly();
 
+		// 1. Find all concrete classes that implement IRepository<T>
+		var repositoryTypes = assembly.GetTypes()
+			.Where(t => t is { IsClass: true, IsAbstract: false })
+			.Where(t => t.GetInterfaces().Any(i => 
+				i.IsGenericType && 
+				i.GetGenericTypeDefinition() == typeof(IRepository<>)));
+
+		foreach (var type in repositoryTypes)
+		{
+			// 2. Get the specific interface (e.g., ICategoryRepository) 
+			// by ignoring the generic base IRepository<T>
+			var targetInterface = type.GetInterfaces()
+				.FirstOrDefault(i => !i.IsGenericType);
+
+			if (targetInterface != null)
+			{
+				services.AddScoped(targetInterface, type);
+			}
+		}
+		
+		services.AddScoped<IReportRepository, ReportRepository>();
+		services.AddScoped<IUnitOfWork, UnitOfWork>();
+		
 		return services;
 	}
 }

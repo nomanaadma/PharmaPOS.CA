@@ -1,15 +1,23 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Infrastructure.Data;
 
 namespace PharmaPOS.Infrastructure.Repositories;
 
-public class UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider) : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 {
+	private readonly Dictionary<Type, object> _repositories = new();
+
 	public IRepository<T> Repository<T>() where T : class
 	{
-		return serviceProvider.GetRequiredService<IRepository<T>>();
+		if (_repositories.TryGetValue(typeof(T), out var repo))
+		{
+			return (IRepository<T>)repo;
+		}
+
+		var newRepo = new Repository<T>(context);
+		_repositories[typeof(T)] = newRepo;
+		return newRepo;
 	}
 
 	public async Task<int> SaveChangesAsync(CancellationToken ct = default)

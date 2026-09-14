@@ -1,16 +1,17 @@
 using ErrorOr;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class CustomerService(
-	IRepository<Customer> customerRepo,
+	ICustomerRepository customerRepo,
+	IUnitOfWork unitOfWork,
 	ILogger<CustomerService> logger) : IApplicationService
 {
 	/// <summary>
@@ -30,8 +31,8 @@ public class CustomerService(
 
 	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
-		if (await customerRepo.AnyAsync(c => c.Email == request.Email, ct))
-			return CustomerErrors.EmailNotUnique;
+		if (request.Email != null && await customerRepo.ExistsByEmailAsync(request.Email, null, ct))
+			return CustomerErrors.EmailNotUnique; 
 		
 		return await SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
 	}
@@ -46,7 +47,7 @@ public class CustomerService(
 
 		var customer = customerResult.Value;
 		await customerRepo.AddAsync(customer, ct);
-		await customerRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation(logMessage, customer.Id);
 		return customer.Id;
@@ -54,11 +55,11 @@ public class CustomerService(
 
 	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerRequest request, CancellationToken ct = default)
 	{
-		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.GetByIdAsync(id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
-		if (await customerRepo.AnyAsync(c => c.Email == request.Email && c.Id != id, ct))
+		if (request.Email != null && await customerRepo.ExistsByEmailAsync(request.Email, id, ct))
 			return CustomerErrors.EmailNotUnique;
 		
 		var details = request.Adapt<CustomerDetails>();
@@ -67,7 +68,8 @@ public class CustomerService(
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
-		await customerRepo.SaveChangesAsync(ct);
+		customerRepo.Update(customer);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Customer {CustomerId} updated", id);
 		return customer.Id;
@@ -75,12 +77,12 @@ public class CustomerService(
 
 	public async Task<ErrorOr<Deleted>> DeleteCustomerAsync(int id, CancellationToken ct = default)
 	{
-		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.GetByIdAsync(id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
 		customerRepo.Remove(customer);
-		await customerRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Customer {CustomerId} deleted", id);
 		return Result.Deleted;
@@ -88,7 +90,7 @@ public class CustomerService(
 
 	public async Task<ErrorOr<Customer>> GetCustomerAsync(int id, CancellationToken ct = default)
 	{
-		var customer = await customerRepo.FirstOrDefaultAsync(c => c.Id == id, ct);
+		var customer = await customerRepo.GetByIdAsync(id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
 
@@ -97,26 +99,11 @@ public class CustomerService(
 
 	public async Task<List<Customer>> GetAllCustomersAsync(CancellationToken ct = default)
 	{
-		return await customerRepo.Query()
-			.OrderByDescending(c => c.CreatedDate)
-			.ToListAsync(ct);
+		return await customerRepo.GetAllAsync(ct);
 	}
 
-	public async Task<object> SearchCustomersAsync(string term, CancellationToken ct = default)
+	public async Task<List<CustomerSearchResult>> SearchCustomersAsync(string term, CancellationToken ct = default)
 	{
-		var termLower = term.ToLower();
-		return await customerRepo.Query()
-			.Where(c => c.FirstName.ToLower().Contains(termLower) || 
-			            c.LastName.ToLower().Contains(termLower) || 
-			            (c.Mobile != null && c.Mobile.Contains(termLower)))
-			.Take(7)
-			.Select(c => new 
-			{
-				id = c.Id,
-				label = c.FirstName + " " + c.LastName,
-				email = c.Email,
-				mobile = c.Mobile
-			})
-			.ToListAsync(ct);
+		return await customerRepo.SearchCustomersAsync(term, 7, ct);
 	}
 }

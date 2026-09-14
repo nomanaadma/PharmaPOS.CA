@@ -1,5 +1,4 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Contracts.Requests;
@@ -10,18 +9,19 @@ using PharmaPOS.Domain.SettingAggregate;
 namespace PharmaPOS.Application.Services;
 
 public class SettingService(
-	IRepository<Setting> settingRepo,
-	IRepository<Media> mediaRepo,
+	ISettingRepository settingRepo,
+	IMediaRepository mediaRepo,
+	IUnitOfWork unitOfWork,
 	IFilePathProvider pathProvider) : IApplicationService
 {
 	public async Task<Setting?> GetRawSettingsAsync(CancellationToken ct = default)
 	{
-		return await settingRepo.FirstOrDefaultAsync(ct);
+		return await settingRepo.GetRawSettingsAsync(ct);
 	}
 
 	public async Task<Setting> GetSettingsAsync(CancellationToken ct = default)
 	{
-		var settings = await settingRepo.AsNoTracking().OrderBy(s => s.Id).FirstOrDefaultAsync(ct);
+		var settings = await settingRepo.GetSettingsAsync(ct);
 	
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)
@@ -64,7 +64,7 @@ public class SettingService(
 
 	public async Task<ErrorOr<Success>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
 	{
-		var settings = await settingRepo.FirstOrDefaultAsync(ct);
+		var settings = await settingRepo.GetRawSettingsAsync(ct);
 		var details = new SettingDetails(request.Name, request.LegalName, request.Mail, request.Phone);
 		
 		if (settings == null)
@@ -89,13 +89,13 @@ public class SettingService(
 		settings.UpdateImages(request.Logo, request.LogoIcon, request.LgBackground, request.Favicon);
 		settings.UpdateAddress(new Address(request.AddressLine1, request.AddressLine2, request.City, request.Country, request.Postal));
 
-		await settingRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 		return Result.Success;
 	}
 
 	public async Task<List<Media>> GetMediaListAsync(CancellationToken ct = default)
 	{
-		return await mediaRepo.Query().OrderBy(m => m.CreatedDate).ToListAsync(ct);
+		return await mediaRepo.GetMediaListAsync(ct);
 	}
 
 	public async Task<ErrorOr<MediaUploadResponse>> UploadMediaFileAsync(Stream fileStream, string originalFileName, long length, CancellationToken ct = default)
@@ -119,7 +119,7 @@ public class SettingService(
 
 		var media = mediaResult.Value;
 		await mediaRepo.AddAsync(media, ct);
-		await mediaRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		var (width, height) = GetImageDimensions(filePath);
 
@@ -128,7 +128,7 @@ public class SettingService(
 
 	public async Task<ErrorOr<Success>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)
 	{
-		var media = await mediaRepo.FirstOrDefaultAsync(m => m.Id == id && m.Filename == name, ct);
+		var media = await mediaRepo.GetByIdAndFilenameAsync(id, name, ct);
 		if (media == null)
 			return Error.NotFound(description: "File is wrong or does not exist.");
 
@@ -146,7 +146,7 @@ public class SettingService(
 		}
 
 		mediaRepo.Remove(media);
-		await mediaRepo.SaveChangesAsync(ct);
+		await unitOfWork.SaveChangesAsync(ct);
 
 		return Result.Success;
 	}

@@ -1,25 +1,21 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.CustomerAggregate;
-using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class BillingService(
-	IRepository<Bill> billRepo,
-	IRepository<PaymentMethod> paymentMethodRepo,
+	IBillRepository billRepo,
+	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
 	CustomerService customerService,
 	MedicineService medicineService,
-	BatchService batchService,
 	ILogger<BillingService> logger) : IApplicationService
 {
 	/// <summary>
@@ -27,8 +23,7 @@ public class BillingService(
 	/// </summary>
 	public async Task<DataTableResponse<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
 	{
-		var query = billRepo.Query();
-		return await DataTableHelper.FilterAsync(query, request, columns, ct);
+		return await billRepo.GetFilteredBillsAsync(request, columns, ct);
 	}
 
 	/// <summary>
@@ -67,7 +62,7 @@ public class BillingService(
 
 		// Pre-fetch all needed batches in a single query (fixes N+1)
 		var batchIds = request.Items.Select(i => i.Batch).Distinct().ToList();
-		var batches = await batchService.GetBatchByIdsAsync(batchIds, ct);
+		var batches = await batchRepo.GetBatchByIdsAsync(batchIds, ct);
 
 		foreach (var item in request.Items)
 		{
@@ -131,9 +126,7 @@ public class BillingService(
 		if (request.Items.Count == 0)
 			return BillErrors.MissingItems;
 		
-		var bill = await billRepo.Query()
-			.Include(b => b.Items)
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
+		var bill = await billRepo.GetBillWithItemsAsync(id, ct);
 
 		if (bill == null)
 			return BillErrors.NotFound(id);
@@ -172,7 +165,7 @@ public class BillingService(
 		var newBatchIds = request.Items.Select(i => i.Batch).ToList();
 		var allBatchIds = oldBatchIds.Union(newBatchIds).Distinct().ToList();
 
-		var batches = await batchService.GetBatchByIdsAsync(allBatchIds, ct);
+		var batches = await batchRepo.GetBatchByIdsAsync(allBatchIds, ct);
 
 		// Revert sold quantities for old items
 		foreach (var oldItem in bill.Items)
@@ -226,16 +219,14 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<Deleted>> DeleteBillAsync(int id, CancellationToken ct = default)
 	{
-		var bill = await billRepo.Query()
-			.Include(b => b.Items)
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
+		var bill = await billRepo.GetBillWithItemsAsync(id, ct);
 
 		if (bill == null)
 			return BillErrors.NotFound(id);
 
 		// Pre-fetch all batches in a single query
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
-		var batches = await batchService.GetBatchByIdsAsync(batchIds, ct);
+		var batches = await batchRepo.GetBatchByIdsAsync(batchIds, ct);
 		 
 		// Revert sold quantities
 		foreach (var item in bill.Items)
@@ -260,9 +251,7 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<BillEditResponse>> GetBillForEditAsync(int id, CancellationToken ct = default)
 	{
-		var bill = await billRepo.Query()
-			.Include(b => b.Items)
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
+		var bill = await billRepo.GetBillWithItemsAsync(id, ct);
 
 		if (bill == null)
 			return BillErrors.NotFound(id);
@@ -270,13 +259,13 @@ public class BillingService(
 		var medicineIds = bill.Items.Select(i => i.MedicineId).Distinct().ToList();
 		var itemBatchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
 
-		var activeBatches = await batchService.GetNonExpiredBatchesAsync(medicineIds, ct);
+		var activeBatches = await batchRepo.GetNonExpiredBatchesAsync(medicineIds, ct);
 
 		// Also include the item's own batch even if expired/inactive
 		var missingBatchIds = itemBatchIds.Except(activeBatches.Select(b => b.Id)).ToList();
 		if (missingBatchIds.Count > 0)
 		{
-			var extraBatches = (await batchService.GetBatchByIdsAsync(missingBatchIds, ct)).Values.ToList();
+			var extraBatches = (await batchRepo.GetBatchByIdsAsync(missingBatchIds, ct)).Values.ToList();
 			activeBatches.AddRange(extraBatches);
 		}
 
@@ -294,36 +283,15 @@ public class BillingService(
 	/// </summary>
 	public async Task<ErrorOr<BillDetailsResponse>> GetBillAsync(int id, CancellationToken ct = default)
 	{
-		var bill = await billRepo.Query()
-			.Include(b => b.Items)
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
-
-		if (bill == null)
+		var details = await billRepo.GetBillDetailsAsync(id, ct);
+		if (details == null)
 			return BillErrors.NotFound(id);
 
-		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
-		var batchesById = await batchService.GetBatchByIdsAsync(batchIds, ct);
-		
-		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
-		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
-		
-		var paymentMethodName = await paymentMethodRepo.Query()
-			.Where(pm => pm.Id == bill.MethodId)
-			.Select(pm => pm.Name)
-			.FirstOrDefaultAsync(ct);
-		
-		if (paymentMethodName == null)
-			return BillErrors.PaymentMethodNotFound(bill.MethodId);
-		
-		return new BillDetailsResponse(bill, batchesById, medicineNames, paymentMethodName);
+		return details;
 	}
 	
 	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
 	{
-		return await billRepo.Query()
-			.Where(b => b.CustomerId == customerId || (email != null && b.Email == email))
-			.OrderByDescending(b => b.Date)
-			.Take(20)
-			.ToListAsync(ct);
+		return await billRepo.GetRecentBillsAsync(customerId, email, ct);
 	}
 }

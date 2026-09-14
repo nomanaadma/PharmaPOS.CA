@@ -1,82 +1,27 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Extensions;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Domain.Common.Enums;
 
 namespace PharmaPOS.Application.Services;
 
 public class StockService(
-	IRepository<BillItem> billItemRepo,
+	IBatchRepository batchRepo,
+	IBillRepository billRepo,
 	IUnitOfWork unitOfWork,
 	MedicineService medicineService,
-	BatchService batchService,
 	ILogger<StockService> logger) : IApplicationService
 {
 	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{
-		var batchesQuery = batchService.ActiveBatchesQuery();
-
-		var today = DateTime.UtcNow.Date;
-		var currentMonthDate = new DateTime(today.Year, today.Month, 1);
-		
-		var currentMonthStr = currentMonthDate.ExpiryFormat();
-
-		var pageType = type ?? "live";
-		
-		switch (pageType)
-		{
-			case "expired":
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0);
-				break;
-				
-			case "willexpirein1":
-				var oneMonthStr = currentMonthDate.AddMonths(1).ExpiryFormat();
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), oneMonthStr) <= 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
-				break;
-				
-			case "willexpirein2":
-				var twoMonthStr = currentMonthDate.AddMonths(2).ExpiryFormat();
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), twoMonthStr) <= 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
-				break;
-				
-			case "willexpirein3":
-				var threeMonthStr = currentMonthDate.AddMonths(3).ExpiryFormat();
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), threeMonthStr) < 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
-				break;
-				
-			case "willexpirein6":
-				var sixMonthStr = currentMonthDate.AddMonths(6).ExpiryFormat();
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), sixMonthStr) < 0 && 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) > 0);
-				break;
-				
-			default:
-				batchesQuery = batchesQuery.Where(b => 
-					string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
-				break;
-		}
-		
-		var batches = await batchesQuery.ToListAsync(ct);
+		var batches = await batchRepo.GetActiveBatchesAsync(type, ct);
 		var batchIds = batches.Select(b => b.Id).ToList();
 		
 		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
 		
-		var billItems = await billItemRepo.Query()
-			.Where(bi => batchIds.Contains(bi.BatchId))
-			.ToListAsync(ct);	
+		var billItems = await billRepo.GetBillItemsForBatchesAsync(batchIds, ct);	
 		
 		return batches.Select(b =>
 		{
@@ -127,7 +72,7 @@ public class StockService(
 
 	public async Task<ErrorOr<Success>> UpdateStockAvailableAsync(int id, int medicineId, decimal available, CancellationToken ct = default)
 	{
-		var batch = await batchService.GetSingleBatchAsync(medicineId, id, ct);
+		var batch = await batchRepo.GetSingleBatchAsync(medicineId, id, ct);
 		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");
@@ -147,7 +92,7 @@ public class StockService(
 
 	public async Task<ErrorOr<Success>> DeleteStockAsync(int id, CancellationToken ct = default)
 	{
-		var batch = await batchService.GetSingleBatchByIdAsync(id, ct);
+		var batch = await batchRepo.GetByIdAsync(id, ct);
 		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");

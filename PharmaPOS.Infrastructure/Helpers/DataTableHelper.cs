@@ -1,16 +1,15 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using PharmaPOS.Application.Helpers;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 
-namespace PharmaPOS.Application.Helpers;
+namespace PharmaPOS.Infrastructure.Helpers;
 
 /// <summary>
-/// Generic DataTables server-side processing helper.
+/// Generic DataTables server-side processing helper for EF Core queries.
 /// Handles global search, SearchBuilder criteria, sorting, and pagination
 /// for any EF Core entity type, driven by a <see cref="DataTableColumnMap{T}"/>.
-///
-/// This is the C# equivalent of the PHP Search::queryBuilder + conditionBuilder pattern.
 /// </summary>
 public static class DataTableHelper
 {
@@ -185,8 +184,7 @@ public static class DataTableHelper
 
 	// ═══════════════════════════════════════════════════════════════════
 	// Expression tree builders — these generate the LINQ predicates that
-	// EF Core translates to SQL.  They're the C# equivalent of the PHP
-	// Search::conditionBuilder method.
+	// EF Core translates to SQL.
 	// ═══════════════════════════════════════════════════════════════════
 
 	// ─── ILike helpers ─────────────────────────────────────────────────

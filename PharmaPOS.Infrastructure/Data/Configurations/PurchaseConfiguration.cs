@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Infrastructure.Data.Configurations;
 
@@ -53,7 +54,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 			.HasDefaultValueSql("CURRENT_TIMESTAMP")
 			.IsRequired();
 
-		builder.HasOne<PharmaPOS.Domain.SupplierAggregate.Supplier>()
+		builder.HasOne<Supplier>()
 			.WithMany()
 			.HasForeignKey(mp => mp.SupplierId)
 			.OnDelete(DeleteBehavior.Cascade);
