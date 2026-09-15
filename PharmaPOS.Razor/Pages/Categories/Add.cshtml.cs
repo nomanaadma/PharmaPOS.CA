@@ -12,7 +12,7 @@ namespace PharmaPOS.Razor.Pages.Categories;
 public class AddModel(CategoryService categoryService) : BasePageModel
 {
     [BindProperty]
-    public MedicineCategoryViewModel Input { get; set; } = new();
+    public CategoryViewModel Input { get; set; } = new();
 
     public void OnGet()
     {
@@ -25,7 +25,7 @@ public class AddModel(CategoryService categoryService) : BasePageModel
             return Page();
         }
         
-        var request = Input.Adapt<MedicineCategoryRequest>();
+        var request = Input.Adapt<CategoryRequest>();
 
         var result = await categoryService.CreateCategoryAsync(request, ct);
         if (result.IsError)

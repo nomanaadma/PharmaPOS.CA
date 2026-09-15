@@ -21,10 +21,10 @@ public class ViewModel(MedicineService medicineService) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        var medicineCategory = result.Value;
+        var category = result.Value;
         var stockSummary = await medicineService.GetMedicineStockSummaryAsync(id, ct);
         
-        Medicine = MedicineMapper.MapToMedicine(medicineCategory);
+        Medicine = MedicineMapper.MapToMedicine(category);
         LiveStock = StockMapper.MapToStocksBatch(stockSummary.ActiveBatches, stockSummary.MedicineNames);
         BadStock = StockMapper.MapToStocksBatch(stockSummary.ExpiredBatches, stockSummary.MedicineNames);
 

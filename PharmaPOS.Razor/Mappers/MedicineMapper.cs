@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MedicineAggregate;
-using PharmaPOS.Domain.MedicineCategoryAggregate;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Mappers;
@@ -9,7 +8,7 @@ namespace PharmaPOS.Razor.Mappers;
 public static class MedicineMapper
 {
 	public static MedicineViewModel MapToMedicine(MedicineDetailsResponse response, 
-		IEnumerable<SelectListItem>? medicineCategories = null, decimal? liveStock = null)
+		IEnumerable<SelectListItem>? categories = null, decimal? liveStock = null)
 	{
 
 		var (medicine, category) = response;
@@ -32,9 +31,9 @@ public static class MedicineMapper
 			CreatedDate = medicine.CreatedDate
 		};
 
-		if (medicineCategories != null)
+		if (categories != null)
 		{
-			medicineResponse.Categories = medicineCategories;
+			medicineResponse.Categories = categories;
 		}
 
 		if (liveStock != null)

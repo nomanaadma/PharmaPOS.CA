@@ -23,8 +23,8 @@ public class EditModel(MedicineService medicineService, CategoryService category
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var medicineCategories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
-        Input = MedicineMapper.MapToMedicine(result.Value, medicineCategories);
+        var categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
+        Input = MedicineMapper.MapToMedicine(result.Value, categories);
         
         return Page();
     }

@@ -22,8 +22,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PharmaPOS.Application\PharmaPOS.Application.csproj" />
-        <ProjectReference Include="..\PharmaPOS.Contracts\PharmaPOS.Contracts.csproj" />
-        <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
     </ItemGroup>
 
 </Project>

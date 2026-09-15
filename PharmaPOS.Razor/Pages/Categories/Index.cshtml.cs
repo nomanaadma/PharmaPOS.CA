@@ -10,12 +10,12 @@ namespace PharmaPOS.Razor.Pages.Categories;
 [Authorize(Policy = Permissions.Category.List)]
 public class IndexModel(CategoryService categoryService) : BasePageModel
 {
-    public IEnumerable<MedicineCategoryViewModel> Categories { get; set; } = new List<MedicineCategoryViewModel>();
+    public IEnumerable<CategoryViewModel> Categories { get; set; } = new List<CategoryViewModel>();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         var categoriesQuery = await categoryService.GetAllCategoriesAsync(ct);
-        Categories = SettingMapper.MapToMedicineCategories(categoriesQuery);
+        Categories = SettingMapper.MapToCategories(categoriesQuery);
         
         return Page();
     }

@@ -13,7 +13,7 @@ namespace PharmaPOS.Razor.Pages.Categories;
 public class EditModel(CategoryService categoryService) : BasePageModel
 {
     [BindProperty]
-    public MedicineCategoryViewModel Input { get; set; } = new();
+    public CategoryViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
@@ -21,7 +21,7 @@ public class EditModel(CategoryService categoryService) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        Input = SettingMapper.MapToMedicineCategory(result.Value);
+        Input = SettingMapper.MapToCategory(result.Value);
         return Page();
     }
 
@@ -44,7 +44,7 @@ public class EditModel(CategoryService categoryService) : BasePageModel
             return Page();
         }
         
-        var request = Input.Adapt<MedicineCategoryRequest>();
+        var request = Input.Adapt<CategoryRequest>();
 
         var result = await categoryService.UpdateCategoryAsync(id, request, ct);
         if (result.IsError)

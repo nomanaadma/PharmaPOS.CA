@@ -1,9 +1,9 @@
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.MedicineCategoryAggregate;
+using PharmaPOS.Domain.CategoryAggregate;
 
 namespace PharmaPOS.Application.Interfaces;
 
-public interface ICategoryRepository : IRepository<MedicineCategory>
+public interface ICategoryRepository : IRepository<Category>
 {
 	Task<bool> ExistsByNameAsync(string name, int? excludeId = null, CancellationToken ct = default);
 	Task<List<LookupItem>> GetLookupListAsync(CancellationToken ct = default);

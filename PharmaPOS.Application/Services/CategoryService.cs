@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.MedicineCategoryAggregate;
+using PharmaPOS.Domain.CategoryAggregate;
 
 namespace PharmaPOS.Application.Services;
 
@@ -12,12 +12,12 @@ public class CategoryService(
 	IUnitOfWork unitOfWork,
 	ILogger<CategoryService> logger) : IApplicationService
 {
-	public async Task<ErrorOr<Created>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreateCategoryAsync(CategoryRequest request, CancellationToken ct = default)
 	{
 		if (await categoryRepo.ExistsByNameAsync(request.Name, null, ct))
-			return MedicineCategoryErrors.NameNotUnique;
+			return CategoryErrors.NameNotUnique;
 
-		var categoryResult = MedicineCategory.Create(request.Name);
+		var categoryResult = Category.Create(request.Name);
 		if (categoryResult.IsError)
 			return categoryResult.Errors;
 
@@ -29,14 +29,14 @@ public class CategoryService(
 		return Result.Created;
 	}
 
-	public async Task<ErrorOr<Updated>> UpdateCategoryAsync(int id, MedicineCategoryRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateCategoryAsync(int id, CategoryRequest request, CancellationToken ct = default)
 	{
 		var category = await categoryRepo.GetByIdAsync(id, ct);
 		if (category == null)
-			return MedicineCategoryErrors.NotFound(id);
+			return CategoryErrors.NotFound(id);
 
 		if (await categoryRepo.ExistsByNameAsync(request.Name, id, ct))
-			return MedicineCategoryErrors.NameNotUnique;
+			return CategoryErrors.NameNotUnique;
 
 		var updateResult = category.Update(request.Name);
 		if (updateResult.IsError)
@@ -53,7 +53,7 @@ public class CategoryService(
 	{
 		var category = await categoryRepo.GetByIdAsync(id, ct);
 		if (category == null)
-			return MedicineCategoryErrors.NotFound(id);
+			return CategoryErrors.NotFound(id);
 
 		categoryRepo.Remove(category);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -62,16 +62,16 @@ public class CategoryService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<MedicineCategory>> GetCategoryAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Category>> GetCategoryAsync(int id, CancellationToken ct = default)
 	{
 		var category = await categoryRepo.GetByIdAsync(id, ct);
 		if (category == null)
-			return MedicineCategoryErrors.NotFound(id);
+			return CategoryErrors.NotFound(id);
 
 		return category;
 	}
 
-	public async Task<List<MedicineCategory>> GetAllCategoriesAsync(CancellationToken ct = default)
+	public async Task<List<Category>> GetAllCategoriesAsync(CancellationToken ct = default)
 	{
 		return await categoryRepo.GetAllAsync(ct);
 	}

@@ -5,7 +5,7 @@ using PharmaPOS.Application;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Infrastructure;
-using PharmaPOS.Infrastructure.Data;
+using PharmaPOS.Infrastructure.Common.Persistence;
 using PharmaPOS.Razor.Middlewares;
 using PharmaPOS.Razor.Providers;
 

@@ -1,6 +1,5 @@
 using ErrorOr;
 using PharmaPOS.Domain.Common;
-using PharmaPOS.Domain.MedicineCategoryAggregate;
 
 namespace PharmaPOS.Domain.MedicineAggregate;
 

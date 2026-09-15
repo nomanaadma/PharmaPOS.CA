@@ -8,5 +8,5 @@ public static class MedicineErrors
 		Error.NotFound("Medicine.NotFound", $"Medicine {id} does not exist.");
 	
 	public static Error CategoryNotFound(int categoryId) =>
-		Error.NotFound("MedicineCategory.NotFound", $"Category {categoryId} does not exist.");
+		Error.NotFound("Category.NotFound", $"Category {categoryId} does not exist.");
 }

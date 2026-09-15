@@ -1,4 +1,4 @@
-using PharmaPOS.Domain.MedicineCategoryAggregate;
+using PharmaPOS.Domain.CategoryAggregate;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 using PharmaPOS.Domain.SettingAggregate;
 using PharmaPOS.Domain.SupplierAggregate;
@@ -45,18 +45,18 @@ public static class SettingMapper
         return suppliers.Select(MapToSupplier);
     }
 
-    public static MedicineCategoryViewModel MapToMedicineCategory(MedicineCategory category)
+    public static CategoryViewModel MapToCategory(Category category)
     {
-        return new MedicineCategoryViewModel
+        return new CategoryViewModel
         {
             Id = category.Id,
             Name = category.Name
         };
     }
 
-    public static IEnumerable<MedicineCategoryViewModel> MapToMedicineCategories(IEnumerable<MedicineCategory> categories)
+    public static IEnumerable<CategoryViewModel> MapToCategories(IEnumerable<Category> categories)
     {
-        return categories.Select(MapToMedicineCategory).ToList();
+        return categories.Select(MapToCategory).ToList();
     }
 
     public static PaymentMethodViewModel MapToPaymentMethod(PaymentMethod method)

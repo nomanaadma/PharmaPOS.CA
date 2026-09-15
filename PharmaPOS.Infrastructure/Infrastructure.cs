@@ -2,8 +2,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Infrastructure.Data;
-using PharmaPOS.Infrastructure.Repositories;
+using PharmaPOS.Infrastructure.Common.Persistence;
 
 namespace PharmaPOS.Infrastructure;
 
