@@ -13,7 +13,7 @@ public class PaymentMethodService(
 	IUnitOfWork unitOfWork,
 	ILogger<PaymentMethodService> logger) : IApplicationService
 {
-	public async Task<ErrorOr<int>> CreatePaymentMethodAsync(PaymentMethodRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreatePaymentMethodAsync(PaymentMethodRequest request, CancellationToken ct = default)
 	{
 		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, null, ct))
 			return PaymentMethodErrors.NameNotUnique;
@@ -29,10 +29,10 @@ public class PaymentMethodService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Payment method {MethodId} '{Name}' created", method.Id, method.Name);
-		return method.Id;
+		return Result.Created;
 	}
 
-	public async Task<ErrorOr<int>> UpdatePaymentMethodAsync(int id, PaymentMethodRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdatePaymentMethodAsync(int id, PaymentMethodRequest request, CancellationToken ct = default)
 	{
 		var method = await paymentMethodRepo.GetByIdAsync(id, ct);
 		if (method == null)
@@ -51,7 +51,7 @@ public class PaymentMethodService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Payment method {MethodId} updated", id);
-		return method.Id;
+		return Result.Updated;
 	}
 
 	public async Task<ErrorOr<Deleted>> DeletePaymentMethodAsync(int id, CancellationToken ct = default)

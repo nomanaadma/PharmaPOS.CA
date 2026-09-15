@@ -13,7 +13,7 @@ public class SupplierService(
 	IUnitOfWork unitOfWork,
 	ILogger<SupplierService> logger) : IApplicationService
 {
-	public async Task<ErrorOr<int>> CreateSupplierAsync(SupplierRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreateSupplierAsync(SupplierRequest request, CancellationToken ct = default)
 	{
 		if (await supplierRepo.ExistsByEmailAsync(request.Email, null, ct))
 			return SupplierErrors.EmailNotUnique;
@@ -29,10 +29,10 @@ public class SupplierService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Supplier {SupplierId} '{Name}' created", supplier.Id, supplier.Name);
-		return supplier.Id;
+		return Result.Created;
 	}
 
-	public async Task<ErrorOr<int>> UpdateSupplierAsync(int id, SupplierRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateSupplierAsync(int id, SupplierRequest request, CancellationToken ct = default)
 	{
 		var supplier = await supplierRepo.GetByIdAsync(id, ct);
 		if (supplier == null)
@@ -51,7 +51,7 @@ public class SupplierService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Supplier {SupplierId} updated", id);
-		return supplier.Id;
+		return Result.Updated;
 	}
 
 	public async Task<ErrorOr<Deleted>> DeleteSupplierAsync(int id, CancellationToken ct = default)

@@ -121,7 +121,7 @@ public class BillingService(
 	/// <summary>
 	/// Updates an existing bill: reverts old inventory, clears old items, adds new items, adjusts inventory.
 	/// </summary>
-	public async Task<ErrorOr<int>> UpdateBillAsync(int id, BillingRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateBillAsync(int id, BillingRequest request, CancellationToken ct = default)
 	{
 		if (request.Items.Count == 0)
 			return BillErrors.MissingItems;
@@ -211,7 +211,7 @@ public class BillingService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, request.Items.Count);
-		return bill.Id;
+		return Result.Updated;
 	}
 
 	/// <summary>

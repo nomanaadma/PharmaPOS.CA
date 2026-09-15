@@ -12,7 +12,7 @@ public class CategoryService(
 	IUnitOfWork unitOfWork,
 	ILogger<CategoryService> logger) : IApplicationService
 {
-	public async Task<ErrorOr<int>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreateCategoryAsync(MedicineCategoryRequest request, CancellationToken ct = default)
 	{
 		if (await categoryRepo.ExistsByNameAsync(request.Name, null, ct))
 			return MedicineCategoryErrors.NameNotUnique;
@@ -26,10 +26,10 @@ public class CategoryService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Category {CategoryId} '{Name}' created", category.Id, category.Name);
-		return category.Id;
+		return Result.Created;
 	}
 
-	public async Task<ErrorOr<int>> UpdateCategoryAsync(int id, MedicineCategoryRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateCategoryAsync(int id, MedicineCategoryRequest request, CancellationToken ct = default)
 	{
 		var category = await categoryRepo.GetByIdAsync(id, ct);
 		if (category == null)
@@ -46,7 +46,7 @@ public class CategoryService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Category {CategoryId} updated", id);
-		return category.Id;
+		return Result.Updated;
 	}
 
 	public async Task<ErrorOr<Deleted>> DeleteCategoryAsync(int id, CancellationToken ct = default)

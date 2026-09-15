@@ -62,7 +62,7 @@ public class SettingService(
 		return settings;
 	}
 
-	public async Task<ErrorOr<Success>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
 	{
 		var settings = await settingRepo.GetRawSettingsAsync(ct);
 		var details = new SettingDetails(request.Name, request.LegalName, request.Mail, request.Phone);
@@ -90,7 +90,7 @@ public class SettingService(
 		settings.UpdateAddress(new Address(request.AddressLine1, request.AddressLine2, request.City, request.Country, request.Postal));
 
 		await unitOfWork.SaveChangesAsync(ct);
-		return Result.Success;
+		return Result.Updated;
 	}
 
 	public async Task<List<Media>> GetMediaListAsync(CancellationToken ct = default)
@@ -126,7 +126,7 @@ public class SettingService(
 		return new MediaUploadResponse(media, width, height);
 	}
 
-	public async Task<ErrorOr<Success>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)
+	public async Task<ErrorOr<Deleted>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)
 	{
 		var media = await mediaRepo.GetByIdAndFilenameAsync(id, name, ct);
 		if (media == null)
@@ -148,7 +148,7 @@ public class SettingService(
 		mediaRepo.Remove(media);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		return Result.Success;
+		return Result.Deleted;
 	}
 
 	public (int width, int height) GetImageDimensions(string path)

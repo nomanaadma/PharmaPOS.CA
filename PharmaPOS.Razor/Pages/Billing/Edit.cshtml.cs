@@ -53,6 +53,6 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
             return HandleErrors(result.Errors);
 
         NotifySuccess("Bill updated successfully.");
-        return RedirectToPage("/Billing/View", new { id = result.Value });
+        return RedirectToPage("/Billing/View", new { id });
     }
 }

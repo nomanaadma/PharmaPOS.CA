@@ -18,7 +18,7 @@ public class MedicineService(
 	/// <summary>
 	/// Creates a new medicine.
 	/// </summary>
-	public async Task<ErrorOr<int>> CreateMedicineAsync(MedicineRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreateMedicineAsync(MedicineRequest request, CancellationToken ct = default)
 	{
 		var details = request.Adapt<MedicineDetails>();
 
@@ -31,13 +31,13 @@ public class MedicineService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Medicine {MedicineId} '{Name}' created", medicine.Id, medicine.Name);
-		return medicine.Id;
+		return Result.Created;
 	}
 
 	/// <summary>
 	/// Updates an existing medicine.
 	/// </summary>
-	public async Task<ErrorOr<int>> UpdateMedicineAsync(int id, MedicineRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateMedicineAsync(int id, MedicineRequest request, CancellationToken ct = default)
 	{
 		var medicine = await medicineRepo.GetByIdAsync(id, ct);
 
@@ -54,7 +54,7 @@ public class MedicineService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Medicine {MedicineId} '{Name}' updated", medicine.Id, medicine.Name);
-		return medicine.Id;
+		return Result.Updated;
 	}
 
 	/// <summary>

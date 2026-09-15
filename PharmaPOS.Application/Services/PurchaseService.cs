@@ -23,7 +23,7 @@ public class PurchaseService(
 		return await purchaseRepo.GetFilteredPurchasesAsync(request, columns, ct);
 	}
 
-	public async Task<ErrorOr<int>> CreatePurchaseAsync(PurchaseRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreatePurchaseAsync(PurchaseRequest request, CancellationToken ct = default)
 	{
 		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
@@ -82,7 +82,7 @@ public class PurchaseService(
 			await transaction.CommitAsync(ct);
 			
 			logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
-			return purchase.Id;
+			return Result.Created;
 		}
 		catch
 		{
@@ -91,7 +91,7 @@ public class PurchaseService(
 		}
 	}
 
-	public async Task<ErrorOr<int>> UpdatePurchaseAsync(int id, PurchaseRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdatePurchaseAsync(int id, PurchaseRequest request, CancellationToken ct = default)
 	{
 		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
@@ -178,7 +178,7 @@ public class PurchaseService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Purchase {PurchaseId} updated with {BatchCount} batches", existingPurchase.Id, request.Items.Count);
-		return existingPurchase.Id;
+		return Result.Updated;
 	}
 
 	public async Task<ErrorOr<Deleted>> DeletePurchaseAsync(int id, CancellationToken ct = default)

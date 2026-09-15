@@ -1,4 +1,3 @@
-
 using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Contracts.Responses;

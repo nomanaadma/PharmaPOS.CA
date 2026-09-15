@@ -29,12 +29,13 @@ public class CustomerService(
 		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
 	}
 
-	public async Task<ErrorOr<int>> CreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Created>> CreateCustomerAsync(CustomerRequest request, CancellationToken ct = default)
 	{
 		if (request.Email != null && await customerRepo.ExistsByEmailAsync(request.Email, null, ct))
 			return CustomerErrors.EmailNotUnique; 
 		
-		return await SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
+		await SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
+		return Result.Created;
 	}
 	
 	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, string logMessage, CancellationToken ct)
@@ -53,7 +54,7 @@ public class CustomerService(
 		return customer.Id;
 	}
 
-	public async Task<ErrorOr<int>> UpdateCustomerAsync(int id, CustomerRequest request, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateCustomerAsync(int id, CustomerRequest request, CancellationToken ct = default)
 	{
 		var customer = await customerRepo.GetByIdAsync(id, ct);
 		if (customer == null)
@@ -72,7 +73,7 @@ public class CustomerService(
 		await unitOfWork.SaveChangesAsync(ct);
 
 		logger.LogInformation("Customer {CustomerId} updated", id);
-		return customer.Id;
+		return Result.Updated;
 	}
 
 	public async Task<ErrorOr<Deleted>> DeleteCustomerAsync(int id, CancellationToken ct = default)

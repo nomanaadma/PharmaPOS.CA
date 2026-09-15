@@ -70,7 +70,7 @@ public class StockService(
 		}).ToList();
 	}
 
-	public async Task<ErrorOr<Success>> UpdateStockAvailableAsync(int id, int medicineId, decimal available, CancellationToken ct = default)
+	public async Task<ErrorOr<Updated>> UpdateStockAvailableAsync(int id, int medicineId, decimal available, CancellationToken ct = default)
 	{
 		var batch = await batchRepo.GetSingleBatchAsync(medicineId, id, ct);
 		
@@ -87,10 +87,10 @@ public class StockService(
 		await unitOfWork.SaveChangesAsync(ct);
 		
 		logger.LogInformation("Stock {BatchId} for Medicine {MedicineId} updated to available: {Available}", id, medicineId, available);
-		return Result.Success;
+		return Result.Updated;
 	}
 
-	public async Task<ErrorOr<Success>> DeleteStockAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<Deleted>> DeleteStockAsync(int id, CancellationToken ct = default)
 	{
 		var batch = await batchRepo.GetByIdAsync(id, ct);
 		
@@ -101,6 +101,6 @@ public class StockService(
 		await unitOfWork.SaveChangesAsync(ct);
 		
 		logger.LogInformation("Stock {BatchId} marked as InActive", id);
-		return Result.Success;
+		return Result.Deleted;
 	}
 }
