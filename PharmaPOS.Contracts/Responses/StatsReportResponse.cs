@@ -10,5 +10,6 @@ public record StatsReportResponse
 	decimal PurchaseAmount,
 	decimal? Quantity,
 	decimal TaxAmount,
-	decimal DiscountAmount
+	decimal DiscountAmount,
+	decimal Profit
 );

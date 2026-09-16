@@ -21,7 +21,7 @@ public class EditModel(PaymentMethodService paymentMethodService) : BasePageMode
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        Input = SettingMapper.MapToPaymentMethod(result.Value);
+        Input = result.Value.Adapt<PaymentMethodViewModel>();
         return Page();
     }
 

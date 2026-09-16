@@ -1,6 +1,6 @@
 using ErrorOr;
 using PharmaPOS.Domain.Common;
-using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Domain.PaymentMethodAggregate;
 

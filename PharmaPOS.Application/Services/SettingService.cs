@@ -1,4 +1,5 @@
 using ErrorOr;
+using Mapster;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Contracts.Requests;
@@ -14,12 +15,14 @@ public class SettingService(
 	IUnitOfWork unitOfWork,
 	IFilePathProvider pathProvider) : IApplicationService
 {
-	public async Task<Setting?> GetRawSettingsAsync(CancellationToken ct = default)
+	public async Task<SettingResponse?> GetRawSettingsAsync(CancellationToken ct = default)
 	{
-		return await settingRepo.GetRawSettingsAsync(ct);
+		var settings = await settingRepo.GetRawSettingsAsync(ct);
+		var settingResponse = settings.Adapt<SettingResponse>();
+		return settingResponse;
 	}
 
-	public async Task<Setting> GetSettingsAsync(CancellationToken ct = default)
+	public async Task<SettingResponse> GetSettingsAsync(CancellationToken ct = default)
 	{
 		var settings = await settingRepo.GetSettingsAsync(ct);
 	
@@ -58,8 +61,10 @@ public class SettingService(
 		}
 		
 		settings.UpdateImages(logo, logoIcon, lgBackground, favicon);
+
+		var settingResponse = settings.Adapt<SettingResponse>(); 
 		
-		return settings;
+		return settingResponse;
 	}
 
 	public async Task<ErrorOr<Updated>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
@@ -123,7 +128,7 @@ public class SettingService(
 
 		var (width, height) = GetImageDimensions(filePath);
 
-		return new MediaUploadResponse(media, width, height);
+		return new MediaUploadResponse(media.Id, media.Filename, width, height);
 	}
 
 	public async Task<ErrorOr<Deleted>> DeleteMediaFileAsync(int id, string name, CancellationToken ct = default)

@@ -1,4 +1,5 @@
 using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Application.Services;
@@ -10,13 +11,8 @@ public class ReportService(IReportRepository reportRepo) : IApplicationService
 		return await reportRepo.GetInventoryReportAsync(ct);
 	}
 
-	public async Task<StatsReportResponse> GetIncomeExpenseReportAsync(
-		DateTime? start, 
-		DateTime? end, 
-		int? medicineId, 
-		string? medicineName, 
-		CancellationToken ct = default)
+	public async Task<StatsReportResponse> GetIncomeExpenseReportAsync(InventoryReportRequest request, CancellationToken ct = default)
 	{
-		return await reportRepo.GetIncomeExpenseReportAsync(start, end, medicineId, medicineName, ct);
+		return await reportRepo.GetIncomeExpenseReportAsync(request, ct);
 	}
 }

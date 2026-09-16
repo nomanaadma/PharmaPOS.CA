@@ -1,7 +1,7 @@
 using ErrorOr;
 using PharmaPOS.Domain.Common;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.Common.ValueObjects;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Domain.BatchAggregate;
 

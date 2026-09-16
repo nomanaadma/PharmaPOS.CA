@@ -6,7 +6,6 @@ using PharmaPOS.Application.Services;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
@@ -25,7 +24,11 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
 
         var paymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
         
-        Input = BillingMapper.MapToBillingForm(result.Value, paymentMethods);
+        Input = result.Value.Adapt<BillingFormModel>();
+        Input.PaymentMethods = paymentMethods;
+
+        Console.WriteLine("working");
+        
         return Page();
     }
 

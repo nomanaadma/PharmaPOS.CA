@@ -20,8 +20,9 @@ public class EditModel(CustomerService customerService) : BasePageModel
         var result = await customerService.GetCustomerAsync(id, ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
+        
+        Input = result.Value.Adapt<CustomerViewModel>();
 
-        Input = CustomerMapper.MapToCustomer(result.Value);
         return Page();
     }
 

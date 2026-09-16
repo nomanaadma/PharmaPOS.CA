@@ -1,6 +1,6 @@
 using ErrorOr;
 
-namespace PharmaPOS.Domain.Common.ValueObjects;
+namespace PharmaPOS.Domain.Common.Errors;
 
 public static class PricingErrors
 {

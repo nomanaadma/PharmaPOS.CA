@@ -1,11 +1,6 @@
 using System.Text;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.BatchAggregate;
-using PharmaPOS.Domain.PurchaseAggregate;
-using PharmaPOS.Domain.SupplierAggregate;
 using PharmaPOS.Razor.Extensions;
-using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Mappers;
 
@@ -91,75 +86,5 @@ public static class PurchaseMapper
             };
         }).ToList();
     }
-
-    public static PurchaseFormModel MapToPurchaseForm(
-	    PurchaseDetailsResponse response,
-	    IEnumerable<SelectListItem> suppliers)
-    {
-	    var (purchase, batches, medicineNames, _) = response;
-        return new PurchaseFormModel
-        {
-            Id = purchase.Id,
-            Supplier = purchase.SupplierId,
-            Date = purchase.Date,
-            Note = purchase.Note,
-            SubTotal = purchase.SubTotal,
-            Tax = purchase.Tax,
-            Discount = purchase.Discount,
-            Amount = purchase.Amount,
-            Suppliers = suppliers,
-            Items = batches.Select(b => new PurchaseItemFormModel
-            {
-                Id = b.Id,
-                MedicineId = b.MedicineId,
-                Name = medicineNames.GetValueOrDefault(b.MedicineId, ""),
-                Batch = b.BatchName,
-                Expiry = b.Expiry,
-                Pqty = b.Pqty,
-                Qty = b.Pricing.Qty,
-                Purchaseprice = b.PurchasePrice,
-                SalePrice = b.Pricing.SalePrice,
-                Gross = b.Pricing.Gross,
-                DiscountType = b.Pricing.DiscountType,
-                Discount = b.Pricing.Discount,
-                DiscountValue = b.Pricing.DiscountValue,
-                Tax = b.Pricing.Tax,
-                TaxPrice = b.Pricing.TaxPrice,
-                Price = b.Pricing.Price
-            }).ToList()
-        };
-    }
-
-    public static PurchaseViewModel MapToPurchaseView(PurchaseDetailsResponse response)
-    {
-	    var (purchase, batches, medicineNames, supplier) = response;
-	    
-        return new PurchaseViewModel
-        {
-            Id = purchase.Id,
-            SupplierName = supplier.Name,
-            SupplierEmail = supplier.Email,
-            SupplierPhone = supplier.Phone,
-            Date = purchase.Date,
-            SubTotal = purchase.SubTotal,
-            Tax = purchase.Tax,
-            Discount = purchase.Discount,
-            Amount = purchase.Amount,
-            Note = purchase.Note,
-            Items = batches.Select(b => new PurchaseBatchViewModel
-            {
-                MedicineName = medicineNames.GetValueOrDefault(b.MedicineId, ""),
-                BatchName = b.BatchName,
-                Expiry = b.Expiry,
-                Pqty = b.Pqty,
-                Qty = b.Pricing.Qty,
-                PurchasePrice = b.PurchasePrice,
-                SalePrice = b.Pricing.SalePrice,
-                Gross = b.Pricing.Gross,
-                DiscountValue = b.Pricing.DiscountValue,
-                TaxPrice = b.Pricing.TaxPrice,
-                Price = b.Pricing.Price
-            }).ToList()
-        };
-    }
+    
 }

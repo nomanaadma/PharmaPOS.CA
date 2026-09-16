@@ -8,18 +8,24 @@ using PharmaPOS.Infrastructure.Common.Persistence;
 
 namespace PharmaPOS.Infrastructure.Bills.Persistence;
 
-public class BillRepository(
-	ApplicationDbContext context, 
-	IBatchRepository batchRepo,
-	IPaymentMethodRepository paymentMethodRepository,
-	IMedicineRepository medicineRepo) : Repository<Bill>(context), IBillRepository
+public class BillRepository(ApplicationDbContext context) : Repository<Bill>(context), IBillRepository
 {
-	public async Task<DataTableResponse<Bill>> GetFilteredBillsAsync(
+	public async Task<DataTableResponse<BillingListResponse>> GetFilteredBillsAsync(
 		DataTableRequest request, 
-		DataTableColumnMap<Bill> columns, 
+		DataTableColumnMap<BillingListResponse> columns, 
 		CancellationToken ct = default)
 	{
-		var query = DbSet.AsQueryable();
+		var query = DbSet.Select(b => new BillingListResponse {
+			Id = b.Id,
+			Date = b.Date,
+			SubTotal = b.SubTotal,
+			Tax = b.Tax,
+			Discount = b.Discount,
+			Amount = b.Amount,
+			Note = b.Note,
+			Name = b.Name
+		}).AsQueryable();
+		
 		return await query.ToDataTableAsync(request, columns, ct);
 	}
 
@@ -29,26 +35,7 @@ public class BillRepository(
 			.Include(b => b.Items)
 			.FirstOrDefaultAsync(b => b.Id == id, ct);
 	}
-
-	public async Task<BillDetailsResponse?> GetBillDetailsAsync(int id, CancellationToken ct = default)
-	{
-		var bill = await DbSet
-			.Include(b => b.Items)
-			.FirstOrDefaultAsync(b => b.Id == id, ct);
-
-		if (bill == null) return null;
-
-		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
-		var batchesById = await batchRepo.GetBatchByIdsAsync(batchIds, ct); 
-
-		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
-		var medicineNames = await medicineRepo.GetMedicineNamesByIdsAsync(medicineIds, ct);
-
-		var paymentMethodName = await paymentMethodRepository.GetMethodNameByIdAsync(bill.MethodId, ct); 
-		
-		return new BillDetailsResponse(bill, batchesById, medicineNames, paymentMethodName);
-	}
-
+	
 	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
 	{
 		return await DbSet

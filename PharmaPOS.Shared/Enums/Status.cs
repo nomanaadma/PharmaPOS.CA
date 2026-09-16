@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.Common.Enums;
+namespace PharmaPOS.Shared.Enums;
 
 public enum Status
 {

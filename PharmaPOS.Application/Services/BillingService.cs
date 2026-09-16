@@ -1,18 +1,20 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BillingAggregate;
-using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.Domain.CustomerAggregate;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Application.Services;
 
 public class BillingService(
 	IBillRepository billRepo,
 	IBatchRepository batchRepo,
+	IPaymentMethodRepository paymentMethodRepo,
+	IMedicineRepository medicineRepo,
 	IUnitOfWork unitOfWork,
 	CustomerService customerService,
 	MedicineService medicineService,
@@ -21,7 +23,10 @@ public class BillingService(
 	/// <summary>
 	/// Gets filtered bills for DataTables.
 	/// </summary>
-	public async Task<DataTableResponse<Bill>> GetFilteredBillsAsync(DataTableRequest request, DataTableColumnMap<Bill> columns, CancellationToken ct = default)
+	public async Task<DataTableResponse<BillingListResponse>> GetFilteredBillsAsync(
+		DataTableRequest request, 
+		DataTableColumnMap<BillingListResponse> columns, 
+		CancellationToken ct = default)
 	{
 		return await billRepo.GetFilteredBillsAsync(request, columns, ct);
 	}
@@ -257,6 +262,8 @@ public class BillingService(
 			return BillErrors.NotFound(id);
 
 		var medicineIds = bill.Items.Select(i => i.MedicineId).Distinct().ToList();
+		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
+		
 		var itemBatchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
 
 		var activeBatches = await batchRepo.GetNonExpiredBatchesAsync(medicineIds, ct);
@@ -273,25 +280,64 @@ public class BillingService(
 			.GroupBy(b => b.MedicineId)
 			.ToDictionary(g => g.Key, g => g.ToList());
 		
-		var medicineNames = await medicineService.GetMedicineNamesByIds(medicineIds, ct);
+		var billEditResponse = bill.Adapt<BillEditResponse>();
+		
+		foreach (var item in billEditResponse.Items)
+		{
+			item.MedicineName = medicineNames.GetValueOrDefault(item.MedicineId, "");
+			
+			batchesByMedicine.TryGetValue(item.MedicineId, out var batches);
+			var batch = batches?.FirstOrDefault(b => b.Id == item.BatchId);
 
-		return new BillEditResponse(bill, batchesByMedicine, medicineNames);
+			item.BatchName = batch?.BatchName ?? "";
+			item.Expiry = batch?.Expiry ?? "";
+			item.Batches = batches?.Adapt<IReadOnlyCollection<BillEditBatchDto>>() ?? [];
+
+		}
+		
+		return billEditResponse;
+
 	}
 
 	/// <summary>
 	/// Loads a bill with all related data for the Details (view) action.
 	/// </summary>
-	public async Task<ErrorOr<BillDetailsResponse>> GetBillAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<BillResponse>> GetBillAsync(int id, CancellationToken ct = default)
 	{
-		var details = await billRepo.GetBillDetailsAsync(id, ct);
-		if (details == null)
+		var bill = await billRepo.GetBillWithItemsAsync(id, ct);
+		
+		if (bill == null)
 			return BillErrors.NotFound(id);
+		
+		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
+		var batchesById = await batchRepo.GetBatchByIdsAsync(batchIds, ct); 
 
-		return details;
+		var medicineIds = bill.Items.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineNames = await medicineRepo.GetMedicineNamesByIdsAsync(medicineIds, ct);
+
+		var paymentMethodName = await paymentMethodRepo.GetMethodNameByIdAsync(bill.MethodId, ct);
+		
+		var billResponse = bill.Adapt<BillResponse>();
+		
+		billResponse.PaymentMethodName = paymentMethodName;
+		
+		foreach (var item in billResponse.Items)
+		{
+			item.MedicineName = medicineNames.GetValueOrDefault(item.MedicineId, "");
+
+			batchesById.TryGetValue(item.BatchId, out var batch);
+
+			item.BatchName = batch?.BatchName ?? "";
+			item.Expiry = batch?.Expiry ?? "";
+		}
+		
+		return billResponse;
 	}
 	
-	public async Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
+	public async Task<List<CustomerBillsResponse>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default)
 	{
-		return await billRepo.GetRecentBillsAsync(customerId, email, ct);
+		var bills = await billRepo.GetRecentBillsAsync(customerId, email, ct);
+		var billsResponse = bills.Adapt<List<CustomerBillsResponse>>();
+		return billsResponse;
 	}
 }

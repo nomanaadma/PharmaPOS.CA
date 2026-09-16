@@ -5,11 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.Domain.CustomerAggregate;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Helpers;
+using PharmaPOS.Shared.Enums;
 using static System.Enum;
 
 namespace PharmaPOS.Razor.Pages.Users;

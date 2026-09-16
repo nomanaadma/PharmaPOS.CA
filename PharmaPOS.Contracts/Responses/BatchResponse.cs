@@ -1,6 +1,6 @@
 ﻿namespace PharmaPOS.Contracts.Responses;
 
-public record StockResponse(
+public record BatchResponse(
 	int Id,
 	int MedicineId,
 	int PurchaseId,
@@ -16,4 +16,3 @@ public record StockResponse(
 	decimal Sold,
 	decimal Available
 );
-

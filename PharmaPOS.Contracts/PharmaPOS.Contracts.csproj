@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PharmaPOS.Domain\PharmaPOS.Domain.csproj" />
+      <ProjectReference Include="..\PharmaPOS.Shared\PharmaPOS.Shared.csproj" />
     </ItemGroup>
 
 </Project>

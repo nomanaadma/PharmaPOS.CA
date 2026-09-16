@@ -2,20 +2,23 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
-using PharmaPOS.Razor.Mappers;
-using PharmaPOS.Razor.Models;
+using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Reports;
 
 [Authorize(Policy = Permissions.Reports.View)]
 public class IncomeExpenseModel(ReportService reportService) : BasePageModel
 {
-    public IncomeExpenseReportViewModel Stats { get; set; } = new();
+	
+	[BindProperty(SupportsGet = true)]
+	public InventoryReportRequest Filter { get; set; } = new();
 
-    public async Task<IActionResult> OnGetAsync(DateTime? start, DateTime? end, int? medicineId, string? medicineName, CancellationToken ct)
+	public StatsReportResponse Stats { get; set; } = null!;
+
+    public async Task<IActionResult> OnGetAsync(InventoryReportRequest request, CancellationToken ct)
     {
-        var stats = await reportService.GetIncomeExpenseReportAsync(start, end, medicineId, medicineName, ct);
-        Stats = ReportMapper.MapToStatsReport(stats);
+	    Stats = await reportService.GetIncomeExpenseReportAsync(request, ct);
         return Page();
     }
 }

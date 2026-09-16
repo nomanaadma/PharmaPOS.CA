@@ -11,6 +11,4 @@ public interface IPurchaseRepository : IRepository<Purchase>
 		DataTableRequest request, 
 		DataTableColumnMap<PurchaseListResponse> columns, 
 		CancellationToken ct = default);
-
-	Task<PurchaseDetailsResponse?> GetPurchaseDetailsAsync(int id, CancellationToken ct = default);
 }

@@ -79,12 +79,12 @@
 					@foreach (var value in Model.Purchase.Items)
 					{
 						<tr>
-							<td>@value.MedicineName</td>
-							<td>@value.BatchName</td>
+							<td>@value.Name</td>
+							<td>@value.Batch</td>
 							<td>@(DateTime.TryParse(value.Expiry, out var date) ? date.ExpiryVisibleFormat() : value.Expiry)</td>
 							<td>@value.Pqty</td>
 							<td>@value.Qty</td>
-							<td>@value.PurchasePrice</td>
+							<td>@value.Purchaseprice</td>
 							<td>@value.SalePrice</td>
 							<td>@value.Gross</td>
 							<td>@value.DiscountValue</td>

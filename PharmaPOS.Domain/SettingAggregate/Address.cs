@@ -22,11 +22,4 @@ public record Address
 
 	public static Address Empty => new(null, null, null, null, null);
 	
-	public override string ToString()
-	{
-		var parts = new[] { Line1, Line2, City, Country, Postal }
-			.Where(p => !string.IsNullOrWhiteSpace(p));
-		return string.Join(", ", parts);
-	}
-	
 }

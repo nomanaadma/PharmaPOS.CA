@@ -21,7 +21,7 @@ public class EditModel(SupplierService supplierService) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        Input = SettingMapper.MapToSupplier(result.Value);
+        Input = result.Value.Adapt<SupplierViewModel>();
         return Page();
     }
 

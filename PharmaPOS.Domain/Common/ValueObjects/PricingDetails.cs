@@ -1,5 +1,6 @@
 using ErrorOr;
-using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Domain.Common.Errors;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Domain.Common.ValueObjects;
 
@@ -8,45 +9,27 @@ public record PricingDetails
 	// EF Core parameterless constructor
 	private PricingDetails() { }
 
-	private PricingDetails(
-		decimal qty,
-		decimal salePrice,
-		decimal gross,
-		DiscountType discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price)
+	private PricingDetails(PricingFields pricingFields)
 	{
-		Qty = qty;
-		SalePrice = salePrice;
-		Gross = gross;
-		DiscountType = discountType;
-		Discount = discount;
-		DiscountValue = discountValue;
-		Tax = tax;
-		TaxPrice = taxPrice;
-		Price = price;
+		Qty = pricingFields.Qty;
+		SalePrice = pricingFields.SalePrice;
+		Gross = pricingFields.Gross;
+		DiscountType = pricingFields.DiscountType;
+		Discount = pricingFields.Discount;
+		DiscountValue = pricingFields.DiscountValue;
+		Tax = pricingFields.Tax;
+		TaxPrice = pricingFields.TaxPrice;
+		Price = pricingFields.Price;
 	}
 
-	public static ErrorOr<PricingDetails> Create(
-		decimal qty,
-		decimal salePrice,
-		decimal gross,
-		DiscountType discountType,
-		decimal discount,
-		decimal discountValue,
-		decimal tax,
-		decimal taxPrice,
-		decimal price)
+	public static ErrorOr<PricingDetails> Create(PricingFields pricingFields)
 	{
-		if (qty < 0)
+		if (pricingFields.Qty < 0)
 			return PricingErrors.NegativeQuantity;
-		if (salePrice < 0)
+		if (pricingFields.SalePrice < 0)
 			return PricingErrors.NegativeSalePrice;
 
-		return new PricingDetails(qty, salePrice, gross, discountType, discount, discountValue, tax, taxPrice, price);
+		return new PricingDetails(pricingFields);
 	}
 
 

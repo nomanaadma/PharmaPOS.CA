@@ -2,20 +2,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
-using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.PaymentMethods;
 
 [Authorize(Policy = Permissions.PaymentMethod.List)]
 public class IndexModel(PaymentMethodService paymentMethodService) : BasePageModel
 {
-    public IEnumerable<PaymentMethodViewModel> PaymentMethods { get; set; } = new List<PaymentMethodViewModel>();
+    public IEnumerable<PaymentMethodResponse> PaymentMethods { get; set; } = new List<PaymentMethodResponse>();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var methodsQuery = await paymentMethodService.GetAllPaymentMethodsAsync(ct);
-        PaymentMethods = SettingMapper.MapToPaymentMethods(methodsQuery);
+        var methods = await paymentMethodService.GetAllPaymentMethodsAsync(ct);
+        PaymentMethods = methods;
         
         return Page();
     }

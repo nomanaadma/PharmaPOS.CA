@@ -1,4 +1,5 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
@@ -6,12 +7,15 @@ using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Domain.SupplierAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class PurchaseService(
 	IPurchaseRepository purchaseRepo,
 	IBatchRepository batchRepo,
+	IMedicineRepository medicineRepo,
+	ISupplierRepository supplierRepo,
 	IUnitOfWork unitOfWork,
 	ILogger<PurchaseService> logger) : IApplicationService
 {
@@ -202,12 +206,41 @@ public class PurchaseService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<PurchaseDetailsResponse>> GetPurchaseAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<PurchaseResponse>> GetPurchaseAsync(int id, CancellationToken ct = default)
 	{
-		var result = await purchaseRepo.GetPurchaseDetailsAsync(id, ct);
-		if (result == null)
+		
+		var purchase = await purchaseRepo.GetByIdAsync(id, ct);
+		if (purchase == null)
 			return PurchaseErrors.NotFound(id);
+		
+		var supplier = await supplierRepo.GetByIdAsync(purchase.SupplierId, ct);
+		if(supplier == null)
+			return SupplierErrors.NotFound(id);
+		
+		var batches = await batchRepo.GetBatchesByPurchaseIdAsync(id, ct);
 
-		return result;
+		var purchaseItems = batches.Adapt<List<PurchaseItemResponse>>(); 
+
+		var medicineIds = purchaseItems.Select(b => b.MedicineId).Distinct().ToList();
+
+		var medicineNames = await medicineRepo.GetMedicineNamesByIdsAsync(medicineIds, ct);
+
+		foreach (var purchaseItem in purchaseItems)
+		{
+			var name = medicineNames.GetValueOrDefault(purchaseItem.MedicineId, "");
+			purchaseItem.Name = name;
+		}
+
+		var purchaseResponse = purchase.Adapt<PurchaseResponse>() with
+		{
+			Items = purchaseItems,
+			SupplierName = supplier.Name,
+			SupplierEmail = supplier.Email,
+			SupplierPhone = supplier.Phone,
+			Supplier = supplier.Id
+		};
+
+		return purchaseResponse;
+		
 	}
 }

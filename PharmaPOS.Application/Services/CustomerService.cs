@@ -89,18 +89,22 @@ public class CustomerService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<Customer>> GetCustomerAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<CustomerResponse>> GetCustomerAsync(int id, CancellationToken ct = default)
 	{
 		var customer = await customerRepo.GetByIdAsync(id, ct);
 		if (customer == null)
 			return CustomerErrors.NotFound(id);
+				
+		var customerResponse =  customer.Adapt<CustomerResponse>();				
 
-		return customer;
+		return customerResponse;
 	}
 
-	public async Task<List<Customer>> GetAllCustomersAsync(CancellationToken ct = default)
+	public async Task<List<CustomerResponse>> GetAllCustomersAsync(CancellationToken ct = default)
 	{
-		return await customerRepo.GetAllAsync(ct);
+		var customers = await customerRepo.GetAllAsync(ct);
+		var customerResponse = customers.Adapt<List<CustomerResponse>>();
+		return customerResponse;
 	}
 
 	public async Task<List<CustomerSearchResult>> SearchCustomersAsync(string term, CancellationToken ct = default)

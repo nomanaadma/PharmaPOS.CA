@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 using PharmaPOS.Infrastructure.Common.Persistence;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Infrastructure.PaymentMethods.Persistence;
 

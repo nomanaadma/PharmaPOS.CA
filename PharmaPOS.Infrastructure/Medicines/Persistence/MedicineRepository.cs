@@ -1,49 +1,34 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.Infrastructure.Common.Persistence;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Infrastructure.Medicines.Persistence;
 
 public class MedicineRepository(
-	ICategoryRepository categoryRepo,
 	ApplicationDbContext context) : Repository<Medicine>(context), IMedicineRepository
 {
-	public async Task<MedicineDetailsResponse?> GetMedicineDetailsAsync(int id, CancellationToken ct = default)
-	{
-		var medicine = await DbSet.FindAsync([id], ct);
-		if (medicine == null) return null;
-
-		var categoryName = await categoryRepo.GetCategoryNameByIdAsync(medicine.CategoryId, ct);
-			
-		if (categoryName == null) return null;
-
-		return new MedicineDetailsResponse(medicine, categoryName);
-	}
-
-	public async Task<MedicinesWithStockResponse> GetMedicinesWithStockAsync(CancellationToken ct = default)
+	public async Task<List<(Medicine medicine, decimal liveStock)>> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ToString("yyyyMM");
 
 		var medicines = await DbSet
 			.OrderByDescending(m => m.CreatedDate)
-			.Select(m => new MedicineStockResponse
-			(
-				m,
-				DbContext.Batches
+			.Select(m => new {
+				medicine = m,
+				liveStock = DbContext.Batches
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active && string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0m
-			))
+			})
 			.ToListAsync(ct);
 
-		var categoryIds = medicines.Select(msr => msr.Medicine.CategoryId).Distinct().ToList();
+		return medicines
+			.Select(x => (x.medicine, x.liveStock))
+			.ToList();
 		
-		var categoriesNames = await categoryRepo.GetCategoryNamesByIdsAsync(categoryIds, ct);
-
-		return new MedicinesWithStockResponse(medicines, categoriesNames);
 	}
 
 	public async Task<Dictionary<int, string>> GetMedicineNamesByIdsAsync(List<int> medicineIds, CancellationToken ct = default)

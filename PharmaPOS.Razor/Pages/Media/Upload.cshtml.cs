@@ -22,7 +22,7 @@ public class UploadModel(SettingService settingService) : PageModel
         if (uploadResult.IsError)
             return new JsonResult(new { error = true, message = uploadResult.Errors[0].Description });
 
-        var (media, width, height) = uploadResult.Value;
+        var (id, filename, width, height) = uploadResult.Value;
         
         var canDelete = User.HasClaim("Permission", Permissions.Media.Delete);
 
@@ -33,16 +33,16 @@ public class UploadModel(SettingService settingService) : PageModel
         var mediaHtml = $"""
                          <div class="block">
                              {deleteHtml}
-                             <input type="radio" class="block-id" value="{media.Id}">
+                             <input type="radio" class="block-id" value="{id}">
                              <div class="picture">
-                                 <img src="/uploads/{media.Filename}" title="{media.Filename}">
-                                 <input type="radio" id="{media.Filename}" value="{media.Filename}">
-                                 <label for="{media.Filename}">{media.Filename}</label>
+                                 <img src="/uploads/{filename}" title="{filename}">
+                                 <input type="radio" id="{filename}" value="{filename}">
+                                 <label for="{filename}">{filename}</label>
                              </div>
                              <label class="font-12">Image Size : {width}*{height}</label>
                          </div>
                          """;
 
-        return new JsonResult(new { error = false, name = media.Filename, id = media.Id, media = mediaHtml });
+        return new JsonResult(new { error = false, name = filename, id, media = mediaHtml });
     }
 }

@@ -1,9 +1,8 @@
-using PharmaPOS.Domain.MediaAggregate;
-
 namespace PharmaPOS.Contracts.Responses;
 
 public record MediaUploadResponse(
-    Media Media, 
+    int Id,
+    string Filename,
     int Width, 
     int Height
 );

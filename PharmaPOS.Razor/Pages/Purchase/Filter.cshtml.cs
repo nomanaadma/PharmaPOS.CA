@@ -15,7 +15,7 @@ public class FilterModel(PurchaseService purchaseService) : PageModel
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         var request = Request.Form.ToDataTableRequest();
-
+	
         var result = await purchaseService.GetFilteredPurchasesAsync(request, PurchaseColumns.GetColumnMap(), ct);
 
         var canView = User.HasClaim("Permission", Permissions.Purchase.View);

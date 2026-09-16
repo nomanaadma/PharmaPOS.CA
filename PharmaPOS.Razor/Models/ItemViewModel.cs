@@ -2,8 +2,8 @@
 
 public abstract class ItemViewModel
 {
-	public string MedicineName { get; init; } = string.Empty;
-	public string BatchName { get; init; } = string.Empty;
+	public string Name { get; init; } = string.Empty;
+	public string Batch { get; init; } = string.Empty;
 	public string Expiry { get; init; } = string.Empty;
 	public decimal Qty { get; init; }
 	public decimal SalePrice { get; init; }

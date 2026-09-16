@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Helpers;
-using PharmaPOS.Domain.BillingAggregate;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Helpers;
 
@@ -11,7 +11,7 @@ namespace PharmaPOS.Razor.Helpers;
 /// </summary>
 public static class BillColumns
 {
-	public static DataTableColumnMap<Bill> GetColumnMap() => new()
+	public static DataTableColumnMap<BillingListResponse> GetColumnMap() => new()
 	{
 		GlobalSearchFilter = (query, search) =>
 		{
@@ -29,7 +29,7 @@ public static class BillColumns
 			
 		},
 
-		Columns = new Dictionary<string, DataTableColumn<Bill>>
+		Columns = new Dictionary<string, DataTableColumn<BillingListResponse>>
 		{
 			["name"] = new()
 			{
@@ -63,7 +63,7 @@ public static class BillColumns
 			}
 		},
 
-		SortColumns = new Dictionary<string, Expression<Func<Bill, object>>>
+		SortColumns = new Dictionary<string, Expression<Func<BillingListResponse, object>>>
 		{
 			["1"] = mb => mb.Name,
 			["2"] = mb => mb.SubTotal,

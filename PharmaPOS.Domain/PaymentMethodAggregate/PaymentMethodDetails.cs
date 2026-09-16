@@ -1,4 +1,4 @@
-using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Domain.PaymentMethodAggregate;
 

@@ -5,12 +5,14 @@ using PharmaPOS.Application.Extensions;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Application.Services;
 
 public class MedicineService(
 	IMedicineRepository medicineRepo,
+	ICategoryRepository categoryRepo,
 	IUnitOfWork unitOfWork,
 	BatchService batchService,
 	ILogger<MedicineService> logger) : IApplicationService
@@ -77,44 +79,89 @@ public class MedicineService(
 	/// <summary>
 	/// Loads a medicine with category for the View action.
 	/// </summary>
-	public async Task<ErrorOr<MedicineDetailsResponse>> GetMedicineAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<MedicineResponse>> GetMedicineAsync(int id, CancellationToken ct = default)
 	{
-		var response = await medicineRepo.GetMedicineDetailsAsync(id, ct);
+		
+		var medicine = await  medicineRepo.GetByIdAsync(id, ct);
+		if (medicine == null)
+		{
+			return MedicineErrors.NotFound(id);
+		}
+		
+		var categoryName = await categoryRepo.GetCategoryNameByIdAsync(medicine.CategoryId, ct);
+		if (categoryName == null)
+		{
+			return MedicineErrors.CategoryNotFound(medicine.CategoryId);
+		}
+		
+		var response = medicine.Adapt<MedicineResponse>() with
+		{
+			CategoryName = categoryName
+		};
 
-		if (response != null) return response;
-		
-		var medicine = await medicineRepo.GetByIdAsync(id, ct);
-		
-		return medicine == null ? MedicineErrors.NotFound(id) : MedicineErrors.CategoryNotFound(medicine.CategoryId);
+		return response;
 	}
 
 	/// <summary>
 	/// Returns all medicines with live stock for the Index page.
 	/// </summary>
-	public async Task<MedicinesWithStockResponse> GetMedicinesWithStockAsync(CancellationToken ct = default)
+	public async Task<List<MedicineResponse>> GetMedicinesWithStockAsync(CancellationToken ct = default)
 	{
-		return await medicineRepo.GetMedicinesWithStockAsync(ct);
-	}
+		var medicinesWithStock = await medicineRepo.GetMedicinesWithStockAsync(ct); 
+		
+		var categoryIds = medicinesWithStock.Select(msr => msr.medicine.CategoryId).Distinct().ToList();
+		var categoriesNames = await categoryRepo.GetCategoryNamesByIdsAsync(categoryIds, ct);
 
-	public async Task<MedicineStockSummaryResponse> GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
+		var medicinesResponse = new List<MedicineResponse>();
+
+		foreach (var (medicine, liveStock) in medicinesWithStock)
+		{
+			var categoryName = categoriesNames.GetValueOrDefault(medicine.CategoryId, "");
+			var responseResponse = medicine.Adapt<MedicineResponse>() with
+			{
+				CategoryName = categoryName,
+				LiveStock = liveStock
+			};
+			
+			medicinesResponse.Add(responseResponse);
+			
+		}
+
+		return medicinesResponse;
+		
+	}
+	
+	
+	public async Task<(
+		IEnumerable<BatchResponse> liveBatches,
+		IEnumerable<BatchResponse> badBatches
+		)> 
+		GetMedicineStockSummaryAsync(int medicineId, CancellationToken ct = default)
 	{
 		var today = DateTime.UtcNow.Date;
 		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
 
 		var batchesQuery = await batchService.GetActiveBatchesByMedicineAsync(medicineId, ct);
 		
-		var liveBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
-		
-		var badBatches = batchesQuery.Where(b => 
-				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
-			.Where(b => b.Pricing.Qty > b.Sold);
+		var batchesResponse = batchesQuery.Adapt<List<BatchResponse>>();
 		
 		// Fetch medicine names for display
-		var medicineIds = batchesQuery.Select(b => b.MedicineId).Distinct().ToList();
+		var medicineIds = batchesResponse.Select(b => b.MedicineId).Distinct().ToList();
 		var medicineNames = await GetMedicineNamesByIds(medicineIds, ct);
-            
-		return new MedicineStockSummaryResponse(liveBatches, badBatches, medicineNames);
+		
+		batchesResponse = batchesResponse
+			.Select(br => br with { Name = medicineNames.GetValueOrDefault(br.MedicineId, "") })
+			.ToList();
+		
+		var liveBatches = batchesResponse.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) >= 0);
+		
+		var badBatches = batchesResponse.Where(b => 
+				string.CompareOrdinal(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonthStr) < 0)
+			.Where(b => b.Qty > b.Sold);
+
+		return (liveBatches, badBatches);
+
 	}
 
 	public async Task<Dictionary<int, string>> GetMedicineNamesByIds(List<int> medicineIds, CancellationToken ct)

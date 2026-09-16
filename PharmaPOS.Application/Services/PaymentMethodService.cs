@@ -67,18 +67,23 @@ public class PaymentMethodService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<PaymentMethod>> GetPaymentMethodAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<PaymentMethodResponse>> GetPaymentMethodAsync(int id, CancellationToken ct = default)
 	{
 		var method = await paymentMethodRepo.GetByIdAsync(id, ct);
 		if (method == null)
 			return PaymentMethodErrors.NotFound(id);
+		
+		var methodResponse = method.Adapt<PaymentMethodResponse>();
 
-		return method;
+		return methodResponse;
+
 	}
 
-	public async Task<List<PaymentMethod>> GetAllPaymentMethodsAsync(CancellationToken ct = default)
+	public async Task<List<PaymentMethodResponse>> GetAllPaymentMethodsAsync(CancellationToken ct = default)
 	{
-		return await paymentMethodRepo.GetAllAsync(ct);
+		var methods = await paymentMethodRepo.GetAllAsync(ct);
+		var methodsResponse = methods.Adapt<List<PaymentMethodResponse>>(); 
+		return methodsResponse;
 	}
 
 	/// <summary>

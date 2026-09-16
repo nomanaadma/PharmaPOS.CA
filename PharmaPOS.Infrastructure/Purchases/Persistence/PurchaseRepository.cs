@@ -9,10 +9,7 @@ using PharmaPOS.Infrastructure.Common.Persistence;
 namespace PharmaPOS.Infrastructure.Purchases.Persistence;
 
 public class PurchaseRepository(
-	ApplicationDbContext context,
-	IMedicineRepository medicineRepo,
-	ISupplierRepository supplierRepo,
-	IBatchRepository batchRepo
+	ApplicationDbContext context
 	) : Repository<Purchase>(context), IPurchaseRepository
 {
 	public async Task<DataTableResponse<PurchaseListResponse>> GetFilteredPurchasesAsync(
@@ -35,22 +32,5 @@ public class PurchaseRepository(
 			});
 
 		return await query.ToDataTableAsync(request, columns, ct);
-	}
-
-	public async Task<PurchaseDetailsResponse?> GetPurchaseDetailsAsync(int id, CancellationToken ct = default)
-	{
-		var purchase = await DbSet.FindAsync([id], ct);
-		if (purchase == null) return null;
-
-		var supplier = await supplierRepo.GetByIdAsync(purchase.SupplierId, ct);
-		if (supplier == null) return null;
-
-		var batches = await batchRepo.GetBatchesByPurchaseIdAsync(id, ct);
-
-		var medicineIds = batches.Select(b => b.MedicineId).Distinct().ToList();
-
-		var medicineNames = await medicineRepo.GetMedicineNamesByIdsAsync(medicineIds, ct);
-
-		return new PurchaseDetailsResponse(purchase, batches, medicineNames, supplier);
 	}
 }

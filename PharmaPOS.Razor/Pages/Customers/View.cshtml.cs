@@ -2,16 +2,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
-using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Customers;
 
 [Authorize(Policy = Permissions.Customer.View)]
 public class ViewModel(CustomerService customerService, BillingService billingService) : BasePageModel
 {
-    public CustomerViewModel Customer { get; set; } = new();
-    public IEnumerable<CustomerBillViewModel> RecentBills { get; set; } = new List<CustomerBillViewModel>();
+	public CustomerResponse Customer { get; set; } = null!;
+    public IEnumerable<CustomerBillsResponse> RecentBills { get; set; } = new List<CustomerBillsResponse>();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
@@ -21,9 +20,9 @@ public class ViewModel(CustomerService customerService, BillingService billingSe
 
         var customer = result.Value;
         var recentBills = await billingService.GetRecentBillsAsync(customer.Id, customer.Email, ct);
-        
-        Customer = CustomerMapper.MapToCustomer(customer);
-        RecentBills = CustomerMapper.MapToCustomerBills(recentBills);
+
+        Customer = customer;
+        RecentBills = recentBills;
 
         return Page();
     }

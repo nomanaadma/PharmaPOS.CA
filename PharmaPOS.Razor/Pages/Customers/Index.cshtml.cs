@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
 
@@ -10,12 +11,12 @@ namespace PharmaPOS.Razor.Pages.Customers;
 [Authorize(Policy = Permissions.Customer.List)]
 public class IndexModel(CustomerService customerService) : BasePageModel
 {
-    public IEnumerable<CustomerViewModel> Customers { get; set; } = new List<CustomerViewModel>();
+    public IEnumerable<CustomerResponse> Customers { get; set; } = new List<CustomerResponse>();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         var customersQuery = await customerService.GetAllCustomersAsync(ct);
-        Customers = CustomerMapper.MapToCustomers(customersQuery);
+        Customers = customersQuery;
         return Page();
     }
     

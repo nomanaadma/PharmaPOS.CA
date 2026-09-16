@@ -1,10 +1,14 @@
-using PharmaPOS.Domain.MedicineAggregate;
-
 namespace PharmaPOS.Contracts.Responses;
 
 public record InventoryReportResponse(
-    Medicine Medicine,
-    decimal TotalPurchase,
-    decimal TotalSales,
-    decimal LiveStock
-);
+	int MedicineId,
+	string MedicineName,
+	decimal? ReorderLevel,
+	decimal? MinLevel,
+	decimal TotalPurchase,
+	decimal TotalSales,
+	decimal LiveStock
+)
+{
+	public decimal Profit { get; set; }
+};

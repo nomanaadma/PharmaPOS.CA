@@ -1,4 +1,4 @@
-namespace PharmaPOS.Domain.CustomerAggregate;
+namespace PharmaPOS.Shared.Enums;
 
 public enum Gender
 {

@@ -1,33 +1,304 @@
-﻿I want to refactor my code 
+﻿
 
-Whereever we are using
+# Clean Architecture — Dependency Rule Analysis
 
-this pattern in domain like in supplier
+## The Dependency Rule
+
+In Clean Architecture, dependencies must **only point inward**. The allowed reference graph is:
+
+```mermaid
+graph LR
+    Razor["🖥️ Razor (Presentation)"] --> Application
+    Razor --> Contracts
+    Razor --> Infrastructure
+    Infrastructure --> Application
+    Infrastructure --> Domain
+    Application --> Domain
+    Application --> Contracts
+    Contracts --> Domain
+```
+
+> [!IMPORTANT]
+> The key rule: **outer layers depend on inner layers, never the reverse.**
+
+---
+
+## Current State
+
+### Your actual `.csproj` references today
+
+| Project | References | Status |
+|---------|-----------|--------|
+| **Domain** | *(none)* | ✅ Perfect |
+| **Contracts** | Domain | ⚠️ See below |
+| **Application** | Domain, Contracts | ✅ Correct |
+| **Infrastructure** | Application *(transitive: Domain, Contracts)* | ✅ Correct |
+| **Razor** | Application, Infrastructure, **Domain** | ⚠️ Violation |
+
+---
+
+## ⚠️ Violation 1 — Razor → Domain (direct reference)
+
+**The issue:** [PharmaPOS.Razor.csproj](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Razor/PharmaPOS.Razor.csproj#L21) has a direct `<ProjectReference>` to `PharmaPOS.Domain`. This means Razor pages and mappers use Domain entities directly instead of going through Contracts/DTOs.
+
+**28+ files** in Razor use `PharmaPOS.Domain.*` namespaces — mappers, view models, Razor pages, etc.
+
+**Why it's a problem:**
+- Presentation knows about internal domain structure (aggregate roots, value objects, entity details)
+- If you refactor a Domain entity, the UI layer breaks
+- The Razor layer should only speak "DTO language" defined in Contracts
+
+**The fix:** Razor should reference **only** Application, Contracts, and Infrastructure (for DI wiring). All Domain entities returned from Application services should be mapped to response DTOs in Contracts, and Razor should only consume those DTOs.
+
+---
+
+## ⚠️ Violation 2 — Contracts → Domain (reference)
+
+**The issue:** [PharmaPOS.Contracts.csproj](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/PharmaPOS.Contracts.csproj#L10) references `PharmaPOS.Domain`, and many response DTOs directly embed Domain entities:
+
+- [`BillEditResponse`](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/Responses/BillEditResponse.cs) — contains `Bill` and `Dictionary<int, List<Batch>>`
+- [`BillDetailsResponse`](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/Responses/BillDetailsResponse.cs) — contains `Bill` and `Dictionary<int, Batch>`
+- [`PurchaseDetailsResponse`](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/Responses/PurchaseDetailsResponse.cs) — contains `Purchase`, `Batch`, `Supplier`
+- [`MedicineStockSummaryResponse`](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/Responses/MedicineStockSummaryResponse.cs) — contains `IEnumerable<Batch>`
+- [`InventoryReportResponse`](file:///d:/.Net%20Works/PharmaPOS/PharmaPOS.Contracts/Responses/InventoryReportResponse.cs) — contains `Medicine`
+- Request DTOs use `PharmaPOS.Domain.Common.Enums` (Gender, Status, DiscountType)
+
+**Why it's a problem:**
+- Contracts is supposed to be the "API surface" — pure DTOs with no internal knowledge
+- Embedding `Bill`, `Batch`, `Purchase` etc. means Contracts is not a true abstraction boundary
+- If Domain changes, Contracts and all consumers break
+
+**Two approaches to fix:**
+
+### Option A: Mirror enums in Contracts (strict separation)
+- Copy `Gender`, `Status`, `DiscountType` into `PharmaPOS.Contracts.Enums`
+- Replace all Domain entity references in responses with flat DTO properties
+- Remove the Domain reference from Contracts entirely
+
+### Option B: Allow Contracts → Domain for shared enums only (pragmatic)
+- Keep the Domain reference **only** for `PharmaPOS.Domain.Common.Enums`
+- Replace all entity-level references (`Bill`, `Batch`, `Purchase`, etc.) with flat DTOs
+- This is a common pragmatic compromise in many projects
+
+---
+
+## ✅ Infrastructure → Domain (NOT a violation)
+
+**This is perfectly fine.** Infrastructure implements the repository interfaces defined in Application, and those interfaces work with Domain entities. Infrastructure *must* reference Domain to:
+- Configure EF Core entity mappings (`IEntityTypeConfiguration<T>`)
+- Map database rows to Domain entities in repository implementations
+- Access `DbSet<DomainEntity>`
+
+This follows the Clean Architecture dependency rule: Infrastructure (outer ring) → Domain (innermost ring) points inward.
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Which approach do you prefer for Contracts → Domain?**
+> - **Option A** (strict): Duplicate enums in Contracts, remove Domain reference entirely
+> - **Option B** (pragmatic): Keep Domain reference for enums only, but flatten all entity references into DTO properties
+
+> [!IMPORTANT]
+> **How thorough should the Razor cleanup be?**
+> - This is a significant refactoring — every Application service that returns a Domain entity today needs a new response DTO, and every Razor mapper/page model that uses Domain entities needs to be updated to use the new DTOs instead.
+> - Should this be a separate phase/PR, or do you want it bundled into the current clean architecture work?
 
 
-public Supplier(string name, string email, string phone, string? address)
-{
-    Update(name, email, phone, address);
-}
-
-public void Update(string name, string email, string phone, string? address)
-{
-    if (string.IsNullOrWhiteSpace(name))
-        throw new ArgumentException("Supplier Name is required.", nameof(name));
-    if (string.IsNullOrWhiteSpace(email))
-        throw new ArgumentException("Email Address is required.", nameof(email));
-    if (string.IsNullOrWhiteSpace(phone))
-        throw new ArgumentException("Phone Number is required.", nameof(phone));
-
-    Name = name;
-    Email = email;
-    Phone = phone;
-    Address = address;
-}
 
 
-I find problem in this approach it's a parameter hell so I want to use DTO record so refactor this
 
-so the DTO would be called SupplierDetails and it'll get pass to the supplier constructor and Update method 
 
-can you implement it  ? 
+# Remove Domain References from Contracts & Razor
+
+Eliminate all `PharmaPOS.Domain` references from both `PharmaPOS.Contracts` and `PharmaPOS.Razor` to achieve strict Clean Architecture separation.
+
+## Proposed Changes
+
+### Phase 1 — Mirror Enums into Contracts
+
+Create `PharmaPOS.Contracts/Enums/` with copies of the Domain enums. These will be the **only** enum types used by Contracts, Razor, and request/response DTOs.
+
+#### [NEW] `PharmaPOS.Contracts/Enums/Status.cs`
+Mirror of `PharmaPOS.Domain.Common.Enums.Status` (Active/InActive).
+
+#### [NEW] `PharmaPOS.Contracts/Enums/Gender.cs`
+Mirror of `PharmaPOS.Domain.CustomerAggregate.Gender` (NotSpecified/Male/Female).
+
+#### [NEW] `PharmaPOS.Contracts/Enums/DiscountType.cs`
+Mirror of `PharmaPOS.Domain.Common.Enums.DiscountType` (Percentage/Flat).
+
+---
+
+### Phase 2 — Flatten Contracts Response DTOs
+
+Replace every Domain entity reference in response/request DTOs with flat primitive properties. Each existing DTO that embeds a Domain entity (e.g. `Bill`, `Batch`, `Purchase`, `Medicine`, `Supplier`, `Media`, `Setting`) gets rewritten as a flat record.
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/BillDetailsResponse.cs`
+- **Before:** `Bill Bill, Dictionary<int, Batch> BatchesById, ...`
+- **After:** Flat DTO with `int Id, string Name, string? Email, ...` + `List<BillItemDto> Items` + `string PaymentMethodName`
+
+#### [NEW] `PharmaPOS.Contracts/Responses/BillItemDto.cs`
+Flat DTO: `MedicineName, BatchName, Expiry, Qty, SalePrice, Gross, DiscountValue, TaxPrice, Price`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/BillEditResponse.cs`
+- **Before:** `Bill Bill, Dictionary<int, List<Batch>> BatchesByMedicine, ...`
+- **After:** Flat DTO with bill fields + `List<BillEditItemDto> Items`
+
+#### [NEW] `PharmaPOS.Contracts/Responses/BillEditItemDto.cs`
+Flat DTO for edit items including `List<BatchOptionDto> Batches`
+
+#### [NEW] `PharmaPOS.Contracts/Responses/BatchOptionDto.cs`
+Flat DTO: `Id, Batch, Qty, Sold`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/PurchaseDetailsResponse.cs`
+- **Before:** `Purchase Purchase, List<Batch> Batches, ..., Supplier Supplier`
+- **After:** Flat DTO with purchase fields + supplier fields + `List<PurchaseBatchDto> Batches`
+
+#### [NEW] `PharmaPOS.Contracts/Responses/PurchaseBatchDto.cs`
+Flat DTO: `Id, MedicineId, MedicineName, BatchName, Expiry, Pqty, Qty, PurchasePrice, SalePrice, Gross, DiscountType, Discount, DiscountValue, Tax, TaxPrice, Price`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/InventoryReportResponse.cs`
+- **Before:** `Medicine Medicine, ...`
+- **After:** `int MedicineId, string MedicineName, decimal TotalPurchase, decimal TotalSales, decimal LiveStock`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/MedicineDetailsResponse.cs`
+- **Before:** `Medicine Medicine, string CategoryName`
+- **After:** Flat DTO with all Medicine fields + `CategoryName`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/MedicineStockResponse.cs`
+- **Before:** `Medicine Medicine, decimal LiveStock`
+- **After:** `int Id, string Name, int CategoryId, decimal LiveStock`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/MedicineStockSummaryResponse.cs`
+- **Before:** `IEnumerable<Batch> ActiveBatches, IEnumerable<Batch> ExpiredBatches, ...`
+- **After:** `List<BatchStockDto> ActiveBatches, List<BatchStockDto> ExpiredBatches, ...`
+
+#### [NEW] `PharmaPOS.Contracts/Responses/BatchStockDto.cs`
+Flat DTO for stock summary batches: `Id, MedicineId, BatchName, Expiry, Qty, Sold, Available, PurchasePrice, SalePrice`
+
+#### [MODIFY] `PharmaPOS.Contracts/Responses/MediaUploadResponse.cs`
+- **Before:** `Media Media, int Width, int Height`
+- **After:** `int Id, string Filename, string Extension, int Width, int Height`
+
+#### [MODIFY] Contracts Request DTOs
+Update all `using PharmaPOS.Domain.Common.Enums` and `using PharmaPOS.Domain.CustomerAggregate` → `using PharmaPOS.Contracts.Enums` in:
+- `CustomerRequest.cs`
+- `PaymentMethodRequest.cs`
+- `PricingDetailRequest.cs`
+- `PurchaseItemRequest.cs`
+- `BillingItemRequest.cs`
+
+Also remove `using PharmaPOS.Domain.CustomerAggregate` from `CustomerRequest.cs` (it was importing `Gender`).
+
+#### [MODIFY] `PharmaPOS.Contracts/PharmaPOS.Contracts.csproj`
+Remove `<ProjectReference>` to `PharmaPOS.Domain`.
+
+---
+
+### Phase 3 — Add Contracts Enums to Domain (Mapping Layer)
+
+The Application and Infrastructure layers need to map between `Contracts.Enums.X` ↔ `Domain.X` enums. Since the enum values are identical (same names, same integer values), we can cast directly: `(Domain.Common.Enums.Status)(int)contractsStatus`.
+
+#### [NEW] `PharmaPOS.Application/Mappers/EnumMapper.cs`
+Static helper with `ToDomain()` and `ToContracts()` methods for each enum pair.
+
+---
+
+### Phase 4 — Update Application Services
+
+Update service methods that currently return Domain entities to return the new flat DTOs instead. This is where the Domain → DTO mapping happens.
+
+#### Services returning Domain entities that need changes:
+
+| Service | Method | Returns Today | Returns After |
+|---------|--------|--------------|--------------|
+| `SettingService` | `GetSettingsAsync` | `Setting` | `SettingResponse` (new) |
+| `SettingService` | `GetRawSettingsAsync` | `Setting?` | `SettingResponse?` |
+| `SettingService` | `GetMediaListAsync` | `List<Media>` | `List<MediaResponse>` (new) |
+| `SettingService` | `UploadMediaFileAsync` | `MediaUploadResponse` | Updated flat DTO |
+| `CustomerService` | `GetCustomerAsync` | `ErrorOr<Customer>` | `ErrorOr<CustomerResponse>` (new) |
+| `CustomerService` | `GetAllCustomersAsync` | `List<Customer>` | `List<CustomerResponse>` |
+| `CategoryService` | `GetCategoryAsync` | `ErrorOr<Category>` | `ErrorOr<CategoryResponse>` (new) |
+| `CategoryService` | `GetAllCategoriesAsync` | `List<Category>` | `List<CategoryResponse>` |
+| `SupplierService` | `GetSupplierAsync` | `ErrorOr<Supplier>` | `ErrorOr<SupplierResponse>` (new) |
+| `SupplierService` | `GetAllSuppliersAsync` | `List<Supplier>` | `List<SupplierResponse>` |
+| `PaymentMethodService` | `GetPaymentMethodAsync` | `ErrorOr<PaymentMethod>` | `ErrorOr<PaymentMethodResponse>` (new) |
+| `PaymentMethodService` | `GetAllPaymentMethodsAsync` | `List<PaymentMethod>` | `List<PaymentMethodResponse>` |
+| `MedicineService` | Various | Updated to use flat DTOs | |
+| `BillingService` | `GetFilteredBillsAsync` | `DataTableResponse<Bill>` | `DataTableResponse<BillListResponse>` (new) |
+| `BillingService` | `GetRecentBillsAsync` | `List<Bill>` | `List<RecentBillResponse>` (new) |
+| `BatchService` | Various methods | `List<Batch>` etc. | Internal only (not exposed to Razor) |
+| `ReportService` | `GetInventoryReportAsync` | Uses flat `InventoryReportResponse` | Updated flat DTO |
+
+#### New response DTOs needed in Contracts:
+
+- `SettingResponse` — flat Setting fields + Address fields
+- `MediaResponse` — Id, Filename, Extension, CreatedDate
+- `CustomerResponse` — all Customer fields with Contracts.Enums
+- `CategoryResponse` — Id, Name
+- `SupplierResponse` — Id, Name, Email, Phone, Address
+- `PaymentMethodResponse` — Id, Name, Status (Contracts.Enums)
+- `BillListResponse` — Id, Name, SubTotal, Tax, Discount, Amount, Date (for DataTable)
+- `RecentBillResponse` — Id, Amount, Date
+
+---
+
+### Phase 5 — Update Razor Layer
+
+#### [MODIFY] `PharmaPOS.Razor/PharmaPOS.Razor.csproj`
+Remove `<ProjectReference>` to `PharmaPOS.Domain`.
+
+#### [MODIFY] All Razor Mappers
+Update to consume Contracts DTOs instead of Domain entities:
+- `SettingMapper.cs` — use `SettingResponse`, `SupplierResponse`, `CategoryResponse`, `PaymentMethodResponse`
+- `CustomerMapper.cs` — use `CustomerResponse`, `RecentBillResponse`
+- `MedicineMapper.cs` — use flattened `MedicineDetailsResponse`, `MedicineStockResponse`
+- `PurchaseMapper.cs` — use flattened `PurchaseDetailsResponse`
+- `BillingMapper.cs` — use `BillListResponse`, flattened `BillDetailsResponse`, `BillEditResponse`
+- `StockMapper.cs` — use `BatchStockDto` instead of `Batch`
+- `ReportMapper.cs` — use flattened `InventoryReportResponse`
+
+#### [MODIFY] All Razor Models/ViewModels
+Replace `using PharmaPOS.Domain.*` with `using PharmaPOS.Contracts.Enums`:
+- `CustomerViewModel.cs`, `PaymentMethodViewModel.cs`, `PricingDetailModel.cs`, `UserViewModels.cs`
+
+#### [MODIFY] Razor Pages (.cshtml and .cshtml.cs)
+Update `@using PharmaPOS.Domain.*` → `@using PharmaPOS.Contracts.Enums`:
+- `_ViewImports.cshtml`
+- `Users/Index.cshtml`, `Users/Edit.cshtml.cs`, `Users/_UserForm.cshtml`
+- `Customers/_CustomerForm.cshtml`
+- `Billing/_BillingForm.cshtml`
+
+#### [MODIFY] `Extensions/StatusExtensions.cs`
+Change from `using PharmaPOS.Domain.Common.Enums` → `using PharmaPOS.Contracts.Enums`
+
+#### [MODIFY] `Helpers/BillColumns.cs`
+Use `BillListResponse` instead of `Bill` for DataTable column mapping.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+```bash
+dotnet build PharmaPOS.slnx
+```
+- 0 errors, 0 warnings
+- No `using PharmaPOS.Domain` in Contracts project
+- No `using PharmaPOS.Domain` in Razor project
+- No `<ProjectReference>` to Domain in Contracts or Razor csproj files
+
+### Manual Verification
+- Run the app and verify key pages: Settings, Customers, Medicines, Purchase, Billing, Stock, Reports
+- Verify DataTable filtering still works on Purchase and Billing pages
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **DataTable `Bill` filtering**: Currently `BillingService.GetFilteredBillsAsync` returns `DataTableResponse<Bill>`. The DataTable infrastructure in `BillColumns.cs` uses `Bill` entity directly with EF Core `ILike` expressions. Changing this to `BillListResponse` means the `BillRepository.GetFilteredBillsAsync` needs to project to the DTO inside the query (like `PurchaseRepository` already does for `PurchaseListResponse`). This is the right approach — do you agree?
+
+

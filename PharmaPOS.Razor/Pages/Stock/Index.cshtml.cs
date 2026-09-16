@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
+using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Razor.Mappers;
 using PharmaPOS.Razor.Models;
 
@@ -10,12 +11,11 @@ namespace PharmaPOS.Razor.Pages.Stock;
 [Authorize(Policy = Permissions.Stock.View)]
 public class IndexModel(StockService stockService) : BasePageModel
 {
-    public IEnumerable<StockViewModel> Stocks { get; set; } = new List<StockViewModel>();
+    public IEnumerable<BatchResponse> Stocks { get; set; } = new List<BatchResponse>();
 
     public async Task<IActionResult> OnGetAsync(string? type, CancellationToken ct)
     {
-        var result = await stockService.GetStockListAsync(type, ct);
-        Stocks = StockMapper.MapToStockList(result);
+        Stocks = await stockService.GetStockListAsync(type, ct);
 
         var pageTitle = type switch
         {

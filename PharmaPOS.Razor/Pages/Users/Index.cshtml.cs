@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
+using PharmaPOS.Shared.Enums;
 using UserRole = PharmaPOS.Application.Authorization.Roles;
 
 namespace PharmaPOS.Razor.Pages.Users;

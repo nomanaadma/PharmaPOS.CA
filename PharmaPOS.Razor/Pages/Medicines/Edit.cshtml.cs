@@ -24,7 +24,9 @@ public class EditModel(MedicineService medicineService, CategoryService category
             return HandleErrors(result.Errors);
         
         var categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
-        Input = MedicineMapper.MapToMedicine(result.Value, categories);
+        
+        Input = result.Value.Adapt<MedicineViewModel>();
+        Input.Categories = categories;
         
         return Page();
     }

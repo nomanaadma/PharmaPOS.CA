@@ -1,7 +1,6 @@
 using System.Text;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Mapster;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.BillingAggregate;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
 
@@ -9,7 +8,22 @@ namespace PharmaPOS.Razor.Mappers;
 
 public static class BillingMapper
 {
-    public static IEnumerable<object> MapToBills(IEnumerable<Bill> bills, bool canView, bool canEdit, bool canDelete)
+	
+	public static void Register(TypeAdapterConfig config)
+	{
+		config.NewConfig<BillEditResponse, BillingFormModel>()
+			.Map(dest => dest.Method, src => src.MethodId);
+
+		config.NewConfig<BillEditItemDto, BillingItemFormModel>()
+			.Map(dest => dest.Name, src => src.MedicineName)
+			.Map(dest => dest.Batch, src => src.BatchId);
+
+		config.NewConfig<BillEditBatchDto, BillingItemBatchesFormModel>()
+			.Map(dest => dest.Batch, src => src.BatchName);
+	}
+	
+	
+	public static IEnumerable<object> MapToBills(IEnumerable<BillingListResponse> bills, bool canView, bool canEdit, bool canDelete)
     {
         var canAction = canView || canEdit || canDelete;
         
@@ -92,97 +106,6 @@ public static class BillingMapper
         }).ToList();
     }
 
-    public static BillingFormModel MapToBillingForm(
-	    BillEditResponse response,
-	    IEnumerable<SelectListItem> paymentMethods)
-    {
-
-	    var (bill, items, medicineNames) = response;
-	    
-        return new BillingFormModel
-        {
-            Id = bill.Id,
-            CustomerId = bill.CustomerId,
-            Name = bill.Name,
-            Email = bill.Email,
-            Mobile = bill.Mobile,
-            Method = bill.MethodId,
-            Date = bill.Date,
-            SubTotal = bill.SubTotal,
-            Tax = bill.Tax,
-            Discount = bill.Discount,
-            Amount = bill.Amount,
-            Note = bill.Note,
-            PaymentMethods = paymentMethods,
-            Items = bill.Items.Select(bi =>
-            {
-	            items.TryGetValue(bi.MedicineId, out var batches);
-	            var batch = batches?.FirstOrDefault(b => b.Id == bi.BatchId);
-
-	            return new BillingItemFormModel
-	            {
-		            Id = bi.Id,
-		            MedicineId = bi.MedicineId,
-		            Name = medicineNames.GetValueOrDefault(bi.MedicineId, ""),
-		            Batch = bi.BatchId,
-		            BatchName = batch?.BatchName ?? "",
-		            Expiry = batch?.Expiry ?? "",
-		            Qty = bi.Pricing.Qty,
-		            SalePrice = bi.Pricing.SalePrice,
-		            Gross = bi.Pricing.Gross,
-		            DiscountType = bi.Pricing.DiscountType,
-		            Discount = bi.Pricing.Discount,
-		            DiscountValue = bi.Pricing.DiscountValue,
-		            Tax = bi.Pricing.Tax,
-		            TaxPrice = bi.Pricing.TaxPrice,
-		            Price = bi.Pricing.Price,
-		            Batches = (batches ?? []).Select(mb => new BillingItemBatchesFormModel
-		            {
-			            Id = mb.Id,
-			            Qty = mb.Pricing.Qty,
-			            Batch = mb.BatchName,
-			            Sold = mb.Sold
-		            }).ToList()
-	            };
-            }).ToList()
-        };
-    }
-
-    public static BillingViewModel MapToBillDetailsViewModel(
-	    BillDetailsResponse response)
-    {
-
-	    var (bill, batchesById, medicineNames, paymentMethodName) = response;
-	    
-        return new BillingViewModel
-        {
-            Id = bill.Id,
-            Name = bill.Name,
-            Email = bill.Email,
-            Mobile = bill.Mobile,
-            Date = bill.Date,
-            PaymentMethodName = paymentMethodName,
-            SubTotal = bill.SubTotal,
-            Discount = bill.Discount,
-            Tax = bill.Tax,
-            Amount = bill.Amount,
-            Note = bill.Note,
-            Items = bill.Items.Select(i =>
-            {
-	            batchesById.TryGetValue(i.BatchId, out var batch);
-	            return new BillingItemViewModel
-	            {
-		            MedicineName = medicineNames.GetValueOrDefault(i.MedicineId, ""),
-		            BatchName = batch?.BatchName ?? "",
-		            Expiry = batch?.Expiry ?? "",
-		            Qty = i.Pricing.Qty,
-		            SalePrice = i.Pricing.SalePrice,
-		            Gross = i.Pricing.Gross,
-		            DiscountValue = i.Pricing.DiscountValue,
-		            TaxPrice = i.Pricing.TaxPrice,
-		            Price = i.Pricing.Price
-	            };
-            }).ToList()
-        };
-    }
+    
+    
 }

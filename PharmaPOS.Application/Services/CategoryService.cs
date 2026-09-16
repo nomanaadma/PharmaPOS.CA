@@ -1,4 +1,5 @@
 using ErrorOr;
+using Mapster;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
@@ -62,18 +63,22 @@ public class CategoryService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<Category>> GetCategoryAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<CategoryResponse>> GetCategoryAsync(int id, CancellationToken ct = default)
 	{
 		var category = await categoryRepo.GetByIdAsync(id, ct);
 		if (category == null)
 			return CategoryErrors.NotFound(id);
 
-		return category;
+		var categoryResponse = category.Adapt<CategoryResponse>();
+
+		return categoryResponse;
 	}
 
-	public async Task<List<Category>> GetAllCategoriesAsync(CancellationToken ct = default)
+	public async Task<List<CategoryResponse>> GetAllCategoriesAsync(CancellationToken ct = default)
 	{
-		return await categoryRepo.GetAllAsync(ct);
+		var categories = await categoryRepo.GetAllAsync(ct);
+		var categoriesResponse = categories.Adapt<List<CategoryResponse>>(); 
+		return categoriesResponse;
 	}
 	
 	/// <summary>

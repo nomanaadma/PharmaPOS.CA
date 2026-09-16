@@ -25,7 +25,9 @@ public class EditModel(PurchaseService purchaseService, SupplierService supplier
         
         var suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
         
-        Input = PurchaseMapper.MapToPurchaseForm(result.Value, suppliers);
+        Input = result.Value.Adapt<PurchaseFormModel>();
+        Input.Suppliers = suppliers;
+        
         return Page();
     }
 

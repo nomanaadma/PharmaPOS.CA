@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaPOS.Application.Extensions;
 using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 
@@ -11,12 +12,15 @@ public class ReportRepository(ApplicationDbContext context) : IReportRepository
 	public async Task<List<InventoryReportResponse>> GetInventoryReportAsync(CancellationToken ct = default)
 	{
 		var currentMonth = DateTime.UtcNow.ExpiryFormat();
-
-		return await context.Medicines
+		
+		var inventoryReport = await context.Medicines
 			.OrderByDescending(m => m.Id)
 			.Select(m => new InventoryReportResponse
 			(
-				m,
+				m.Id,
+				m.Name,
+				m.ReOrderLevel,
+				m.MinLevel,
 				context.Batches
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Pricing.Qty > 0)
@@ -29,19 +33,29 @@ public class ReportRepository(ApplicationDbContext context) : IReportRepository
 				context.Batches
 					.Where(b => b.MedicineId == m.Id)
 					.Where(b => b.Status == Status.Active &&
-								string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
+					            string.Compare(b.Expiry.Substring(3, 4) + b.Expiry.Substring(0, 2), currentMonth) >= 0)
 					.Sum(b => (decimal?)(b.Pricing.Qty - b.Sold)) ?? 0
 			))
 			.ToListAsync(ct);
+
+		foreach (var report in inventoryReport)
+		{
+			report.Profit = report.TotalSales - report.TotalPurchase;
+		}
+		
+		return inventoryReport;
 	}
 
 	public async Task<StatsReportResponse> GetIncomeExpenseReportAsync(
-		DateTime? start, 
-		DateTime? end, 
-		int? medicineId, 
-		string? medicineName, 
+		InventoryReportRequest request, 
 		CancellationToken ct = default)
 	{
+
+		var start = request.Start;
+		var end = request.End;
+		var medicineId = request.MedicineId;
+		var medicineName = request.MedicineName;
+		
 		if (start.HasValue && end.HasValue)
 		{
 			start = start.Value.Date;
@@ -97,6 +111,13 @@ public class ReportRepository(ApplicationDbContext context) : IReportRepository
 		var salesAmount = medicineStats?.SalesAmount ?? 0m;
 		var taxAmount = medicineStats?.TaxAmount ?? 0m;
 		var discountAmount = medicineStats?.DiscountAmount ?? 0m;
+		
+		var profit = salesAmount - purchaseAmount;
+		
+		if (salesAmount == 0 && profit < 0 && Math.Abs(profit) == purchaseAmount)
+		{
+			profit = 0;
+		}
 
 		return new StatsReportResponse
 		(
@@ -108,7 +129,8 @@ public class ReportRepository(ApplicationDbContext context) : IReportRepository
 			PurchaseAmount: purchaseAmount,
 			Quantity: salesQty,
 			TaxAmount: taxAmount,
-			DiscountAmount: discountAmount
+			DiscountAmount: discountAmount,
+			Profit: profit
 		);
 	}
 }

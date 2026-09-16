@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PharmaPOS.Domain.Common.Enums;
-using PharmaPOS.Domain.CustomerAggregate;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Razor.Models;
 

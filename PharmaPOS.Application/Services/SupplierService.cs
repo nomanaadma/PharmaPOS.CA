@@ -67,18 +67,22 @@ public class SupplierService(
 		return Result.Deleted;
 	}
 
-	public async Task<ErrorOr<Supplier>> GetSupplierAsync(int id, CancellationToken ct = default)
+	public async Task<ErrorOr<SupplierResponse>> GetSupplierAsync(int id, CancellationToken ct = default)
 	{
 		var supplier = await supplierRepo.GetByIdAsync(id, ct);
 		if (supplier == null)
 			return SupplierErrors.NotFound(id);
 
-		return supplier;
+		var supplierResponse = supplier.Adapt<SupplierResponse>();
+
+		return supplierResponse;
 	}
 
-	public async Task<List<Supplier>> GetAllSuppliersAsync(CancellationToken ct = default)
+	public async Task<List<SupplierResponse>> GetAllSuppliersAsync(CancellationToken ct = default)
 	{
-		return await supplierRepo.GetAllAsync(ct);
+		var suppliers = await supplierRepo.GetAllAsync(ct);
+		var suppliersResponse = suppliers.Adapt<List<SupplierResponse>>(); 
+		return suppliersResponse;
 	}
 
 	/// <summary>

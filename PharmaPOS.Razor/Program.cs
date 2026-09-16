@@ -1,4 +1,5 @@
 using System.Globalization;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using PharmaPOS.Application;
@@ -6,6 +7,7 @@ using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.IProviders;
 using PharmaPOS.Infrastructure;
 using PharmaPOS.Infrastructure.Common.Persistence;
+using PharmaPOS.Razor.Mappers;
 using PharmaPOS.Razor.Middlewares;
 using PharmaPOS.Razor.Providers;
 
@@ -35,6 +37,9 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddApplication();
 
 builder.Services.AddScoped<IFilePathProvider, FilePathProvider>();
+
+var config = TypeAdapterConfig.GlobalSettings;
+BillingMapper.Register(config);
 
 var app = builder.Build();
 

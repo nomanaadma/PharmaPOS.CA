@@ -2,15 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Services;
-using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
+using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Purchase;
 
 [Authorize(Policy = Permissions.Purchase.View)]
 public class ViewModel(PurchaseService purchaseService) : BasePageModel
 {
-    public PurchaseViewModel Purchase { get; set; } = new();
+	public PurchaseResponse Purchase { get; set; } = null!;
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
@@ -19,7 +18,8 @@ public class ViewModel(PurchaseService purchaseService) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        Purchase = PurchaseMapper.MapToPurchaseView(result.Value);
+        Purchase = result.Value;
+        
         return Page();
     }
 }

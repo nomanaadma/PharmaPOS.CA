@@ -2,7 +2,7 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Domain.Common.Enums;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Application.Services;
 
@@ -13,7 +13,7 @@ public class StockService(
 	MedicineService medicineService,
 	ILogger<StockService> logger) : IApplicationService
 {
-	public async Task<List<StockResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
+	public async Task<List<BatchResponse>> GetStockListAsync(string? type, CancellationToken ct = default)
 	{
 		var batches = await batchRepo.GetActiveBatchesAsync(type, ct);
 		var batchIds = batches.Select(b => b.Id).ToList();
@@ -50,7 +50,7 @@ public class StockService(
 				profit += Math.Round(totalSales - totalPurchase, 2);
 			}
 			
-			return new StockResponse(
+			return new BatchResponse(
 				Id: b.Id,
 				MedicineId: b.MedicineId,
 				PurchaseId: b.PurchaseId,

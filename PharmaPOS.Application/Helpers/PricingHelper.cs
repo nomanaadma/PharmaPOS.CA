@@ -1,5 +1,6 @@
 using ErrorOr;
 using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Domain.Common;
 using PharmaPOS.Domain.Common.ValueObjects;
 
 namespace PharmaPOS.Application.Helpers;
@@ -8,7 +9,7 @@ public static class PricingHelper
 {
 	public static ErrorOr<PricingDetails> CreatePricingDetails(PricingDetailRequest item)
 	{
-		return PricingDetails.Create(
+		var pricingFields = new PricingFields(
 			item.Qty, 
 			item.SalePrice, 
 			item.Gross, 
@@ -17,7 +18,9 @@ public static class PricingHelper
 			item.DiscountValue, 
 			item.Tax, 
 			item.TaxPrice, 
-			item.Price
-		);
+			item.Price);
+		
+		return PricingDetails.Create(pricingFields);
+		
 	}
 }

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PharmaPOS.Domain.Common.Enums;
 using PharmaPOS.Domain.BatchAggregate;
 using PharmaPOS.Domain.MedicineAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
+using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Infrastructure.Batches.Persistence;
 

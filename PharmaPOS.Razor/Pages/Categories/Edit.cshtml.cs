@@ -20,8 +20,8 @@ public class EditModel(CategoryService categoryService) : BasePageModel
         var result = await categoryService.GetCategoryAsync(id, ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
-
-        Input = SettingMapper.MapToCategory(result.Value);
+        
+        Input = result.Value.Adapt<CategoryViewModel>();
         return Page();
     }
 
