@@ -18,9 +18,9 @@ public class PaymentMethodService(
 		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, null, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
-		var details = request.Adapt<PaymentMethodDetails>();
+		var paymentMethodFields = request.Adapt<PaymentMethodFields>();
 
-		var methodResult = PaymentMethod.Create(details);
+		var methodResult = PaymentMethod.Create(paymentMethodFields);
 		if (methodResult.IsError)
 			return methodResult.Errors;
 
@@ -41,9 +41,9 @@ public class PaymentMethodService(
 		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, id, ct))
 			return PaymentMethodErrors.NameNotUnique;
 
-		var details = request.Adapt<PaymentMethodDetails>();
+		var paymentMethodFields = request.Adapt<PaymentMethodFields>();
 
-		var updateResult = method.Update(details);
+		var updateResult = method.Update(paymentMethodFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 

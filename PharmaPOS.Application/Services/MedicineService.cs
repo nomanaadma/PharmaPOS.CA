@@ -22,9 +22,9 @@ public class MedicineService(
 	/// </summary>
 	public async Task<ErrorOr<Created>> CreateMedicineAsync(MedicineRequest request, CancellationToken ct = default)
 	{
-		var details = request.Adapt<MedicineDetails>();
+		var medicineFields = request.Adapt<MedicineFields>();
 
-		var medicineResult = Medicine.Create(details);
+		var medicineResult = Medicine.Create(medicineFields);
 		if (medicineResult.IsError)
 			return medicineResult.Errors;
 
@@ -46,9 +46,9 @@ public class MedicineService(
 		if (medicine == null)
 			return MedicineErrors.NotFound(id);
 
-		var details = request.Adapt<MedicineDetails>();
+		var medicineFields = request.Adapt<MedicineFields>();
 
-		var updateResult = medicine.Update(details);
+		var updateResult = medicine.Update(medicineFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 

@@ -9,9 +9,9 @@ public class Medicine : AggregateRoot
 	// EF Core parameterless constructor
 	private Medicine() { }
 
-	private Medicine(MedicineDetails details)
+	private Medicine(MedicineFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public string Name { get; private set; } = null!;
@@ -30,54 +30,54 @@ public class Medicine : AggregateRoot
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Medicine&gt;.
 	/// </summary>
-	public static ErrorOr<Medicine> Create(MedicineDetails details)
+	public static ErrorOr<Medicine> Create(MedicineFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Medicine(details);
+		return new Medicine(fields);
 	}
 
 	/// <summary>
-	/// Updates the medicine details. Returns ErrorOr&lt;Updated&gt; with validation.
+	/// Updates the medicine fields. Returns ErrorOr&lt;Updated&gt; with validation.
 	/// </summary>
-	public ErrorOr<Updated> Update(MedicineDetails details)
+	public ErrorOr<Updated> Update(MedicineFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
-	private void SetDetails(MedicineDetails details)
+	private void SetDetails(MedicineFields fields)
 	{
-		Name = details.Name;
-		Company = details.Company;
-		Generic = details.Generic;
-		MedicineGroup = details.MedicineGroup;
-		CategoryId = details.CategoryId;
-		StoreBox = details.StoreBox;
-		MinLevel = details.MinLevel;
-		ReOrderLevel = details.ReOrderLevel;
-		Unit = details.Unit;
-		UnitPacking = details.UnitPacking;
-		Note = details.Note;
+		Name = fields.Name;
+		Company = fields.Company;
+		Generic = fields.Generic;
+		MedicineGroup = fields.MedicineGroup;
+		CategoryId = fields.CategoryId;
+		StoreBox = fields.StoreBox;
+		MinLevel = fields.MinLevel;
+		ReOrderLevel = fields.ReOrderLevel;
+		Unit = fields.Unit;
+		UnitPacking = fields.UnitPacking;
+		Note = fields.Note;
 	}
 
-	private static List<Error> ValidateDetails(MedicineDetails details)
+	private static List<Error> ValidateFields(MedicineFields fields)
 	{
 		var errors = new List<Error>();
 		
 		DomainValidator<Medicine>.ValidateRequiredStrings(errors,
-			(details.Name, nameof(details.Name)),
-			(details.Company, nameof(details.Company)),
-			(details.Generic, nameof(details.Generic)),
-			(details.Unit, nameof(details.Unit))
+			(fields.Name, nameof(fields.Name)),
+			(fields.Company, nameof(fields.Company)),
+			(fields.Generic, nameof(fields.Generic)),
+			(fields.Unit, nameof(fields.Unit))
 		);
 
 		DomainValidator<Medicine>.ValidateIds(errors,
-			(details.CategoryId, nameof(details.CategoryId))
+			(fields.CategoryId, nameof(fields.CategoryId))
 		);
 		
 

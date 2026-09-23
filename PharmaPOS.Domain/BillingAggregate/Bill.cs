@@ -12,9 +12,9 @@ public class Bill : OrderDetails
 	// EF Core parameterless constructor
 	private Bill() { }
 
-	private Bill(BillDetails details)
+	private Bill(BillFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public int CustomerId { get; private set; }
@@ -28,29 +28,29 @@ public class Bill : OrderDetails
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Bill&gt;.
 	/// </summary>
-	public static ErrorOr<Bill> Create(BillDetails details)
+	public static ErrorOr<Bill> Create(BillFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Bill(details);
+		return new Bill(fields);
 	}
 
 	/// <summary>
-	/// Updates the bill details. Returns ErrorOr&lt;Updated&gt; with validation.
+	/// Updates the bill fields. Returns ErrorOr&lt;Updated&gt; with validation.
 	/// </summary>
-	public ErrorOr<Updated> Update(BillDetails details)
+	public ErrorOr<Updated> Update(BillFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
-	public ErrorOr<Success> AddItem(BillItemDetails billItemDetails)
+	public ErrorOr<Success> AddItem(BillItemFields billItemFields)
 	{
-		var itemResult = BillItem.Create(billItemDetails);
+		var itemResult = BillItem.Create(billItemFields);
 		
 		if (itemResult.IsError)
 			return itemResult.Errors;
@@ -66,39 +66,39 @@ public class Bill : OrderDetails
 		_items.Clear();
 	}
 
-	private void SetDetails(BillDetails details)
+	private void SetDetails(BillFields fields)
 	{
-		CustomerId = details.CustomerId;
-		Name = details.Name;
-		Email = details.Email;
-		Mobile = details.Mobile;
-		MethodId = details.MethodId;
-		Date = details.BillDate;
-		SubTotal = details.SubTotal;
-		Tax = details.Tax;
-		Discount = details.Discount;
-		Amount = details.Amount;
-		Note = details.Note;
+		CustomerId = fields.CustomerId;
+		Name = fields.Name;
+		Email = fields.Email;
+		Mobile = fields.Mobile;
+		MethodId = fields.MethodId;
+		Date = fields.BillDate;
+		SubTotal = fields.SubTotal;
+		Tax = fields.Tax;
+		Discount = fields.Discount;
+		Amount = fields.Amount;
+		Note = fields.Note;
 	}
 
-	private static List<Error> ValidateDetails(BillDetails details)
+	private static List<Error> ValidateFields(BillFields fields)
 	{
 		var errors = new List<Error>();
 		
 		DomainValidator<Bill>.ValidateRequiredStrings(errors,
-			(details.Name, nameof(details.Name))
+			(fields.Name, nameof(fields.Name))
 		);
 		
 		DomainValidator<Bill>.ValidateIds(errors,
-			(details.CustomerId, nameof(details.CustomerId)),
-			(details.MethodId, "PaymentMethod")
+			(fields.CustomerId, nameof(fields.CustomerId)),
+			(fields.MethodId, "PaymentMethod")
 		);
 		
 		DomainValidator<Bill>.ValidateNonNegativeNumbers(errors,
-			(details.Amount, nameof(details.Amount)),
-			(details.SubTotal, nameof(details.SubTotal)),
-			(details.Tax, nameof(details.Tax)),
-			(details.Discount, nameof(details.Discount))
+			(fields.Amount, nameof(fields.Amount)),
+			(fields.SubTotal, nameof(fields.SubTotal)),
+			(fields.Tax, nameof(fields.Tax)),
+			(fields.Discount, nameof(fields.Discount))
 		);
 		
 		return errors;

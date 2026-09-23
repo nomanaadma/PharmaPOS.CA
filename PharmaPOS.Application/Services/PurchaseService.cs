@@ -32,7 +32,7 @@ public class PurchaseService(
 		if (request.Items.Count == 0)
 			return PurchaseErrors.MissingItems;
 
-		var details = new PurchaseDetails(
+		var purchaseFields = new PurchaseFields(
 			request.Supplier,
 			request.Date,
 			request.SubTotal,
@@ -42,7 +42,7 @@ public class PurchaseService(
 			request.Note
 		);
 
-		var purchaseResult = Purchase.Create(details);
+		var purchaseResult = Purchase.Create(purchaseFields);
 		if (purchaseResult.IsError)
 			return purchaseResult.Errors;
 
@@ -62,7 +62,7 @@ public class PurchaseService(
 				var pricingResult = PricingHelper.CreatePricingDetails(item);
 				if (pricingResult.IsError) return pricingResult.Errors;
 
-				var batchDetails = new BatchDetails(
+				var batchFields = new BatchFields(
 					item.Batch,
 					item.Expiry,
 					item.Pqty,
@@ -72,7 +72,7 @@ public class PurchaseService(
 					purchase.Id
 				);
 
-				var batchResult = Batch.Create(batchDetails);
+				var batchResult = Batch.Create(batchFields);
 			
 				if (batchResult.IsError)
 					return batchResult.Errors;
@@ -105,7 +105,7 @@ public class PurchaseService(
 		if (existingPurchase == null)
 			return PurchaseErrors.NotFound(id);
 
-		var details = new PurchaseDetails(
+		var purchaseFields = new PurchaseFields(
 			request.Supplier,
 			request.Date,
 			request.SubTotal,
@@ -115,7 +115,7 @@ public class PurchaseService(
 			request.Note
 		);
 
-		var updateResult = existingPurchase.Update(details);
+		var updateResult = existingPurchase.Update(purchaseFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
@@ -141,7 +141,7 @@ public class PurchaseService(
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
-			var batchDetails = new BatchDetails(
+			var batchFields = new BatchFields(
 				item.Batch,
 				item.Expiry,
 				item.Pqty,
@@ -160,13 +160,13 @@ public class PurchaseService(
 				if (pricingResult.Value.Qty < existingBatch.Sold)
 					return BatchErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricingResult.Value.Qty, existingBatch.Sold);
 
-				var batchUpdateResult = existingBatch.Update(batchDetails);
+				var batchUpdateResult = existingBatch.Update(batchFields);
 				if (batchUpdateResult.IsError)
 					return batchUpdateResult.Errors;
 			}
 			else
 			{
-				var batchResult = Batch.Create(batchDetails);
+				var batchResult = Batch.Create(batchFields);
 				if (batchResult.IsError)
 					return batchResult.Errors;
 				

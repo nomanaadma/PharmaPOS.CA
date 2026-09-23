@@ -8,18 +8,18 @@ public class Setting : AggregateRoot
 	// EF Core parameterless constructor
 	private Setting() { }
 
-	private Setting(SettingDetails details)
+	private Setting(SettingFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 		Address = Address.Empty;
 	}
 
-	public static ErrorOr<Setting> Create(SettingDetails details)
+	public static ErrorOr<Setting> Create(SettingFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Setting(details);
+		return new Setting(fields);
 	}
 
 	public string? Logo { get; private set; }
@@ -32,36 +32,36 @@ public class Setting : AggregateRoot
 	public string Phone { get; private set; } = null!;
 	public Address Address { get; private set; } = null!;
 
-	public ErrorOr<Updated> Update(SettingDetails details)
+	public ErrorOr<Updated> Update(SettingFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 		
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 	
-	private static List<Error> ValidateDetails(SettingDetails details)
+	private static List<Error> ValidateFields(SettingFields fields)
 	{
 		var errors = new List<Error>();
 		
 		// Standard DomainValidator approach
 		DomainValidator<Setting>.ValidateRequiredStrings(errors,
-			(details.Name, nameof(details.Name)),
-			(details.LegalName, nameof(details.LegalName)),
-			(details.Mail, nameof(details.Mail)),
-			(details.Phone, nameof(details.Phone))
+			(fields.Name, nameof(fields.Name)),
+			(fields.LegalName, nameof(fields.LegalName)),
+			(fields.Mail, nameof(fields.Mail)),
+			(fields.Phone, nameof(fields.Phone))
 		);
 		
 		return errors;
 	}
 	
-	private void SetDetails(SettingDetails details)
+	private void SetDetails(SettingFields fields)
 	{
-		Name = details.Name;
-		LegalName = details.LegalName;
-		Mail = details.Mail;
-		Phone = details.Phone;
+		Name = fields.Name;
+		LegalName = fields.LegalName;
+		Mail = fields.Mail;
+		Phone = fields.Phone;
 	}
 
 	public void UpdateImages(string? logo, string? logoIcon, string? lgBackground, string? favicon)

@@ -45,7 +45,7 @@ public class BillingService(
 		if (customerResult.IsError)
 			return customerResult.Errors;
 
-		var billDetails = new BillDetails(
+		var billFields = new BillFields(
 			customerResult.Value,
 			request.Name,
 			request.Email,
@@ -59,7 +59,7 @@ public class BillingService(
 			request.Note
 		);
 
-		var billResult = Bill.Create(billDetails);
+		var billResult = Bill.Create(billFields);
 		if (billResult.IsError)
 			return billResult.Errors;
 
@@ -74,9 +74,9 @@ public class BillingService(
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
-			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
+			var billItemFields = new BillItemFields(item.MedicineId, item.Batch, pricingResult.Value);
 
-			var addResult = bill.AddItem(billItemDetails);
+			var addResult = bill.AddItem(billItemFields);
 			
 			if (addResult.IsError)
 				return addResult.Errors;
@@ -147,7 +147,7 @@ public class BillingService(
 			customerId = customerResult.Value;
 		}
 
-		var billDetails = new BillDetails(
+		var billFields = new BillFields(
 			customerId,
 			request.Name,
 			request.Email,
@@ -161,7 +161,7 @@ public class BillingService(
 			request.Note
 		);
 
-		var updateResult = bill.Update(billDetails);
+		var updateResult = bill.Update(billFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 
@@ -192,10 +192,10 @@ public class BillingService(
 			var pricingResult = PricingHelper.CreatePricingDetails(item);
 			if (pricingResult.IsError) return pricingResult.Errors;
 
-			var billItemDetails = new BillItemDetails(item.MedicineId, item.Batch, pricingResult.Value);
+			var billItemFields = new BillItemFields(item.MedicineId, item.Batch, pricingResult.Value);
 			
 			// Use aggregate root method
-			var addResult = bill.AddItem(billItemDetails);
+			var addResult = bill.AddItem(billItemFields);
 			
 			if (addResult.IsError)
 				return addResult.Errors;

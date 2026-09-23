@@ -29,8 +29,8 @@ public class SettingService(
 		// 1. If records are not found, create a new Setting and Address object with default values
 		if (settings == null)
 		{
-			var details = new SettingDetails("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
-			var settingsResult = Setting.Create(details);
+			var settingFields = new SettingFields("PharmaPOS Store", "PharmaPOS Store LLC", "store@pharmapos.com", "1234567890");
+			var settingsResult = Setting.Create(settingFields);
 			if (settingsResult.IsError) throw new Exception("Failed to initialize default settings");
 			settings = settingsResult.Value;
 			settings.UpdateAddress(Address.Empty);
@@ -70,11 +70,11 @@ public class SettingService(
 	public async Task<ErrorOr<Updated>> UpdateSettingsAsync(SettingRequest request, CancellationToken ct = default)
 	{
 		var settings = await settingRepo.GetRawSettingsAsync(ct);
-		var details = new SettingDetails(request.Name, request.LegalName, request.Mail, request.Phone);
+		var settingFields = new SettingFields(request.Name, request.LegalName, request.Mail, request.Phone);
 		
 		if (settings == null)
 		{
-			var settingsResult = Setting.Create(details);
+			var settingsResult = Setting.Create(settingFields);
 			if (settingsResult.IsError)
 			{
 				return settingsResult.Errors;
@@ -84,7 +84,7 @@ public class SettingService(
 		}
 		else
 		{
-			var updateResult = settings.Update(details);
+			var updateResult = settings.Update(settingFields);
 			if (updateResult.IsError)
 			{
 				return updateResult.Errors;

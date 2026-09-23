@@ -9,9 +9,9 @@ public class PaymentMethod : AggregateRoot
 	// EF Core parameterless constructor
 	private PaymentMethod() { }
 
-	private PaymentMethod(PaymentMethodDetails details)
+	private PaymentMethod(PaymentMethodFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public string Name { get; private set; } = null!;
@@ -19,39 +19,39 @@ public class PaymentMethod : AggregateRoot
 	public DateTime CreatedDate { get; private init; }
 
 
-	public static ErrorOr<PaymentMethod> Create(PaymentMethodDetails details)
+	public static ErrorOr<PaymentMethod> Create(PaymentMethodFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new PaymentMethod(details);
+		return new PaymentMethod(fields);
 	}
 
-	public ErrorOr<Updated> Update(PaymentMethodDetails details)
+	public ErrorOr<Updated> Update(PaymentMethodFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
-	private void SetDetails(PaymentMethodDetails details)
+	private void SetDetails(PaymentMethodFields fields)
 	{
-		Name = details.Name;
-		Status = details.Status;
+		Name = fields.Name;
+		Status = fields.Status;
 	}
 
-	private static List<Error> ValidateDetails(PaymentMethodDetails details)
+	private static List<Error> ValidateFields(PaymentMethodFields fields)
 	{
 		var errors = new List<Error>();
 
 		DomainValidator<PaymentMethod>.ValidateRequiredStrings(errors,
-			(details.Name, nameof(details.Name))
+			(fields.Name, nameof(fields.Name))
 		);
 
 		DomainValidator<PaymentMethod>.ValidateEnums(errors,
-			(details.Status, nameof(details.Status))
+			(fields.Status, nameof(fields.Status))
 		);
 
 		return errors;

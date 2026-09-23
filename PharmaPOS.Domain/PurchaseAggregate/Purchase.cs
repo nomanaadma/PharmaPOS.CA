@@ -8,9 +8,9 @@ public class Purchase : OrderDetails
 	// EF Core parameterless constructor
 	private Purchase() { }
 
-	private Purchase(PurchaseDetails details)
+	private Purchase(PurchaseFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public int SupplierId { get; private set; }
@@ -18,50 +18,50 @@ public class Purchase : OrderDetails
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Purchase&gt;.
 	/// </summary>
-	public static ErrorOr<Purchase> Create(PurchaseDetails details)
+	public static ErrorOr<Purchase> Create(PurchaseFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Purchase(details);
+		return new Purchase(fields);
 	}
 
 	/// <summary>
-	/// Updates the purchase details. Returns ErrorOr&lt;Updated&gt; with validation.
+	/// Updates the purchase fields. Returns ErrorOr&lt;Updated&gt; with validation.
 	/// </summary>
-	public ErrorOr<Updated> Update(PurchaseDetails details)
+	public ErrorOr<Updated> Update(PurchaseFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 	
-	private void SetDetails(PurchaseDetails details)
+	private void SetDetails(PurchaseFields fields)
 	{
-		SupplierId = details.SupplierId;
-		Date = details.Date;
-		SubTotal = details.SubTotal;
-		Tax = details.Tax;
-		Discount = details.Discount;
-		Amount = details.Amount;
-		Note = details.Note;
+		SupplierId = fields.SupplierId;
+		Date = fields.Date;
+		SubTotal = fields.SubTotal;
+		Tax = fields.Tax;
+		Discount = fields.Discount;
+		Amount = fields.Amount;
+		Note = fields.Note;
 	}
 
-	private static List<Error> ValidateDetails(PurchaseDetails details)
+	private static List<Error> ValidateFields(PurchaseFields fields)
 	{
 		var errors = new List<Error>();
 
 		DomainValidator<Purchase>.ValidateIds(errors,
-			(details.SupplierId, nameof(details.SupplierId))
+			(fields.SupplierId, nameof(fields.SupplierId))
 		);
 
 		DomainValidator<Purchase>.ValidateNonNegativeNumbers(errors,
-			(details.Amount, nameof(details.Amount)),
-			(details.SubTotal, nameof(details.SubTotal)),
-			(details.Tax, nameof(details.Tax)),
-			(details.Discount, nameof(details.Discount))
+			(fields.Amount, nameof(fields.Amount)),
+			(fields.SubTotal, nameof(fields.SubTotal)),
+			(fields.Tax, nameof(fields.Tax)),
+			(fields.Discount, nameof(fields.Discount))
 		);
 		
 		return errors;

@@ -8,9 +8,9 @@ public class Supplier : AggregateRoot
 	// EF Core parameterless constructor
 	private Supplier() { }
 
-	private Supplier(SupplierDetails details)
+	private Supplier(SupplierFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public string Name { get; private set; } = null!;
@@ -20,39 +20,39 @@ public class Supplier : AggregateRoot
 	public DateTime CreatedDate { get; private init; }
 
 
-	public static ErrorOr<Supplier> Create(SupplierDetails details)
+	public static ErrorOr<Supplier> Create(SupplierFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Supplier(details);
+		return new Supplier(fields);
 	}
 
-	public ErrorOr<Updated> Update(SupplierDetails details)
+	public ErrorOr<Updated> Update(SupplierFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
-	private void SetDetails(SupplierDetails details)
+	private void SetDetails(SupplierFields fields)
 	{
-		Name = details.Name;
-		Email = details.Email;
-		Phone = details.Phone;
-		Address = details.Address;
+		Name = fields.Name;
+		Email = fields.Email;
+		Phone = fields.Phone;
+		Address = fields.Address;
 	}
 
-	private static List<Error> ValidateDetails(SupplierDetails details)
+	private static List<Error> ValidateFields(SupplierFields fields)
 	{
 		var errors = new List<Error>();
 
 		DomainValidator<Supplier>.ValidateRequiredStrings(errors,
-			(details.Name, nameof(details.Name)),
-			(details.Email, nameof(details.Email)),
-			(details.Phone, nameof(details.Phone))
+			(fields.Name, nameof(fields.Name)),
+			(fields.Email, nameof(fields.Email)),
+			(fields.Phone, nameof(fields.Phone))
 		);
 
 		return errors;

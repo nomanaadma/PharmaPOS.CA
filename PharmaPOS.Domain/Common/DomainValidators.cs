@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using PharmaPOS.Domain.Common.Errors;
 
 namespace PharmaPOS.Domain.Common;
 

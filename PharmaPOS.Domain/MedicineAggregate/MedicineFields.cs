@@ -1,6 +1,6 @@
 namespace PharmaPOS.Domain.MedicineAggregate;
 
-public record MedicineDetails(
+public record MedicineFields(
 	string Name,
 	string Company,
 	string Generic,

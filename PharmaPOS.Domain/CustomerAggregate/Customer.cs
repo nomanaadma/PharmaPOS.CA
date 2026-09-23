@@ -9,9 +9,9 @@ public class Customer : AggregateRoot
 	// EF Core parameterless constructor
 	private Customer() { }
 
-	private Customer(CustomerDetails details)
+	private Customer(CustomerFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 	
 	public string FirstName { get; private set; } = null!;
@@ -22,46 +22,46 @@ public class Customer : AggregateRoot
 	public Status Status { get; private set; }
 	public DateTime CreatedDate { get; private init; }
 
-	public static ErrorOr<Customer> Create(CustomerDetails details)
+	public static ErrorOr<Customer> Create(CustomerFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Customer(details);
+		return new Customer(fields);
 	}
 
-	public ErrorOr<Updated> Update(CustomerDetails details)
+	public ErrorOr<Updated> Update(CustomerFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
-	private void SetDetails(CustomerDetails details)
+	private void SetDetails(CustomerFields fields)
 	{
-		FirstName = details.FirstName;
-		LastName = details.LastName;
-		Email = details.Email;
-		Mobile = details.Mobile;
-		Gender = details.Gender;
-		Status = details.Status;
+		FirstName = fields.FirstName;
+		LastName = fields.LastName;
+		Email = fields.Email;
+		Mobile = fields.Mobile;
+		Gender = fields.Gender;
+		Status = fields.Status;
 	}
 
-	private static List<Error> ValidateDetails(CustomerDetails details)
+	private static List<Error> ValidateFields(CustomerFields fields)
 	{
 		var errors = new List<Error>();
 		
 		DomainValidator<Customer>.ValidateRequiredStrings(errors,
-			(details.FirstName, nameof(details.FirstName)),
-			(details.LastName, nameof(details.LastName))
+			(fields.FirstName, nameof(fields.FirstName)),
+			(fields.LastName, nameof(fields.LastName))
 		);
 		
 		// Standard DomainValidator approach
 		DomainValidator<Customer>.ValidateEnums(errors,
-			(details.Gender, nameof(details.Gender)),
-			(details.Status, nameof(details.Status))
+			(fields.Gender, nameof(fields.Gender)),
+			(fields.Status, nameof(fields.Status))
 		);
 		
 		return errors;

@@ -18,9 +18,9 @@ public class SupplierService(
 		if (await supplierRepo.ExistsByEmailAsync(request.Email, null, ct))
 			return SupplierErrors.EmailNotUnique;
 
-		var details = request.Adapt<SupplierDetails>();
+		var supplierFields = request.Adapt<SupplierFields>();
 
-		var supplierResult = Supplier.Create(details);
+		var supplierResult = Supplier.Create(supplierFields);
 		if (supplierResult.IsError)
 			return supplierResult.Errors;
 
@@ -41,9 +41,9 @@ public class SupplierService(
 		if (await supplierRepo.ExistsByEmailAsync(request.Email, id, ct))
 			return SupplierErrors.EmailNotUnique;
 
-		var details = request.Adapt<SupplierDetails>();
+		var supplierFields = request.Adapt<SupplierFields>();
 
-		var updateResult = supplier.Update(details);
+		var updateResult = supplier.Update(supplierFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 

@@ -12,11 +12,11 @@ public class BillItem : Entity
 	// EF Core parameterless constructor
 	private BillItem() { }
 
-	private BillItem(BillItemDetails details)
+	private BillItem(BillItemFields fields)
 	{
-		MedicineId = details.MedicineId;
-		BatchId = details.BatchId;
-		Pricing = details.Pricing;
+		MedicineId = fields.MedicineId;
+		BatchId = fields.BatchId;
+		Pricing = fields.Pricing;
 	}
 
 	public int BillId { get; private set; }
@@ -27,22 +27,22 @@ public class BillItem : Entity
 	/// <summary>
 	/// Factory method: validates inputs and returns an ErrorOr&lt;Bill&gt;.
 	/// </summary>
-	public static ErrorOr<BillItem> Create(BillItemDetails details)
+	public static ErrorOr<BillItem> Create(BillItemFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new BillItem(details);
+		return new BillItem(fields);
 	}
 	
-	private static List<Error> ValidateDetails(BillItemDetails details)
+	private static List<Error> ValidateFields(BillItemFields fields)
 	{
 		var errors = new List<Error>();
 		
-		if (details.MedicineId <= 0)
+		if (fields.MedicineId <= 0)
 			errors.Add(BillErrors.InvalidMedicine);
 		
-		if (details.BatchId <= 0)
+		if (fields.BatchId <= 0)
 			errors.Add(BillErrors.InvalidBatch);
 		
 		return errors;

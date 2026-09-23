@@ -10,9 +10,9 @@ public class Batch : AggregateRoot
 	// EF Core parameterless constructor
 	private Batch() { }
 
-	private Batch(BatchDetails details)
+	private Batch(BatchFields fields)
 	{
-		SetDetails(details);
+		SetDetails(fields);
 	}
 
 	public string BatchName { get; private set; } = null!;
@@ -27,20 +27,20 @@ public class Batch : AggregateRoot
 	public DateTime CreatedDate { get; private init; }
 
 
-	public static ErrorOr<Batch> Create(BatchDetails details)
+	public static ErrorOr<Batch> Create(BatchFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		return new Batch(details);
+		return new Batch(fields);
 	}
 
-	public ErrorOr<Updated> Update(BatchDetails details)
+	public ErrorOr<Updated> Update(BatchFields fields)
 	{
-		var errors = ValidateDetails(details);
+		var errors = ValidateFields(fields);
 		if (errors.Count > 0) return errors;
 
-		SetDetails(details);
+		SetDetails(fields);
 		return Result.Updated;
 	}
 
@@ -56,33 +56,33 @@ public class Batch : AggregateRoot
 		Status = status;
 	}
 
-	private void SetDetails(BatchDetails details)
+	private void SetDetails(BatchFields fields)
 	{
-		BatchName = details.BatchName;
-		Expiry = details.Expiry;
-		Pqty = details.Pqty;
-		Pricing = details.Pricing;
-		PurchasePrice = details.PurchasePrice;
-		MedicineId = details.MedicineId;
-		PurchaseId = details.PurchaseId;
+		BatchName = fields.BatchName;
+		Expiry = fields.Expiry;
+		Pqty = fields.Pqty;
+		Pricing = fields.Pricing;
+		PurchasePrice = fields.PurchasePrice;
+		MedicineId = fields.MedicineId;
+		PurchaseId = fields.PurchaseId;
 	}
 
-	private static List<Error> ValidateDetails(BatchDetails details)
+	private static List<Error> ValidateFields(BatchFields fields)
 	{
 		var errors = new List<Error>();
 		
 		DomainValidator<Batch>.ValidateRequiredStrings(errors,
-			(details.BatchName, nameof(details.BatchName)),
-			(details.Expiry, nameof(details.Expiry))
+			(fields.BatchName, nameof(fields.BatchName)),
+			(fields.Expiry, nameof(fields.Expiry))
 		);
 
 		DomainValidator<Batch>.ValidateIds(errors,
-			(details.MedicineId, nameof(details.MedicineId)),
-			(details.PurchaseId, nameof(details.PurchaseId))
+			(fields.MedicineId, nameof(fields.MedicineId)),
+			(fields.PurchaseId, nameof(fields.PurchaseId))
 		);
 
 		DomainValidator<Batch>.ValidateNonNegativeNumbers(errors,
-			(details.PurchasePrice, nameof(details.PurchasePrice))
+			(fields.PurchasePrice, nameof(fields.PurchasePrice))
 		);
 		
 		

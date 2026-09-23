@@ -40,9 +40,9 @@ public class CustomerService(
 	
 	private async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, string logMessage, CancellationToken ct)
 	{
-		var details = request.Adapt<CustomerDetails>();
+		var customerFields = request.Adapt<CustomerFields>();
 		
-		var customerResult = Customer.Create(details);
+		var customerResult = Customer.Create(customerFields);
 		if (customerResult.IsError)
 			return customerResult.Errors;
 
@@ -63,9 +63,9 @@ public class CustomerService(
 		if (request.Email != null && await customerRepo.ExistsByEmailAsync(request.Email, id, ct))
 			return CustomerErrors.EmailNotUnique;
 		
-		var details = request.Adapt<CustomerDetails>();
+		var customerFields = request.Adapt<CustomerFields>();
 		
-		var updateResult = customer.Update(details);
+		var updateResult = customer.Update(customerFields);
 		if (updateResult.IsError)
 			return updateResult.Errors;
 

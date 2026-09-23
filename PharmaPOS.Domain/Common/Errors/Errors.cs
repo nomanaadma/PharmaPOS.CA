@@ -1,6 +1,6 @@
 ﻿using ErrorOr;
 
-namespace PharmaPOS.Domain.Common;
+namespace PharmaPOS.Domain.Common.Errors;
 
 public static class CommonErrors<T>
 {
