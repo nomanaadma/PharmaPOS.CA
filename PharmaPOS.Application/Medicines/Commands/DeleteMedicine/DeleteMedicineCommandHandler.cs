@@ -1,0 +1,27 @@
+using ErrorOr;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Domain.MedicineAggregate;
+
+namespace PharmaPOS.Application.Medicines.Commands.DeleteMedicine;
+
+public class DeleteMedicineCommandHandler(
+	IMedicineRepository medicineRepo,
+	IUnitOfWork unitOfWork,
+	ILogger<DeleteMedicineCommandHandler> logger) : IRequestHandler<DeleteMedicineCommand, ErrorOr<Deleted>>
+{
+	public async Task<ErrorOr<Deleted>> Handle(DeleteMedicineCommand command, CancellationToken ct)
+	{
+		var medicine = await medicineRepo.GetByIdAsync(command.Id, ct);
+
+		if (medicine == null)
+			return MedicineErrors.NotFound(command.Id);
+
+		medicineRepo.Remove(medicine);
+		await unitOfWork.SaveChangesAsync(ct);
+
+		logger.LogInformation("Medicine {MedicineId} deleted", command.Id);
+		return Result.Deleted;
+	}
+}

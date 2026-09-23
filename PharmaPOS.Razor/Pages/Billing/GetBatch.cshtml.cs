@@ -1,12 +1,13 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Batches.Queries.GetNonExpiredBatches;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
-public class GetBatchModel(BatchService batchService) : PageModel
+public class GetBatchModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(int id, CancellationToken ct)
     {
@@ -18,7 +19,7 @@ public class GetBatchModel(BatchService batchService) : PageModel
             return Forbid();
         }
         
-        var batches = await batchService.GetNonExpiredBatchesForMedicineAsync(id, ct);
+        var batches = await sender.Send(new GetNonExpiredBatchesQuery(id), ct);
         
         if (batches.Count == 0)
         {

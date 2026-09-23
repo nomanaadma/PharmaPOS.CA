@@ -1,8 +1,11 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Settings.Commands.UpdateSettings;
+using PharmaPOS.Application.Settings.Queries.GetRawSettings;
+using PharmaPOS.Application.Settings.Queries.GetSettings;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
@@ -10,15 +13,15 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Setting;
 
 [Authorize(Policy = Permissions.Info.View)]
-public class IndexModel(SettingService settingService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public SystemInfoViewModel Input { get; set; } = null!;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var rawSetting = await settingService.GetRawSettingsAsync(ct);
-        var siteInfo = await settingService.GetSettingsAsync(ct);
+        var rawSetting = await sender.Send(new GetRawSettingsQuery(), ct);
+        var siteInfo = await sender.Send(new GetSettingsQuery(), ct);
 
         Input = SettingMapper.MapToSystemInfo(rawSetting, siteInfo);
 
@@ -36,7 +39,7 @@ public class IndexModel(SettingService settingService) : BasePageModel
 
         var request = Input.Adapt<SettingRequest>();
 
-        var result = await settingService.UpdateSettingsAsync(request, ct);
+        var result = await sender.Send(new UpdateSettingsCommand(request), ct);
         if (result.IsError)
         {
             NotifyError(result.Errors[0].Description);

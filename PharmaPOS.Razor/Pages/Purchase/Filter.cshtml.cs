@@ -1,8 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Purchases.Queries.GetFilteredPurchases;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Helpers;
 using PharmaPOS.Razor.Mappers;
@@ -10,13 +11,13 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Purchase;
 
 [Authorize(Policy = Permissions.Purchase.List)]
-public class FilterModel(PurchaseService purchaseService) : PageModel
+public class FilterModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         var request = Request.Form.ToDataTableRequest();
 	
-        var result = await purchaseService.GetFilteredPurchasesAsync(request, PurchaseColumns.GetColumnMap(), ct);
+        var result = await sender.Send(new GetFilteredPurchasesQuery(request, PurchaseColumns.GetColumnMap()), ct);
 
         var canView = User.HasClaim("Permission", Permissions.Purchase.View);
         var canEdit = User.HasClaim("Permission", Permissions.Purchase.Edit);

@@ -1,14 +1,15 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Reports.Queries.GetIncomeExpenseReport;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Reports;
 
 [Authorize(Policy = Permissions.Reports.View)]
-public class IncomeExpenseModel(ReportService reportService) : BasePageModel
+public class IncomeExpenseModel(ISender sender) : BasePageModel
 {
 	
 	[BindProperty(SupportsGet = true)]
@@ -18,7 +19,7 @@ public class IncomeExpenseModel(ReportService reportService) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(InventoryReportRequest request, CancellationToken ct)
     {
-	    Stats = await reportService.GetIncomeExpenseReportAsync(request, ct);
+	    Stats = await sender.Send(new GetIncomeExpenseReportQuery(request), ct);
         return Page();
     }
 }

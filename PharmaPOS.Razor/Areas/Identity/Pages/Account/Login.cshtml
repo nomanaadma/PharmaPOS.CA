@@ -1,9 +1,10 @@
 @page
+@using PharmaPOS.Application.Settings.Queries.GetSettings
 @model LoginModel
 
 @{
     ViewData["Title"] = "Sign in";
-    var siteInfo = await SiteInfo.GetSettingsAsync();
+    var siteInfo = await Mediator.Send(new GetSettingsQuery());
 }
 
 <div class="text-center">

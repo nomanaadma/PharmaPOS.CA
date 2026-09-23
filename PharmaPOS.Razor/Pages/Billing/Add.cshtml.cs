@@ -1,8 +1,10 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Billings.Commands.CreateBill;
+using PharmaPOS.Application.PaymentMethods.Queries.GetPaymentMethodsLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -10,20 +12,20 @@ using PharmaPOS.Razor.Models;
 namespace PharmaPOS.Razor.Pages.Billing;
 
 [Authorize(Policy = Permissions.Billing.Add)]
-public class AddModel(BillingService billingService, PaymentMethodService paymentMethodService) : BasePageModel
+public class AddModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public BillingFormModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {
@@ -33,7 +35,7 @@ public class AddModel(BillingService billingService, PaymentMethodService paymen
         
         var request = Input.Adapt<BillingRequest>();
 
-        var result = await billingService.CreateBillAsync(request, ct);
+        var result = await sender.Send(new CreateBillCommand(request), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);

@@ -1,14 +1,15 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Settings.Commands.UploadMediaFile;
 
 namespace PharmaPOS.Razor.Pages.Media;
 
 [Authorize(Policy = Permissions.Media.Upload)]
 [IgnoreAntiforgeryToken]
-public class UploadModel(SettingService settingService) : PageModel
+public class UploadModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(IFormFile? file, CancellationToken ct)
     {
@@ -18,7 +19,7 @@ public class UploadModel(SettingService settingService) : PageModel
         }
 
         await using var stream = file.OpenReadStream();
-        var uploadResult = await settingService.UploadMediaFileAsync(stream, file.FileName, file.Length, ct);
+        var uploadResult = await sender.Send(new UploadMediaFileCommand(stream, file.FileName, file.Length), ct);
         if (uploadResult.IsError)
             return new JsonResult(new { error = true, message = uploadResult.Errors[0].Description });
 

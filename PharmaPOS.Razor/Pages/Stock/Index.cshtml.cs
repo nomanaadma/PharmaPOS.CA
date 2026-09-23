@@ -1,7 +1,10 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Stock.Commands.DeleteStock;
+using PharmaPOS.Application.Stock.Commands.UpdateStock;
+using PharmaPOS.Application.Stock.Queries.GetStockList;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Razor.Mappers;
 using PharmaPOS.Razor.Models;
@@ -9,13 +12,13 @@ using PharmaPOS.Razor.Models;
 namespace PharmaPOS.Razor.Pages.Stock;
 
 [Authorize(Policy = Permissions.Stock.View)]
-public class IndexModel(StockService stockService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     public IEnumerable<BatchResponse> Stocks { get; set; } = new List<BatchResponse>();
 
     public async Task<IActionResult> OnGetAsync(string? type, CancellationToken ct)
     {
-        Stocks = await stockService.GetStockListAsync(type, ct);
+        Stocks = await sender.Send(new GetStockListQuery(type), ct);
 
         var pageTitle = type switch
         {
@@ -45,7 +48,7 @@ public class IndexModel(StockService stockService) : BasePageModel
             refererUrl = "/Medicine/Stock";
         }
         
-        var result = await stockService.UpdateStockAvailableAsync(id, medicineId, available, ct);
+        var result = await sender.Send(new UpdateStockCommand(id, medicineId, available), ct);
 
         if (result.IsError)
         {
@@ -69,7 +72,7 @@ public class IndexModel(StockService stockService) : BasePageModel
             refererUrl = "/Medicine/Stock";
         }
 
-        var result = await stockService.DeleteStockAsync(id, ct);
+        var result = await sender.Send(new DeleteStockCommand(id), ct);
         
         if (result.IsError)
         {

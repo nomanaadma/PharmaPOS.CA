@@ -1,8 +1,11 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Categories.Queries.GetCategoryLookup;
+using PharmaPOS.Application.Medicines.Commands.UpdateMedicine;
+using PharmaPOS.Application.Medicines.Queries.GetMedicine;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -11,19 +14,19 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Medicines;
 
 [Authorize(Policy = Permissions.Medicine.Edit)]
-public class EditModel(MedicineService medicineService, CategoryService categoryService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public MedicineViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await medicineService.GetMedicineAsync(id, ct);
+        var result = await sender.Send(new GetMedicineQuery(id), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
+        var categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<MedicineViewModel>();
         Input.Categories = categories;
@@ -33,7 +36,7 @@ public class EditModel(MedicineService medicineService, CategoryService category
 
     public async Task<IActionResult> OnPostAsync(int id, CancellationToken ct)
     {
-        Input.Categories = (await categoryService.GetCategoriesAsync(ct)).ToSelectList();
+        Input.Categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
             
         if (id != Input.Id)
         {
@@ -54,7 +57,7 @@ public class EditModel(MedicineService medicineService, CategoryService category
         
         var request = Input.Adapt<MedicineRequest>();
 
-        var result = await medicineService.UpdateMedicineAsync(id, request, ct);
+        var result = await sender.Send(new UpdateMedicineCommand(id, request), ct);
 
         if (result.IsError)
         {

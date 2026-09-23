@@ -1,8 +1,10 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Categories.Commands.UpdateCategory;
+using PharmaPOS.Application.Categories.Queries.GetCategory;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
@@ -10,17 +12,17 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Categories;
 
 [Authorize(Policy = Permissions.Category.Edit)]
-public class EditModel(CategoryService categoryService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public CategoryViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await categoryService.GetCategoryAsync(id, ct);
+        var result = await sender.Send(new GetCategoryQuery(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
-        
+
         Input = result.Value.Adapt<CategoryViewModel>();
         return Page();
     }
@@ -46,7 +48,7 @@ public class EditModel(CategoryService categoryService) : BasePageModel
         
         var request = Input.Adapt<CategoryRequest>();
 
-        var result = await categoryService.UpdateCategoryAsync(id, request, ct);
+        var result = await sender.Send(new UpdateCategoryCommand(id, request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Category.NameNotUnique"] = "Input.Name" });
 

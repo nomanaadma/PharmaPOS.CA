@@ -1,8 +1,11 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Purchases.Commands.UpdatePurchase;
+using PharmaPOS.Application.Purchases.Queries.GetPurchase;
+using PharmaPOS.Application.Suppliers.Queries.GetSupplierLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -11,19 +14,19 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Purchase;
 
 [Authorize(Policy = Permissions.Purchase.Edit)]
-public class EditModel(PurchaseService purchaseService, SupplierService supplierService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public PurchaseFormModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await purchaseService.GetPurchaseAsync(id, ct);
+        var result = await sender.Send(new GetPurchaseQuery(id), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
+        var suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<PurchaseFormModel>();
         Input.Suppliers = suppliers;
@@ -39,7 +42,7 @@ public class EditModel(PurchaseService purchaseService, SupplierService supplier
             return BadRequest();
         }
         
-        Input.Suppliers = (await supplierService.GetSuppliersAsync(ct)).ToSelectList();
+        Input.Suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {
@@ -49,7 +52,7 @@ public class EditModel(PurchaseService purchaseService, SupplierService supplier
         
         var request = Input.Adapt<PurchaseRequest>();
 
-        var result = await purchaseService.UpdatePurchaseAsync(id, request, ct);
+        var result = await sender.Send(new UpdatePurchaseCommand(id, request), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);

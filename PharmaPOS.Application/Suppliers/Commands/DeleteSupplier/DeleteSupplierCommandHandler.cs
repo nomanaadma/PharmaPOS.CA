@@ -1,0 +1,26 @@
+using ErrorOr;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Domain.SupplierAggregate;
+
+namespace PharmaPOS.Application.Suppliers.Commands.DeleteSupplier;
+
+public class DeleteSupplierCommandHandler(
+	ISupplierRepository supplierRepo,
+	IUnitOfWork unitOfWork,
+	ILogger<DeleteSupplierCommandHandler> logger) : IRequestHandler<DeleteSupplierCommand, ErrorOr<Deleted>>
+{
+	public async Task<ErrorOr<Deleted>> Handle(DeleteSupplierCommand command, CancellationToken ct)
+	{
+		var supplier = await supplierRepo.GetByIdAsync(command.Id, ct);
+		if (supplier == null)
+			return SupplierErrors.NotFound(command.Id);
+
+		supplierRepo.Remove(supplier);
+		await unitOfWork.SaveChangesAsync(ct);
+
+		logger.LogInformation("Supplier {SupplierId} deleted", command.Id);
+		return Result.Deleted;
+	}
+}

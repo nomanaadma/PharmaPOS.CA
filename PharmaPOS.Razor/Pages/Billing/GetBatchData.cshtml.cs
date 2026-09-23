@@ -1,12 +1,13 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Batches.Queries.GetSingleBatch;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
-public class GetBatchDataModel(BatchService batchService) : PageModel
+public class GetBatchDataModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(int medicine, int batch, CancellationToken ct)
     {
@@ -18,7 +19,7 @@ public class GetBatchDataModel(BatchService batchService) : PageModel
             return Forbid();
         }
         
-        var mBatch = await batchService.GetSingleBatchAsync(medicine, batch, ct);
+        var mBatch = await sender.Send(new GetSingleBatchQuery(medicine, batch), ct);
 
         if (mBatch == null)
         {

@@ -1,13 +1,14 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Settings.Commands.DeleteMediaFile;
 
 namespace PharmaPOS.Razor.Pages.Media;
 
 [Authorize(Policy = Permissions.Media.Delete)]
-public class DeleteModel(SettingService settingService) : PageModel
+public class DeleteModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(string name, int id, CancellationToken ct)
     {
@@ -16,7 +17,7 @@ public class DeleteModel(SettingService settingService) : PageModel
             return new JsonResult(new { error = true, message = "File name is wrong or does not exist." });
         }
 
-        var result = await settingService.DeleteMediaFileAsync(id, name, ct);
+        var result = await sender.Send(new DeleteMediaFileCommand(id, name), ct);
         return new JsonResult(result.IsError ? 
             new { error = true, message = result.Errors[0].Description } : 
             new { error = false, message = "File deleted successfully." });

@@ -1,7 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Medicines.Queries.GetMedicine;
+using PharmaPOS.Application.Medicines.Queries.GetMedicineStockSummary;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
@@ -9,7 +11,7 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Medicines;
 
 [Authorize(Policy = Permissions.Medicine.View)]
-public class ViewModel(MedicineService medicineService) : BasePageModel
+public class ViewModel(ISender sender) : BasePageModel
 {
     public MedicineResponse Medicine { get; set; } = null!;
     public IEnumerable<BatchResponse> LiveStock { get; set; } = new List<BatchResponse>();
@@ -17,12 +19,12 @@ public class ViewModel(MedicineService medicineService) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await medicineService.GetMedicineAsync(id, ct);
+        var result = await sender.Send(new GetMedicineQuery(id), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var stockSummary = await medicineService.GetMedicineStockSummaryAsync(id, ct);
+        var stockSummary = await sender.Send(new GetMedicineStockSummaryQuery(id), ct);
 
         Medicine = result.Value;
         LiveStock = stockSummary.liveBatches;

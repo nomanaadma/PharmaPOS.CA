@@ -1,15 +1,16 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Suppliers.Commands.CreateSupplier;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Suppliers;
 
 [Authorize(Policy = Permissions.Suppliers.Add)]
-public class AddModel(SupplierService supplierService) : BasePageModel
+public class AddModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public SupplierViewModel Input { get; set; } = new();
@@ -26,8 +27,9 @@ public class AddModel(SupplierService supplierService) : BasePageModel
         }
         
         var request = Input.Adapt<SupplierRequest>();
-
-        var result = await supplierService.CreateSupplierAsync(request, ct);
+        
+        var result = await sender.Send(new CreateSupplierCommand(request), ct);
+        
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Supplier.EmailNotUnique"] = "Input.Email" });
 

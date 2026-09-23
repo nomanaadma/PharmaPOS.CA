@@ -1,15 +1,16 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Categories.Commands.CreateCategory;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Categories;
 
 [Authorize(Policy = Permissions.Category.Add)]
-public class AddModel(CategoryService categoryService) : BasePageModel
+public class AddModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public CategoryViewModel Input { get; set; } = new();
@@ -27,7 +28,7 @@ public class AddModel(CategoryService categoryService) : BasePageModel
         
         var request = Input.Adapt<CategoryRequest>();
 
-        var result = await categoryService.CreateCategoryAsync(request, ct);
+        var result = await sender.Send(new CreateCategoryCommand(request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Category.NameNotUnique"] = "Input.Name" });
 

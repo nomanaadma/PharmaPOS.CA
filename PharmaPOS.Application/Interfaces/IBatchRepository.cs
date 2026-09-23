@@ -5,8 +5,8 @@ namespace PharmaPOS.Application.Interfaces;
 public interface IBatchRepository : IRepository<Batch>
 {
 	Task<List<Batch>> GetNonExpiredBatchesAsync(List<int> medicineIds, CancellationToken ct = default);
-	Task<List<Batch>> GetNonExpiredBatchesForMedicineAsync(int medicineId, CancellationToken ct = default);
-	Task<List<Batch>> GetActiveBatchesByMedicineAsync(int medicineId, CancellationToken ct = default);
+	Task<List<Batch>> GetNonExpiredBatchesAsync(int medicineId, CancellationToken ct = default);
+	Task<List<Batch>> GetActiveBatchesAsync(int medicineId, CancellationToken ct = default);
 	Task<Batch?> GetSingleBatchAsync(int medicineId, int batchId, CancellationToken ct = default);
 	Task<Dictionary<int, Batch>> GetBatchByIdsAsync(List<int> batchIds, CancellationToken ct = default);
 	Task<List<Batch>> GetBatchesByPurchaseIdAsync(int purchaseId, CancellationToken ct = default);

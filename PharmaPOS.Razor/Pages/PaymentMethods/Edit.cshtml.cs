@@ -1,8 +1,10 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.PaymentMethods.Commands.UpdatePaymentMethod;
+using PharmaPOS.Application.PaymentMethods.Queries.GetPaymentMethod;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
@@ -10,14 +12,14 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.PaymentMethods;
 
 [Authorize(Policy = Permissions.PaymentMethod.Edit)]
-public class EditModel(PaymentMethodService paymentMethodService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public PaymentMethodViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await paymentMethodService.GetPaymentMethodAsync(id, ct);
+        var result = await sender.Send(new GetPaymentMethodQuery(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 
@@ -46,7 +48,7 @@ public class EditModel(PaymentMethodService paymentMethodService) : BasePageMode
         
         var request = Input.Adapt<PaymentMethodRequest>();
 
-        var result = await paymentMethodService.UpdatePaymentMethodAsync(id, request, ct);
+        var result = await sender.Send(new UpdatePaymentMethodCommand(id, request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["PaymentMethod.NameNotUnique"] = "Input.Name" });
 

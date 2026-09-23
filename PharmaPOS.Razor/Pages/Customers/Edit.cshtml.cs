@@ -1,8 +1,10 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Customers.Commands.UpdateCustomer;
+using PharmaPOS.Application.Customers.Queries.GetCustomer;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 using PharmaPOS.Razor.Mappers;
@@ -10,19 +12,18 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Customers;
 
 [Authorize(Policy = Permissions.Customer.Edit)]
-public class EditModel(CustomerService customerService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public CustomerViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await customerService.GetCustomerAsync(id, ct);
+        var result = await sender.Send(new GetCustomerQuery(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
-        
-        Input = result.Value.Adapt<CustomerViewModel>();
 
+        Input = result.Value.Adapt<CustomerViewModel>();
         return Page();
     }
 
@@ -39,7 +40,7 @@ public class EditModel(CustomerService customerService) : BasePageModel
             NotifyError("Customer ID is required for editing.");
             return BadRequest();
         }
-        
+
         if (!ModelState.IsValid)
         {
             return Page();
@@ -47,7 +48,7 @@ public class EditModel(CustomerService customerService) : BasePageModel
         
         var request = Input.Adapt<CustomerRequest>();
 
-        var result = await customerService.UpdateCustomerAsync(id, request, ct);
+        var result = await sender.Send(new UpdateCustomerCommand(id, request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Customer.EmailNotUnique"] = "Input.Email" });
 

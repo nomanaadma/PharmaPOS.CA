@@ -1,15 +1,16 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Customers.Commands.CreateCustomer;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Customers;
 
 [Authorize(Policy = Permissions.Customer.Add)]
-public class AddModel(CustomerService customerService) : BasePageModel
+public class AddModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public CustomerViewModel Input { get; set; } = new();
@@ -27,7 +28,7 @@ public class AddModel(CustomerService customerService) : BasePageModel
         
         var request = Input.Adapt<CustomerRequest>();
 
-        var result = await customerService.CreateCustomerAsync(request, ct);
+        var result = await sender.Send(new CreateCustomerCommand(request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Customer.EmailNotUnique"] = "Input.Email" });
 

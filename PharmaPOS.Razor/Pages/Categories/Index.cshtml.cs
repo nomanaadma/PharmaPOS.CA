@@ -1,21 +1,21 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Categories.Commands.DeleteCategory;
+using PharmaPOS.Application.Categories.Queries.GetAllCategories;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
 
 namespace PharmaPOS.Razor.Pages.Categories;
 
 [Authorize(Policy = Permissions.Category.List)]
-public class IndexModel(CategoryService categoryService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     public IEnumerable<CategoryResponse> Categories { get; set; } = new List<CategoryResponse>();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var categories = await categoryService.GetAllCategoriesAsync(ct);
+        var categories = await sender.Send(new GetAllCategoriesQuery(), ct);
         Categories = categories;
         
         return Page();
@@ -27,7 +27,7 @@ public class IndexModel(CategoryService categoryService) : BasePageModel
         if (!hasPermission)
             return Forbid();
 
-        var result = await categoryService.DeleteCategoryAsync(id, ct);
+        var result = await sender.Send(new DeleteCategoryCommand(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 

@@ -1,15 +1,16 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.PaymentMethods.Commands.CreatePaymentMethod;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.PaymentMethods;
 
 [Authorize(Policy = Permissions.PaymentMethod.Add)]
-public class AddModel(PaymentMethodService paymentMethodService) : BasePageModel
+public class AddModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public PaymentMethodViewModel Input { get; set; } = new();
@@ -27,7 +28,7 @@ public class AddModel(PaymentMethodService paymentMethodService) : BasePageModel
         
         var request = Input.Adapt<PaymentMethodRequest>();
 
-        var result = await paymentMethodService.CreatePaymentMethodAsync(request, ct);
+        var result = await sender.Send(new CreatePaymentMethodCommand(request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["PaymentMethod.NameNotUnique"] = "Input.Name" });
 

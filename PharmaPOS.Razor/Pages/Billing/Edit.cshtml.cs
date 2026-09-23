@@ -1,8 +1,11 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Billings.Commands.UpdateBill;
+using PharmaPOS.Application.Billings.Queries.GetBillForEdit;
+using PharmaPOS.Application.PaymentMethods.Queries.GetPaymentMethodsLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -10,19 +13,19 @@ using PharmaPOS.Razor.Models;
 namespace PharmaPOS.Razor.Pages.Billing;
 
 [Authorize(Policy = Permissions.Billing.Edit)]
-public class EditModel(BillingService billingService, PaymentMethodService paymentMethodService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public BillingFormModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await billingService.GetBillForEditAsync(id, ct);
+        var result = await sender.Send(new GetBillForEditQuery(id), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        var paymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
+        var paymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<BillingFormModel>();
         Input.PaymentMethods = paymentMethods;
@@ -40,7 +43,7 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
             return BadRequest();
         }
         
-        Input.PaymentMethods = (await paymentMethodService.GetPaymentMethodsAsync(ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {
@@ -50,7 +53,7 @@ public class EditModel(BillingService billingService, PaymentMethodService payme
         
         var request = Input.Adapt<BillingRequest>();
 
-        var result = await billingService.UpdateBillAsync(id, request, ct);
+        var result = await sender.Send(new UpdateBillCommand(id, request), ct);
 
         if (result.IsError)
             return HandleErrors(result.Errors);

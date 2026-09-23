@@ -1,13 +1,14 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Customers.Queries.SearchCustomers;
 
 namespace PharmaPOS.Razor.Pages.Customers;
 
 [Authorize(Policy = Permissions.Medicine.List)]
-public class GetCustomerModel(CustomerService customerService) : PageModel
+public class GetCustomerModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(string term, CancellationToken ct)
     {
@@ -24,7 +25,7 @@ public class GetCustomerModel(CustomerService customerService) : PageModel
             return new JsonResult(Array.Empty<object>());
         }
 
-        var results = await customerService.SearchCustomersAsync(term, ct);
+        var results = await sender.Send(new SearchCustomersQuery(term), ct);
         
         return new JsonResult(results);
     }

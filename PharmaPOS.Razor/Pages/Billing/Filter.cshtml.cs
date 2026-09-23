@@ -1,8 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Billings.Queries.GetFilteredBills;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Helpers;
 using PharmaPOS.Razor.Mappers;
@@ -10,13 +11,13 @@ using PharmaPOS.Razor.Mappers;
 namespace PharmaPOS.Razor.Pages.Billing;
 
 [Authorize(Policy = Permissions.Billing.List)]
-public class FilterModel(BillingService billingService) : PageModel
+public class FilterModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         var request = Request.Form.ToDataTableRequest();
 
-        var result = await billingService.GetFilteredBillsAsync(request, BillColumns.GetColumnMap(), ct);
+        var result = await sender.Send(new GetFilteredBillsQuery(request, BillColumns.GetColumnMap()), ct);
 
         var canView = User.HasClaim("Permission", Permissions.Billing.View);
         var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);

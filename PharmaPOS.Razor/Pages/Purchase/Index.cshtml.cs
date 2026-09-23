@@ -1,12 +1,13 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Purchases.Commands.DeletePurchase;
 
 namespace PharmaPOS.Razor.Pages.Purchase;
 
 [Authorize(Policy = Permissions.Purchase.List)]
-public class IndexModel(PurchaseService purchaseService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     public void OnGet()
     {
@@ -18,7 +19,7 @@ public class IndexModel(PurchaseService purchaseService) : BasePageModel
         if (!hasPermission)
             return Forbid();
 
-        var result = await purchaseService.DeletePurchaseAsync(id, ct);
+        var result = await sender.Send(new DeletePurchaseCommand(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 

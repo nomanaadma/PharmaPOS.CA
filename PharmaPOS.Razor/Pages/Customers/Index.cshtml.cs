@@ -1,22 +1,23 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Customers.Commands.DeleteCustomer;
+using PharmaPOS.Application.Customers.Queries.GetAllCustomers;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
 
 namespace PharmaPOS.Razor.Pages.Customers;
 
 [Authorize(Policy = Permissions.Customer.List)]
-public class IndexModel(CustomerService customerService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     public IEnumerable<CustomerResponse> Customers { get; set; } = new List<CustomerResponse>();
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var customersQuery = await customerService.GetAllCustomersAsync(ct);
-        Customers = customersQuery;
+        var customers = await sender.Send(new GetAllCustomersQuery(), ct);
+        Customers = customers;
+        
         return Page();
     }
     
@@ -26,7 +27,7 @@ public class IndexModel(CustomerService customerService) : BasePageModel
         if (!hasPermission)
             return Forbid();
 
-        var result = await customerService.DeleteCustomerAsync(id, ct);
+        var result = await sender.Send(new DeleteCustomerCommand(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 

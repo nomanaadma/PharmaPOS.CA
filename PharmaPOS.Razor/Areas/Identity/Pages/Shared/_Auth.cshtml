@@ -1,5 +1,6 @@
+@using PharmaPOS.Application.Settings.Queries.GetSettings
 @{
-	var siteInfo = await SiteInfo.GetSettingsAsync();
+	var siteInfo = await Mediator.Send(new GetSettingsQuery());
 }
 <!DOCTYPE html>
 <html lang="en">

@@ -1,23 +1,24 @@
 using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Suppliers.Commands.UpdateSupplier;
+using PharmaPOS.Application.Suppliers.Queries.GetSupplier;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Models;
-using PharmaPOS.Razor.Mappers;
 
 namespace PharmaPOS.Razor.Pages.Suppliers;
 
 [Authorize(Policy = Permissions.Suppliers.Edit)]
-public class EditModel(SupplierService supplierService) : BasePageModel
+public class EditModel(ISender sender) : BasePageModel
 {
     [BindProperty]
     public SupplierViewModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id, CancellationToken ct)
     {
-        var result = await supplierService.GetSupplierAsync(id, ct);
+        var result = await sender.Send(new GetSupplierQuery(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 
@@ -46,7 +47,7 @@ public class EditModel(SupplierService supplierService) : BasePageModel
         
         var request = Input.Adapt<SupplierRequest>();
 
-        var result = await supplierService.UpdateSupplierAsync(id, request, ct);
+        var result = await sender.Send(new UpdateSupplierCommand(id, request), ct);
         if (result.IsError)
             return HandleErrors(result.Errors, new() { ["Supplier.EmailNotUnique"] = "Input.Email" });
 

@@ -1,12 +1,13 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Medicines.Queries.SearchMedicines;
 
 namespace PharmaPOS.Razor.Pages.Medicines;
 
-public class GetMedicineModel(MedicineService medicineService) : PageModel
+public class GetMedicineModel(ISender sender) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(string term, CancellationToken ct)
     {
@@ -26,7 +27,7 @@ public class GetMedicineModel(MedicineService medicineService) : PageModel
             return new JsonResult(Array.Empty<object>());
         }
 
-        var results = await medicineService.SearchMedicinesAsync(term, ct);
+        var results = await sender.Send(new SearchMedicinesQuery(term), ct);
 
         return new JsonResult(results);
     }

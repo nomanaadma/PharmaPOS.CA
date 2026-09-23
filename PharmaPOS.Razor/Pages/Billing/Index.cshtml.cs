@@ -1,12 +1,13 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Billings.Commands.DeleteBill;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
 [Authorize(Policy = Permissions.Billing.List)]
-public class IndexModel(BillingService billingService) : BasePageModel
+public class IndexModel(ISender sender) : BasePageModel
 {
     public void OnGet()
     {
@@ -19,7 +20,7 @@ public class IndexModel(BillingService billingService) : BasePageModel
         if (!hasPermission)
             return Forbid();
 
-        var result = await billingService.DeleteBillAsync(id, ct);
+        var result = await sender.Send(new DeleteBillCommand(id), ct);
         if (result.IsError)
             return HandleErrors(result.Errors);
 

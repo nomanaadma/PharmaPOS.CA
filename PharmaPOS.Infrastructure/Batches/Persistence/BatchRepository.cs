@@ -20,7 +20,7 @@ public class BatchRepository(ApplicationDbContext context) : Repository<Batch>(c
 			.ToListAsync(ct);
 	}
 
-	public async Task<List<Batch>> GetNonExpiredBatchesForMedicineAsync(int medicineId, CancellationToken ct = default)
+	public async Task<List<Batch>> GetNonExpiredBatchesAsync(int medicineId, CancellationToken ct = default)
 	{
 		return await DbSet
 			.Where(b => b.MedicineId == medicineId)
@@ -31,7 +31,7 @@ public class BatchRepository(ApplicationDbContext context) : Repository<Batch>(c
 			.ToListAsync(ct);
 	}
 
-	public async Task<List<Batch>> GetActiveBatchesByMedicineAsync(int medicineId, CancellationToken ct = default)
+	public async Task<List<Batch>> GetActiveBatchesAsync(int medicineId, CancellationToken ct = default)
 	{
 		return await DbSet
 			.Where(b => b.MedicineId == medicineId)
