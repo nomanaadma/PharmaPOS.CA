@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.IProviders;
-using PharmaPOS.Application.Settings.Queries.GetMediaList;
+using PharmaPOS.Application.Settings.Queries.ListMedia;
 
 namespace PharmaPOS.Razor.Pages.Media;
 
@@ -14,7 +14,7 @@ public class GetModel(IFilePathProvider pathProvider, ISender sender) : PageMode
 {
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var result = await sender.Send(new GetMediaListQuery(), ct);
+        var result = await sender.Send(new ListMediaQuery(), ct);
         var html = "";
         
         foreach (var value in result)

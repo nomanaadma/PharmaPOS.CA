@@ -1,12 +1,10 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Customers.Commands.GetOrCreateCustomer;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Application.Services;
 using PharmaPOS.Domain.BillingAggregate;
-using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Application.Billings.Commands.CreateBill;
 
@@ -14,7 +12,7 @@ public class CreateBillCommandHandler(
 	IBillRepository billRepo,
 	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
-	ISender sender,
+	CustomerService customerService,
 	ILogger<CreateBillCommandHandler> logger) : IRequestHandler<CreateBillCommand, ErrorOr<int>>
 {
 	public async Task<ErrorOr<int>> Handle(CreateBillCommand command, CancellationToken ct)
@@ -26,7 +24,8 @@ public class CreateBillCommandHandler(
 
 		var customerRequest = CustomerHelper.CreateCustomerRequest(request);
 		
-		var customerResult = await sender.Send(new GetOrCreateCustomerCommand(customerRequest), ct);
+		var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct); 
+		
 		if (customerResult.IsError)
 			return customerResult.Errors;
 

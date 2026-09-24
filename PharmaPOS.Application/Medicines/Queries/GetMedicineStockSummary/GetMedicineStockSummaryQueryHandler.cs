@@ -1,6 +1,5 @@
 using Mapster;
 using MediatR;
-using PharmaPOS.Application.Batches.Queries.GetActiveBatches;
 using PharmaPOS.Application.Extensions;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
@@ -8,7 +7,7 @@ using PharmaPOS.Contracts.Responses;
 namespace PharmaPOS.Application.Medicines.Queries.GetMedicineStockSummary;
 
 public class GetMedicineStockSummaryQueryHandler(
-	ISender sender,
+	IBatchRepository batchRepo,
 	IMedicineRepository medicineRepo) : IRequestHandler<GetMedicineStockSummaryQuery, (IEnumerable<BatchResponse> liveBatches, IEnumerable<BatchResponse> badBatches)>
 {
 	public async Task<(IEnumerable<BatchResponse> liveBatches, IEnumerable<BatchResponse> badBatches)> Handle(GetMedicineStockSummaryQuery query, CancellationToken ct)
@@ -16,7 +15,7 @@ public class GetMedicineStockSummaryQueryHandler(
 		var today = DateTime.UtcNow.Date;
 		var currentMonthStr = new DateTime(today.Year, today.Month, 1).ExpiryFormat();
 
-		var batchesQuery = await sender.Send(new GetActiveBatchesQuery(query.MedicineId), ct);
+		var batchesQuery = await batchRepo.GetActiveBatchesAsync(query.MedicineId, ct);
 		
 		var batchesResponse = batchesQuery.Adapt<List<BatchResponse>>();
 		

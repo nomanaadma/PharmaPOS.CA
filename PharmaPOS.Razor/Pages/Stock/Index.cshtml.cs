@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Stock.Commands.DeleteStock;
 using PharmaPOS.Application.Stock.Commands.UpdateStock;
-using PharmaPOS.Application.Stock.Queries.GetStockList;
+using PharmaPOS.Application.Stock.Queries.ListStock;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Razor.Mappers;
 using PharmaPOS.Razor.Models;
@@ -18,7 +18,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(string? type, CancellationToken ct)
     {
-        Stocks = await sender.Send(new GetStockListQuery(type), ct);
+        Stocks = await sender.Send(new ListStockQuery(type), ct);
 
         var pageTitle = type switch
         {

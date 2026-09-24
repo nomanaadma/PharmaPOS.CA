@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Billings.Queries.GetRecentBills;
+using PharmaPOS.Application.Billings.Queries.ListRecentBills;
 using PharmaPOS.Application.Customers.Queries.GetCustomer;
 using PharmaPOS.Contracts.Responses;
 
@@ -21,7 +21,7 @@ public class ViewModel(ISender sender) : BasePageModel
             return HandleErrors(result.Errors);
 
         var customer = result.Value;
-        var recentBills = await sender.Send(new GetRecentBillsQuery(customer.Id, customer.Email), ct);
+        var recentBills = await sender.Send(new ListRecentBillsQuery(customer.Id, customer.Email), ct);
 
         Customer = customer;
         RecentBills = recentBills;

@@ -3,9 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Suppliers.Commands.DeleteSupplier;
-using PharmaPOS.Application.Suppliers.Queries.GetAllSuppliers;
+using PharmaPOS.Application.Suppliers.Queries.ListSuppliers;
 using PharmaPOS.Contracts.Responses;
-using PharmaPOS.Razor.Models;
 
 namespace PharmaPOS.Razor.Pages.Suppliers;
 
@@ -16,7 +15,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Suppliers = await sender.Send(new GetAllSuppliersQuery(), ct);
+        Suppliers = await sender.Send(new ListSuppliersQuery(), ct);
         
         return Page();
     }

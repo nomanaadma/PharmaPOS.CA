@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Purchases.Commands.CreatePurchase;
-using PharmaPOS.Application.Suppliers.Queries.GetSupplierLookup;
+using PharmaPOS.Application.Suppliers.Queries.ListSuppliersLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -19,13 +19,13 @@ public class AddModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.Suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
+        Input.Suppliers = (await sender.Send(new ListSuppliersLookupQuery(), ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.Suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
+        Input.Suppliers = (await sender.Send(new ListSuppliersLookupQuery(), ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

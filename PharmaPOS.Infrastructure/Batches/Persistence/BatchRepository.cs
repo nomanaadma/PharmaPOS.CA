@@ -41,7 +41,7 @@ public class BatchRepository(ApplicationDbContext context) : Repository<Batch>(c
 			.ToListAsync(ct);
 	}
 
-	public async Task<Batch?> GetSingleBatchAsync(int medicineId, int batchId, CancellationToken ct = default)
+	public async Task<Batch?> GetBatchAsync(int medicineId, int batchId, CancellationToken ct = default)
 	{
 		return await DbSet
 			.Include(b => b.Pricing)

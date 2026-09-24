@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Billings.Queries.GetFilteredBills;
+using PharmaPOS.Application.Billings.Queries.ListFilteredBills;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Helpers;
 using PharmaPOS.Razor.Mappers;
@@ -17,7 +17,7 @@ public class FilterModel(ISender sender) : PageModel
     {
         var request = Request.Form.ToDataTableRequest();
 
-        var result = await sender.Send(new GetFilteredBillsQuery(request, BillColumns.GetColumnMap()), ct);
+        var result = await sender.Send(new ListFilteredBillsQuery(request, BillColumns.GetColumnMap()), ct);
 
         var canView = User.HasClaim("Permission", Permissions.Billing.View);
         var canEdit = User.HasClaim("Permission", Permissions.Billing.Edit);

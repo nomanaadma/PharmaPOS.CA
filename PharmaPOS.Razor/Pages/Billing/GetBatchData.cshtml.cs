@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Batches.Queries.GetSingleBatch;
+using PharmaPOS.Application.Batches.Queries.GetBatch;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
@@ -19,7 +19,7 @@ public class GetBatchDataModel(ISender sender) : PageModel
             return Forbid();
         }
         
-        var mBatch = await sender.Send(new GetSingleBatchQuery(medicine, batch), ct);
+        var mBatch = await sender.Send(new GetBatchQuery(medicine, batch), ct);
 
         if (mBatch == null)
         {

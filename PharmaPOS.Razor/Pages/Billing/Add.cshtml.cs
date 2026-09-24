@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Billings.Commands.CreateBill;
-using PharmaPOS.Application.PaymentMethods.Queries.GetPaymentMethodsLookup;
+using PharmaPOS.Application.PaymentMethods.Queries.ListPaymentMethodsLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -19,13 +19,13 @@ public class AddModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new ListPaymentMethodsLookupQuery(), ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new ListPaymentMethodsLookupQuery(), ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

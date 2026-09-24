@@ -12,7 +12,7 @@ public class UpdateStockCommandHandler(
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateStockCommand command, CancellationToken ct)
 	{
-		var batch = await batchRepo.GetSingleBatchAsync(command.MedicineId, command.Id, ct);
+		var batch = await batchRepo.GetBatchAsync(command.MedicineId, command.Id, ct);
 		
 		if (batch == null)
 			return Error.NotFound(description: "Stock does not exist in database!");

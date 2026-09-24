@@ -5,9 +5,9 @@ using PharmaPOS.Domain.BillingAggregate;
 
 namespace PharmaPOS.Application.Mappers;
 
-public static class BillMapper
+public class BillMapper : IRegister
 {
-	public static void Register(TypeAdapterConfig config)
+	public void Register(TypeAdapterConfig config)
 	{
 		
 		config.NewConfig<BillItem, BillItemDto>()

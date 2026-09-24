@@ -1,12 +1,10 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Customers.Commands.GetOrCreateCustomer;
 using PharmaPOS.Application.Helpers;
 using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Contracts.Requests;
+using PharmaPOS.Application.Services;
 using PharmaPOS.Domain.BillingAggregate;
-using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Application.Billings.Commands.UpdateBill;
 
@@ -14,7 +12,7 @@ public class UpdateBillCommandHandler(
 	IBillRepository billRepo,
 	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
-	ISender sender,
+	CustomerService customerService,
 	ILogger<UpdateBillCommandHandler> logger) : IRequestHandler<UpdateBillCommand, ErrorOr<Updated>>
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateBillCommand command, CancellationToken ct)
@@ -34,7 +32,8 @@ public class UpdateBillCommandHandler(
 		{
 			var customerRequest = CustomerHelper.CreateCustomerRequest(request);
 			
-			var customerResult = await sender.Send(new GetOrCreateCustomerCommand(customerRequest), ct);
+			var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct);
+			
 			if (customerResult.IsError)
 				return customerResult.Errors;
 			customerId = customerResult.Value;

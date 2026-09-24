@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Batches.Queries.GetNonExpiredBatches;
+using PharmaPOS.Application.Batches.Queries.ListNonExpiredBatches;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 
@@ -19,7 +19,7 @@ public class GetBatchModel(ISender sender) : PageModel
             return Forbid();
         }
         
-        var batches = await sender.Send(new GetNonExpiredBatchesQuery(id), ct);
+        var batches = await sender.Send(new ListNonExpiredBatchesQuery(id), ct);
         
         if (batches.Count == 0)
         {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Customers.Commands.DeleteCustomer;
-using PharmaPOS.Application.Customers.Queries.GetAllCustomers;
+using PharmaPOS.Application.Customers.Queries.ListCustomers;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Customers;
@@ -15,7 +15,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var customers = await sender.Send(new GetAllCustomersQuery(), ct);
+        var customers = await sender.Send(new ListCustomersQuery(), ct);
         Customers = customers;
         
         return Page();

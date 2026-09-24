@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Categories.Queries.GetCategoryLookup;
+using PharmaPOS.Application.Categories.Queries.ListCategoriesLookup;
 using PharmaPOS.Application.Medicines.Commands.CreateMedicine;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
@@ -19,13 +19,13 @@ public class AddModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        Input.Categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
+        Input.Categories = (await sender.Send(new ListCategoriesLookupQuery(), ct)).ToSelectList();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
-        Input.Categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
+        Input.Categories = (await sender.Send(new ListCategoriesLookupQuery(), ct)).ToSelectList();
         
         if (!ModelState.IsValid)
         {

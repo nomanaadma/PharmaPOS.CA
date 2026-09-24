@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.PaymentMethods.Commands.DeletePaymentMethod;
-using PharmaPOS.Application.PaymentMethods.Queries.GetAllPaymentMethods;
+using PharmaPOS.Application.PaymentMethods.Queries.ListPaymentMethods;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.PaymentMethods;
@@ -15,7 +15,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var methods = await sender.Send(new GetAllPaymentMethodsQuery(), ct);
+        var methods = await sender.Send(new ListPaymentMethodsQuery(), ct);
         PaymentMethods = methods;
         
         return Page();

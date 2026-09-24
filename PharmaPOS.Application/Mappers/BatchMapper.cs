@@ -4,9 +4,9 @@ using PharmaPOS.Domain.BatchAggregate;
 
 namespace PharmaPOS.Application.Mappers;
 
-public static class BatchMapper
+public class BatchMapper : IRegister
 {
-	public static void Register(TypeAdapterConfig config)
+	public void Register(TypeAdapterConfig config)
 	{
 		config.NewConfig<Batch, BatchResponse>()
 			.Map(dest => dest.Batch, src => src.BatchName)

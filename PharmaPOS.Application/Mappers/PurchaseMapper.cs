@@ -4,9 +4,9 @@ using PharmaPOS.Domain.BatchAggregate;
 
 namespace PharmaPOS.Application.Mappers;
 
-public static class PurchaseMapper
+public class PurchaseMapper : IRegister
 {
-	public static void Register(TypeAdapterConfig config)
+	public void Register(TypeAdapterConfig config)
 	{
 		
 		config.NewConfig<Batch, PurchaseItemResponse>()

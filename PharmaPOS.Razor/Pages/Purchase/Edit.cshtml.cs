@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Purchases.Commands.UpdatePurchase;
 using PharmaPOS.Application.Purchases.Queries.GetPurchase;
-using PharmaPOS.Application.Suppliers.Queries.GetSupplierLookup;
+using PharmaPOS.Application.Suppliers.Queries.ListSuppliersLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -26,7 +26,7 @@ public class EditModel(ISender sender) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
+        var suppliers = (await sender.Send(new ListSuppliersLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<PurchaseFormModel>();
         Input.Suppliers = suppliers;
@@ -42,7 +42,7 @@ public class EditModel(ISender sender) : BasePageModel
             return BadRequest();
         }
         
-        Input.Suppliers = (await sender.Send(new GetSupplierLookupQuery(), ct)).ToSelectList();
+        Input.Suppliers = (await sender.Send(new ListSuppliersLookupQuery(), ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {

@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Categories.Queries.GetCategoryLookup;
+using PharmaPOS.Application.Categories.Queries.ListCategoriesLookup;
 using PharmaPOS.Application.Medicines.Commands.UpdateMedicine;
 using PharmaPOS.Application.Medicines.Queries.GetMedicine;
 using PharmaPOS.Contracts.Requests;
@@ -26,7 +26,7 @@ public class EditModel(ISender sender) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
         
-        var categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
+        var categories = (await sender.Send(new ListCategoriesLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<MedicineViewModel>();
         Input.Categories = categories;
@@ -36,7 +36,7 @@ public class EditModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnPostAsync(int id, CancellationToken ct)
     {
-        Input.Categories = (await sender.Send(new GetCategoryLookupQuery(), ct)).ToSelectList();
+        Input.Categories = (await sender.Send(new ListCategoriesLookupQuery(), ct)).ToSelectList();
             
         if (id != Input.Id)
         {

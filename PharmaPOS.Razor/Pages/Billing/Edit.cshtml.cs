@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Billings.Commands.UpdateBill;
 using PharmaPOS.Application.Billings.Queries.GetBillForEdit;
-using PharmaPOS.Application.PaymentMethods.Queries.GetPaymentMethodsLookup;
+using PharmaPOS.Application.PaymentMethods.Queries.ListPaymentMethodsLookup;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Models;
@@ -25,7 +25,7 @@ public class EditModel(ISender sender) : BasePageModel
         if (result.IsError)
             return HandleErrors(result.Errors);
 
-        var paymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
+        var paymentMethods = (await sender.Send(new ListPaymentMethodsLookupQuery(), ct)).ToSelectList();
         
         Input = result.Value.Adapt<BillingFormModel>();
         Input.PaymentMethods = paymentMethods;
@@ -43,7 +43,7 @@ public class EditModel(ISender sender) : BasePageModel
             return BadRequest();
         }
         
-        Input.PaymentMethods = (await sender.Send(new GetPaymentMethodsLookupQuery(), ct)).ToSelectList();
+        Input.PaymentMethods = (await sender.Send(new ListPaymentMethodsLookupQuery(), ct)).ToSelectList();
 
         if (!ModelState.IsValid)
         {

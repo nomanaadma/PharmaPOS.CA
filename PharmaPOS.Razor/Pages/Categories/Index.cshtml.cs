@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Categories.Commands.DeleteCategory;
-using PharmaPOS.Application.Categories.Queries.GetAllCategories;
+using PharmaPOS.Application.Categories.Queries.ListCategories;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Categories;
@@ -15,7 +15,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        var categories = await sender.Send(new GetAllCategoriesQuery(), ct);
+        var categories = await sender.Send(new ListCategoriesQuery(), ct);
         Categories = categories;
         
         return Page();
