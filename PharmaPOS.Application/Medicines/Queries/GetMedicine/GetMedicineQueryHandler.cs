@@ -1,8 +1,10 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Responses;
+using PharmaPOS.Domain.CategoryAggregate;
 using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Application.Medicines.Queries.GetMedicine;
@@ -16,13 +18,13 @@ public class GetMedicineQueryHandler(
 		var medicine = await medicineRepo.GetByIdAsync(query.Id, ct);
 		if (medicine == null)
 		{
-			return MedicineErrors.NotFound(query.Id);
+			return CommonErrors<Medicine>.NotFound(query.Id);
 		}
 		
 		var categoryName = await categoryRepo.GetCategoryNameByIdAsync(medicine.CategoryId, ct);
 		if (categoryName == null)
 		{
-			return MedicineErrors.CategoryNotFound(medicine.CategoryId);
+			return  CommonErrors<Category>.NotFound(medicine.CategoryId);
 		}
 		
 		var response = medicine.Adapt<MedicineResponse>() with
@@ -33,3 +35,4 @@ public class GetMedicineQueryHandler(
 		return response;
 	}
 }
+

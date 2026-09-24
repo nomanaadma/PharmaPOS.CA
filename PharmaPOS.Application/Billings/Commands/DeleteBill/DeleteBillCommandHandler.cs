@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ public class DeleteBillCommandHandler(
 		var bill = await billRepo.GetBillWithItemsAsync(command.Id, ct);
 
 		if (bill == null)
-			return BillErrors.NotFound(command.Id);
+			return CommonErrors<Bill>.NotFound(command.Id);
 
 		// Pre-fetch all batches in a single query
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
@@ -27,7 +28,7 @@ public class DeleteBillCommandHandler(
 		foreach (var item in bill.Items)
 		{
 			if (!batches.TryGetValue(item.BatchId, out var batch))
-				return BillErrors.BatchNotFound(item.BatchId, item.MedicineId);
+				return BillApplicationErrors.BatchNotFound(item.BatchId, item.MedicineId);
 
 			var soldResult = batch.UpdateSold(-item.Pricing.Qty);
 			if (soldResult.IsError)
@@ -41,3 +42,4 @@ public class DeleteBillCommandHandler(
 		return Result.Deleted;
 	}
 }
+

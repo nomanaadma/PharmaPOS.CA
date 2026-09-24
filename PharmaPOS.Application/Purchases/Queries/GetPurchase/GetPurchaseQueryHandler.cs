@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -18,11 +19,11 @@ public class GetPurchaseQueryHandler(
 	{
 		var purchase = await purchaseRepo.GetByIdAsync(query.Id, ct);
 		if (purchase == null)
-			return PurchaseErrors.NotFound(query.Id);
+			return CommonErrors<Purchase>.NotFound(query.Id);
 		
 		var supplier = await supplierRepo.GetByIdAsync(purchase.SupplierId, ct);
 		if(supplier == null)
-			return SupplierErrors.NotFound(query.Id);
+			return CommonErrors<Supplier>.NotFound(query.Id);
 		
 		var batches = await batchRepo.GetBatchesByPurchaseIdAsync(query.Id, ct);
 
@@ -50,3 +51,4 @@ public class GetPurchaseQueryHandler(
 		return purchaseResponse;
 	}
 }
+

@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -17,7 +18,7 @@ public class UpdateMedicineCommandHandler(
 		var medicine = await medicineRepo.GetByIdAsync(command.Id, ct);
 
 		if (medicine == null)
-			return MedicineErrors.NotFound(command.Id);
+			return CommonErrors<Medicine>.NotFound(command.Id);
 
 		var medicineFields = command.Request.Adapt<MedicineFields>();
 
@@ -32,3 +33,4 @@ public class UpdateMedicineCommandHandler(
 		return Result.Updated;
 	}
 }
+

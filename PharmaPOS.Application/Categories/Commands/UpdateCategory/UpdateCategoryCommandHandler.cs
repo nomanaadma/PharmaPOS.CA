@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -17,10 +18,10 @@ public class UpdateCategoryCommandHandler(
 
 		var category = await categoryRepo.GetByIdAsync(command.Id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(command.Id);
+			return CommonErrors<Category>.NotFound(command.Id);
 
 		if (await categoryRepo.ExistsByNameAsync(request.Name, command.Id, ct))
-			return CategoryErrors.NameNotUnique;
+			return CategoryApplicationErrors.NameNotUnique;
 
 		var updateResult = category.Update(request.Name);
 		if (updateResult.IsError)
@@ -33,3 +34,4 @@ public class UpdateCategoryCommandHandler(
 		return Result.Updated;
 	}
 }
+

@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ public class DeleteCategoryCommandHandler(
 	{
 		var category = await categoryRepo.GetByIdAsync(command.Id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(command.Id);
+			return CommonErrors<Category>.NotFound(command.Id);
 
 		categoryRepo.Remove(category);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -24,3 +25,4 @@ public class DeleteCategoryCommandHandler(
 		return Result.Deleted;
 	}
 }
+

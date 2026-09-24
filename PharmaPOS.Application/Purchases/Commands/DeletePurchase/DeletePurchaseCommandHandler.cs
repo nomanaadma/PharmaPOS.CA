@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Domain.BatchAggregate;
+using PharmaPOS.Domain.Common.Errors;
 using PharmaPOS.Domain.PurchaseAggregate;
 
 namespace PharmaPOS.Application.Purchases.Commands.DeletePurchase;
@@ -18,12 +19,12 @@ public class DeletePurchaseCommandHandler(
 		var purchase = await purchaseRepo.GetByIdAsync(command.Id, ct);
 
 		if (purchase == null)
-			return PurchaseErrors.NotFound(command.Id);
+			return CommonErrors<Purchase>.NotFound(command.Id);
 		
 		var hasSoldBatches = await batchRepo.HasSoldBatchesAsync(command.Id, ct);
-		
+
 		if (hasSoldBatches)
-			return BatchErrors.CannotDeletePurchaseWithSoldBatches;
+			return PurchaseApplicationErrors.CannotDeleteSoldPurchase;
 		
 		await batchRepo.DeleteBatchesByPurchaseIdAsync(command.Id, ct);
 		

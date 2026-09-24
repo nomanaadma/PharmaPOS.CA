@@ -17,7 +17,7 @@ public class CreateSupplierCommandHandler(
 		var request = command.Request;
 
 		if (await supplierRepo.ExistsByEmailAsync(request.Email, null, ct))
-			return SupplierErrors.EmailNotUnique;
+			return SupplierApplicationErrors.EmailNotUnique;
 
 		var supplierFields = request.Adapt<SupplierFields>();
 

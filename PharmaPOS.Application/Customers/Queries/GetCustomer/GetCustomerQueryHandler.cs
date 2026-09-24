@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -14,10 +15,11 @@ public class GetCustomerQueryHandler(
 	{
 		var customer = await customerRepo.GetByIdAsync(query.Id, ct);
 		if (customer == null)
-			return CustomerErrors.NotFound(query.Id);
+			return CommonErrors<Customer>.NotFound(query.Id);
 				
 		var customerResponse =  customer.Adapt<CustomerResponse>();				
 
 		return customerResponse;
 	}
 }
+

@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ public class DeleteCustomerCommandHandler(
 	{
 		var customer = await customerRepo.GetByIdAsync(command.Id, ct);
 		if (customer == null)
-			return CustomerErrors.NotFound(command.Id);
+			return CommonErrors<Customer>.NotFound(command.Id);
 
 		customerRepo.Remove(customer);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -24,3 +25,4 @@ public class DeleteCustomerCommandHandler(
 		return Result.Deleted;
 	}
 }
+

@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ public class DeleteSupplierCommandHandler(
 	{
 		var supplier = await supplierRepo.GetByIdAsync(command.Id, ct);
 		if (supplier == null)
-			return SupplierErrors.NotFound(command.Id);
+			return CommonErrors<Supplier>.NotFound(command.Id);
 
 		supplierRepo.Remove(supplier);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -24,3 +25,4 @@ public class DeleteSupplierCommandHandler(
 		return Result.Deleted;
 	}
 }
+

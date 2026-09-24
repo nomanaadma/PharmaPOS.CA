@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -17,7 +18,7 @@ public class GetBillForEditQueryHandler(
 		var bill = await billRepo.GetBillWithItemsAsync(query.Id, ct);
 
 		if (bill == null)
-			return BillErrors.NotFound(query.Id);
+			return CommonErrors<Bill>.NotFound(query.Id);
 
 		var medicineIds = bill.Items.Select(i => i.MedicineId).Distinct().ToList();
 		var medicineNames = await medicineRepo.GetMedicineNamesByIdsAsync(medicineIds, ct);
@@ -55,3 +56,4 @@ public class GetBillForEditQueryHandler(
 		return billEditResponse;
 	}
 }
+

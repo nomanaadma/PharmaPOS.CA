@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -14,9 +15,10 @@ public class GetPaymentMethodQueryHandler(
 	{
 		var method = await paymentMethodRepo.GetByIdAsync(query.Id, ct);
 		if (method == null)
-			return PaymentMethodErrors.NotFound(query.Id);
+			return CommonErrors<PaymentMethod>.NotFound(query.Id);
 
 		var methodResponse = method.Adapt<PaymentMethodResponse>();
 		return methodResponse;
 	}
 }
+

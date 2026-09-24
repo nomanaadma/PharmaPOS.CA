@@ -14,7 +14,8 @@ public class DeleteMediaFileCommandHandler(
 	{
 		var media = await mediaRepo.GetByIdAndFilenameAsync(command.Id, command.Name, ct);
 		if (media == null)
-			return Error.NotFound(description: "File is wrong or does not exist.");
+			return
+				SettingsApplicationErrors.NotFound;
 
 		var filePath = pathProvider.GetUploadsFilePath(command.Name);
 		if (File.Exists(filePath))
@@ -25,7 +26,7 @@ public class DeleteMediaFileCommandHandler(
 			}
 			catch (Exception ex)
 			{
-				return Error.Failure(description: "Error deleting " + command.Name + ": " + ex.Message);
+				return SettingsApplicationErrors.CannotDelete(command.Name, ex.Message);
 			}
 		}
 

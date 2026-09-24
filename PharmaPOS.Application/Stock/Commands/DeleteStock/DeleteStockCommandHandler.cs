@@ -14,9 +14,9 @@ public class DeleteStockCommandHandler(
 	public async Task<ErrorOr<Deleted>> Handle(DeleteStockCommand command, CancellationToken ct)
 	{
 		var batch = await batchRepo.GetByIdAsync(command.Id, ct);
-		
+
 		if (batch == null)
-			return Error.NotFound(description: "Stock does not exist in database!");
+			return StockApplicationErrors.NotFound;
 		
 		batch.UpdateStatus(Status.InActive);
 		await unitOfWork.SaveChangesAsync(ct);

@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -14,9 +15,10 @@ public class GetSupplierQueryHandler(
 	{
 		var supplier = await supplierRepo.GetByIdAsync(query.Id, ct);
 		if (supplier == null)
-			return SupplierErrors.NotFound(query.Id);
+			return CommonErrors<Supplier>.NotFound(query.Id);
 
 		var supplierResponse = supplier.Adapt<SupplierResponse>();
 		return supplierResponse;
 	}
 }
+

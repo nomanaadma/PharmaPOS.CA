@@ -20,7 +20,7 @@ public class CreateBillCommandHandler(
 		var request = command.Request;
 
 		if (request.Items.Count == 0)
-			return BillErrors.MissingItems;
+			return BillApplicationErrors.MissingItems;
 
 		var customerRequest = CustomerHelper.CreateCustomerRequest(request);
 		
@@ -66,12 +66,12 @@ public class CreateBillCommandHandler(
 				return addResult.Errors;
 
 			if (!batches.TryGetValue(item.Batch, out var batch))
-				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
+				return BillApplicationErrors.BatchNotFound(item.Batch, item.MedicineId);
 
 			// Validate stock availability
 			var available = batch.Pricing.Qty - batch.Sold;
 			if (item.Qty > available)
-				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
+				return BillApplicationErrors.InsufficientStock(batch.BatchName, available, item.Qty);
 
 			var soldResult = batch.UpdateSold(item.Qty);
 			if (soldResult.IsError)

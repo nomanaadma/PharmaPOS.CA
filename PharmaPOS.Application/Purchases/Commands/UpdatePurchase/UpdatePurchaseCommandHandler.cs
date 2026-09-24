@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -19,12 +20,12 @@ public class UpdatePurchaseCommandHandler(
 		var request = command.Request;
 
 		if (request.Items.Count == 0)
-			return PurchaseErrors.MissingItems;
+			return PurchaseApplicationErrors.MissingItems;
 		
 		var existingPurchase = await purchaseRepo.GetByIdAsync(command.Id, ct);
 
 		if (existingPurchase == null)
-			return PurchaseErrors.NotFound(command.Id);
+			return CommonErrors<Purchase>.NotFound(command.Id);
 
 		var purchaseFields = new PurchaseFields(
 			request.Supplier,
@@ -50,7 +51,7 @@ public class UpdatePurchaseCommandHandler(
 		{
 			// Business rule: can't delete a batch that has been sold
 			if (batch.Sold > 0)
-				return BatchErrors.CannotDeleteSoldBatch(batch.BatchName);
+				return PurchaseApplicationErrors.CannotDelete(batch.BatchName);
 		}
 		
 		batchRepo.RemoveRange(batchesToRemove);
@@ -79,7 +80,8 @@ public class UpdatePurchaseCommandHandler(
 				if (existingBatch == null) continue;
 
 				if (pricingResult.Value.Qty < existingBatch.Sold)
-					return BatchErrors.CannotUpdateSoldQuantity(existingBatch.BatchName, pricingResult.Value.Qty, existingBatch.Sold);
+					return PurchaseApplicationErrors.CannotUpdate(existingBatch.BatchName, pricingResult.Value.Qty,
+						existingBatch.Sold);
 
 				var batchUpdateResult = existingBatch.Update(batchFields);
 				if (batchUpdateResult.IsError)
@@ -106,3 +108,4 @@ public class UpdatePurchaseCommandHandler(
 		return Result.Updated;
 	}
 }
+

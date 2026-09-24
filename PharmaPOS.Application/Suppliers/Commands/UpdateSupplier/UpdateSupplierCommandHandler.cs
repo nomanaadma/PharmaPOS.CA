@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -18,10 +19,10 @@ public class UpdateSupplierCommandHandler(
 
 		var supplier = await supplierRepo.GetByIdAsync(command.Id, ct);
 		if (supplier == null)
-			return SupplierErrors.NotFound(command.Id);
+			return CommonErrors<Supplier>.NotFound(command.Id);
 
 		if (await supplierRepo.ExistsByEmailAsync(request.Email, command.Id, ct))
-			return SupplierErrors.EmailNotUnique;
+			return SupplierApplicationErrors.EmailNotUnique;
 
 		var supplierFields = request.Adapt<SupplierFields>();
 
@@ -36,3 +37,4 @@ public class UpdateSupplierCommandHandler(
 		return Result.Updated;
 	}
 }
+

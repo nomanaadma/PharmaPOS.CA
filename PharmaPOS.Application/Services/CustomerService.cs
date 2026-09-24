@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 using Mapster;
 using Microsoft.Extensions.Logging;
+using PharmaPOS.Application.Billings;
 using PharmaPOS.Application.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.BillingAggregate;
@@ -23,7 +24,7 @@ public class CustomerService(
 			return request.Id.Value;
 
 		if (string.IsNullOrWhiteSpace(request.FirstName))
-			return BillErrors.CustomerNameRequired;
+			return BillApplicationErrors.CustomerNameRequired;
 		
 		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
 	}

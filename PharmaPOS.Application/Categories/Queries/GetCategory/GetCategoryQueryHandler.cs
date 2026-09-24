@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -14,9 +15,10 @@ public class GetCategoryQueryHandler(
 	{
 		var category = await categoryRepo.GetByIdAsync(query.Id, ct);
 		if (category == null)
-			return CategoryErrors.NotFound(query.Id);
+			return CommonErrors<Category>.NotFound(query.Id);
 
 		var categoryResponse = category.Adapt<CategoryResponse>();
 		return categoryResponse;
 	}
 }
+

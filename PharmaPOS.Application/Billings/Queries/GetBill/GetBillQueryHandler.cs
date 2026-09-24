@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -18,7 +19,7 @@ public class GetBillQueryHandler(
 		var bill = await billRepo.GetBillWithItemsAsync(query.Id, ct);
 		
 		if (bill == null)
-			return BillErrors.NotFound(query.Id);
+			return CommonErrors<Bill>.NotFound(query.Id);
 		
 		var batchIds = bill.Items.Select(i => i.BatchId).Distinct().ToList();
 		var batchesById = await batchRepo.GetBatchByIdsAsync(batchIds, ct); 
@@ -45,3 +46,4 @@ public class GetBillQueryHandler(
 		return billResponse;
 	}
 }
+

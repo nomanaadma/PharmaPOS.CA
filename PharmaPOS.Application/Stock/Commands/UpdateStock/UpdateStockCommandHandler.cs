@@ -15,7 +15,7 @@ public class UpdateStockCommandHandler(
 		var batch = await batchRepo.GetBatchAsync(command.MedicineId, command.Id, ct);
 		
 		if (batch == null)
-			return Error.NotFound(description: "Stock does not exist in database!");
+			return StockApplicationErrors.NotFound;
 		
 		var targetTotalSold = batch.Pricing.Qty - command.Available;
 		var quantityJustSold = targetTotalSold - batch.Sold;

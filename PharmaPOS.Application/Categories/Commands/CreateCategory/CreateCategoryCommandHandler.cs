@@ -16,7 +16,7 @@ public class CreateCategoryCommandHandler(
 		var request = command.Request;
 
 		if (await categoryRepo.ExistsByNameAsync(request.Name, null, ct))
-			return CategoryErrors.NameNotUnique;
+			return CategoryApplicationErrors.NameNotUnique;
 
 		var categoryResult = Category.Create(request.Name);
 		if (categoryResult.IsError)

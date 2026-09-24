@@ -18,4 +18,7 @@ public static class CommonErrors<T>
 	public static Error InvalidEnum(string fieldName, string? customMessage = null) =>
 		Error.Validation($"{Prefix}.Invalid{fieldName}", customMessage ?? $"Invalid {fieldName} value.");
 	
+	public static Error NotFound(int id, string? customMessage = null) => 
+		Error.NotFound($"{Prefix}.NotFound", customMessage ?? $"{Prefix} {id} doest not existss.");
+	
 }

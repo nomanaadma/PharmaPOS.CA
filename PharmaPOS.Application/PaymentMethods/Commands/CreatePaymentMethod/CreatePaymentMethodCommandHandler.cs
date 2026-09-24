@@ -17,7 +17,7 @@ public class CreatePaymentMethodCommandHandler(
 		var request = command.Request;
 
 		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, null, ct))
-			return PaymentMethodErrors.NameNotUnique;
+			return PaymentMethodApplicationErrors.NameNotUnique;
 
 		var paymentMethodFields = request.Adapt<PaymentMethodFields>();
 

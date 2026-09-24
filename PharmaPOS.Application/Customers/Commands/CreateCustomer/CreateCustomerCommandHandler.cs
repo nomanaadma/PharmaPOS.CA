@@ -15,7 +15,7 @@ public class CreateCustomerCommandHandler(
 		var request = command.Request;
 
 		if (request.Email != null && await customerRepo.ExistsByEmailAsync(request.Email, null, ct))
-			return CustomerErrors.EmailNotUnique;
+			return CustomerApplicationErrors.EmailNotUnique;
 
 		
 		var customerResult = await customerService.SaveCustomerAsync(request, "Customer {CustomerId} created", ct);

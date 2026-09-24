@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -20,12 +21,12 @@ public class UpdateBillCommandHandler(
 		var request = command.Request;
 
 		if (request.Items.Count == 0)
-			return BillErrors.MissingItems;
+			return BillApplicationErrors.MissingItems;
 		
 		var bill = await billRepo.GetBillWithItemsAsync(command.Id, ct);
 
 		if (bill == null)
-			return BillErrors.NotFound(command.Id);
+			return CommonErrors<Bill>.NotFound(command.Id);
 
 		var customerId = request.CustomerId ?? bill.CustomerId;
 		if (customerId == 0)
@@ -68,7 +69,7 @@ public class UpdateBillCommandHandler(
 		foreach (var oldItem in bill.Items)
 		{
 			if (!batches.TryGetValue(oldItem.BatchId, out var batch))
-				return BillErrors.BatchNotFound(oldItem.BatchId, oldItem.MedicineId);
+				return BillApplicationErrors.BatchNotFound(oldItem.BatchId, oldItem.MedicineId);
 
 			var soldResult = batch.UpdateSold(-oldItem.Pricing.Qty);
 			if (soldResult.IsError)
@@ -93,12 +94,12 @@ public class UpdateBillCommandHandler(
 				return addResult.Errors;
 			
 			if (!batches.TryGetValue(item.Batch, out var batch))
-				return BillErrors.BatchNotFound(item.Batch, item.MedicineId);
+				return BillApplicationErrors.BatchNotFound(item.Batch, item.MedicineId);
 
 			// Validate stock availability
 			var available = batch.Pricing.Qty - batch.Sold;
 			if (item.Qty > available)
-				return BillErrors.InsufficientStock(batch.BatchName, available, item.Qty);
+				return BillApplicationErrors.InsufficientStock(batch.BatchName, available, item.Qty);
 			
 			var soldResult = batch.UpdateSold(item.Qty);
 			if (soldResult.IsError)
@@ -111,3 +112,4 @@ public class UpdateBillCommandHandler(
 		return Result.Updated;
 	}
 }
+

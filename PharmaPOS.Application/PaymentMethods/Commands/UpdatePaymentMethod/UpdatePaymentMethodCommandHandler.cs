@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
@@ -18,10 +19,10 @@ public class UpdatePaymentMethodCommandHandler(
 
 		var method = await paymentMethodRepo.GetByIdAsync(command.Id, ct);
 		if (method == null)
-			return PaymentMethodErrors.NotFound(command.Id);
+			return CommonErrors<PaymentMethod>.NotFound(command.Id);
 
 		if (await paymentMethodRepo.ExistsByNameAsync(request.Name, command.Id, ct))
-			return PaymentMethodErrors.NameNotUnique;
+			return PaymentMethodApplicationErrors.NameNotUnique;
 
 		var paymentMethodFields = request.Adapt<PaymentMethodFields>();
 
@@ -36,3 +37,4 @@ public class UpdatePaymentMethodCommandHandler(
 		return Result.Updated;
 	}
 }
+

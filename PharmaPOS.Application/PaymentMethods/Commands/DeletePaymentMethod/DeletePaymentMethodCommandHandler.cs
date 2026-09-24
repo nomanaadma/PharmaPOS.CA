@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ public class DeletePaymentMethodCommandHandler(
 	{
 		var method = await paymentMethodRepo.GetByIdAsync(command.Id, ct);
 		if (method == null)
-			return PaymentMethodErrors.NotFound(command.Id);
+			return CommonErrors<PaymentMethod>.NotFound(command.Id);
 
 		paymentMethodRepo.Remove(method);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -24,3 +25,4 @@ public class DeletePaymentMethodCommandHandler(
 		return Result.Deleted;
 	}
 }
+

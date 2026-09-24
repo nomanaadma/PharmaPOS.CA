@@ -18,7 +18,7 @@ public class Category : AggregateRoot
 	public static ErrorOr<Category> Create(string name)
 	{
 		if (string.IsNullOrWhiteSpace(name))
-			return NameRequired;
+			return CategoryErrors.NameRequired;
 
 		return new Category(name);
 	}
@@ -26,13 +26,10 @@ public class Category : AggregateRoot
 	public ErrorOr<Updated> Update(string name)
 	{
 		if (string.IsNullOrWhiteSpace(name))
-			return NameRequired;
+			return CategoryErrors.NameRequired;
 
 		Name = name;
 		return Result.Updated;
 	}
-	
-	private static Error NameRequired =>
-		Error.Validation("Category.NameRequired", "Category Name is required.");
 	
 }

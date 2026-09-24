@@ -1,3 +1,4 @@
+using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,7 @@ public class DeleteMedicineCommandHandler(
 		var medicine = await medicineRepo.GetByIdAsync(command.Id, ct);
 
 		if (medicine == null)
-			return MedicineErrors.NotFound(command.Id);
+			return CommonErrors<Medicine>.NotFound(command.Id);
 
 		medicineRepo.Remove(medicine);
 		await unitOfWork.SaveChangesAsync(ct);
@@ -25,3 +26,4 @@ public class DeleteMedicineCommandHandler(
 		return Result.Deleted;
 	}
 }
+

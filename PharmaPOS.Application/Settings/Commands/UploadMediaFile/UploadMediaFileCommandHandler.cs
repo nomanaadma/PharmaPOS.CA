@@ -16,7 +16,7 @@ public class UploadMediaFileCommandHandler(
 	public async Task<ErrorOr<MediaUploadResponse>> Handle(UploadMediaFileCommand command, CancellationToken ct)
 	{
 		if (command.Length == 0)
-			return Error.Validation(description: "No file uploaded.");
+			return SettingsApplicationErrors.NoFile;
 
 		var ext = Path.GetExtension(command.OriginalFileName).TrimStart('.').ToLower();
 		var uniqueId = Guid.NewGuid().ToString("N")[..8];
