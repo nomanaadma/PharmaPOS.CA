@@ -1,3 +1,5 @@
-﻿namespace PharmaPOS.Domain.Common;
+﻿using MediatR;
 
-public interface IDomainEvent;
+namespace PharmaPOS.Domain.Common;
+
+public interface IDomainEvent : INotification;

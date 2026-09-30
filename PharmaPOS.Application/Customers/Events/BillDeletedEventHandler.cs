@@ -1,28 +1,26 @@
 using MediatR;
-using PharmaPOS.Application.Common.Events;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.BillingAggregate.Events;
 using PharmaPOS.Shared.Enums;
 
-namespace PharmaPOS.Application.Billings.Events;
+namespace PharmaPOS.Application.Customers.Events;
 
 public class BillDeletedEventHandler(
     ICustomerRepository customerRepo,
     IBillRepository billRepo,
     IUnitOfWork unitOfWork
-) : INotificationHandler<DomainEventNotification<BillDeletedEvent>>
+) : INotificationHandler<BillDeletedEvent>
 {
-    public async Task Handle(DomainEventNotification<BillDeletedEvent> notification, CancellationToken ct)
+    public async Task Handle(BillDeletedEvent notification, CancellationToken ct)
     {
-	    if (notification.DomainEvent is not BillDeletedEvent domainEvent) return;
         
-        var customer = await customerRepo.GetByIdAsync(domainEvent.CustomerId, ct);
+        var customer = await customerRepo.GetByIdAsync(notification.CustomerId, ct);
         
         if (customer == null) return;
-
+     
         if (customer.Gender != Gender.NotSpecified) return; 
         
-        var hasBills = await billRepo.HasBillsByCustomerAsync(domainEvent.CustomerId, ct);
+        var hasBills = await billRepo.HasBillsByCustomerAsync(notification.CustomerId, ct);
         
         if (hasBills) return; 
         

@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Common.Events;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.Common;
 using MediatR;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 
-public class UnitOfWork(ApplicationDbContext context, IPublisher publisher, IServiceScopeFactory scopeFactory) : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext context, IPublisher publisher) : IUnitOfWork
 {
 	private readonly Dictionary<Type, object> _repositories = new();
 
@@ -25,50 +23,39 @@ public class UnitOfWork(ApplicationDbContext context, IPublisher publisher, ISer
 
 	public async Task<int> SaveChangesAsync(CancellationToken ct = default)
 	{
-		var domainEntities = context.ChangeTracker
-			.Entries<AggregateRoot>()
-			.Where(x => x.Entity.DomainEvents.Count != 0)
+		
+		// get hold of all the domain events
+		var domainEvents = context.ChangeTracker.Entries<AggregateRoot>()
+			.Select(entry => entry.Entity.ClearDomainEvents())
+			.SelectMany(x => x)
 			.ToList();
 
-		var domainEvents = domainEntities
-			.SelectMany(x => x.Entity.DomainEvents)
-			.ToList();
-
-		domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
-
-		var notifications = domainEvents.Select(e =>
+		// store them in the http context for later if user is waiting online
+		if (context.IsUserWaitingOnline())
 		{
-			var type = typeof(DomainEventNotification<>).MakeGenericType(e.GetType());
-			return (IDomainEventNotification)Activator.CreateInstance(type, e)!;
-		}).ToList();
-
-		foreach (var notification in notifications.Where(n => n.DomainEvent is not IAsyncDomainEvent))
-			await publisher.Publish(notification, ct);
-
-		var result = await context.SaveChangesAsync(ct);
-
-		var asyncNotifications = notifications.Where(n => n.DomainEvent is IAsyncDomainEvent).ToList();
-		if (asyncNotifications.Count != 0)
+			context.AddDomainEventsToOfflineProcessingQueue(domainEvents);
+		}
+		else
 		{
-			_ = Task.Run(async () =>
-			{
-				using var scope = scopeFactory.CreateScope();
-				var scopedPublisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
-				foreach (var asyncNotification in asyncNotifications)
-				{
-					try { await scopedPublisher.Publish(asyncNotification, ct); }
-					catch { /* Background tasks should log their own exceptions */ }
-				}
-			}, ct);
+			await PublishDomainEvents(publisher, domainEvents);
 		}
 
-		return result;
+		return await context.SaveChangesAsync(ct);
+		
 	}
 
 	public async Task<IDbTransactionProxy> BeginTransactionAsync(CancellationToken ct = default)
 	{
 		var transaction = await context.Database.BeginTransactionAsync(ct);
 		return new DbTransactionProxy(transaction);
+	}
+	
+	private static async Task PublishDomainEvents(IPublisher publisher, List<IDomainEvent> domainEvents)
+	{
+		foreach (var domainEvent in domainEvents)
+		{
+			await publisher.Publish(domainEvent);
+		}
 	}
 }
 
