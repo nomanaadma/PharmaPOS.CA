@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 

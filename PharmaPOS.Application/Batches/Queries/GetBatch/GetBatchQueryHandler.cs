@@ -1,5 +1,5 @@
 using MediatR;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.BatchAggregate;
 
 namespace PharmaPOS.Application.Batches.Queries.GetBatch;

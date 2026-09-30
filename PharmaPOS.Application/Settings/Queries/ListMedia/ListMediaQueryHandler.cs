@@ -1,5 +1,5 @@
 using MediatR;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.MediaAggregate;
 
 namespace PharmaPOS.Application.Settings.Queries.ListMedia;

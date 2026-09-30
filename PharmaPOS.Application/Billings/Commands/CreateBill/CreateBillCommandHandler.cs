@@ -1,9 +1,9 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Helpers;
-using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Common.Helpers;
+using PharmaPOS.Application.Common.Interfaces;
+using PharmaPOS.Application.Common.Services;
 using PharmaPOS.Domain.BillingAggregate;
 
 namespace PharmaPOS.Application.Billings.Commands.CreateBill;

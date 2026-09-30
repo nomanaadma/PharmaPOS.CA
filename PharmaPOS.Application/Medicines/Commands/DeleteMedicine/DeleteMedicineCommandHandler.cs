@@ -2,7 +2,7 @@ using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.MedicineAggregate;
 
 namespace PharmaPOS.Application.Medicines.Commands.DeleteMedicine;

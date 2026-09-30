@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Application.PaymentMethods.Commands.DeletePaymentMethod;
 using PharmaPOS.Application.PaymentMethods.Queries.ListPaymentMethods;
 using PharmaPOS.Contracts.Responses;

@@ -1,7 +1,6 @@
 using ErrorOr;
 using MediatR;
-using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Application.IProviders;
+using PharmaPOS.Application.Common.Interfaces;
 
 namespace PharmaPOS.Application.Settings.Commands.DeleteMediaFile;
 

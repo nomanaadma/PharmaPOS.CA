@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Categories.Commands.DeleteCategory;
 using PharmaPOS.Application.Categories.Queries.ListCategories;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Contracts.Responses;
 
 namespace PharmaPOS.Razor.Pages.Categories;

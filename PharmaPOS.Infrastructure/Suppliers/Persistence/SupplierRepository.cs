@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.SupplierAggregate;
 using PharmaPOS.Infrastructure.Common.Persistence;

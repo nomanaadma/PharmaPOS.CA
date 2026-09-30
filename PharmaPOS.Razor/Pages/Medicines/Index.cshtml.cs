@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Application.Medicines.Commands.DeleteMedicine;
 using PharmaPOS.Application.Medicines.Queries.ListMedicinesWithStock;
 using PharmaPOS.Contracts.Responses;

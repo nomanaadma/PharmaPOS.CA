@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 

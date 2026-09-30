@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Billings.Queries.GetBill;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Application.Settings.Queries.GetSettings;
 

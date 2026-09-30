@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Application.Helpers;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Helpers;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.PurchaseAggregate;

@@ -1,9 +1,9 @@
 using System.Reflection;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
-using PharmaPOS.Application.Services;
 using FluentValidation;
 using PharmaPOS.Application.Common.Behaviors;
+using PharmaPOS.Application.Common.Services;
 
 namespace PharmaPOS.Application;
 

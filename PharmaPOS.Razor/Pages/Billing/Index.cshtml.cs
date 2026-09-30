@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
 using PharmaPOS.Application.Billings.Commands.DeleteBill;
+using PharmaPOS.Application.Common.Authorization;
 
 namespace PharmaPOS.Razor.Pages.Billing;
 

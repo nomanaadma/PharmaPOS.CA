@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaPOS.Application.Extensions;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Extensions;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Shared.Enums;

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 
 namespace PharmaPOS.Razor.Pages.Reports;
 

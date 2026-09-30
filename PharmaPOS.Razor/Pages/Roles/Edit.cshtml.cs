@@ -2,11 +2,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Razor.Extensions;
 using PharmaPOS.Razor.Mappers;
 using PharmaPOS.Razor.Models;
-using UserRole = PharmaPOS.Application.Authorization.Roles;
+using UserRole = PharmaPOS.Application.Common.Authorization.Roles;
 
 namespace PharmaPOS.Razor.Pages.Roles;
 

@@ -2,7 +2,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaPOS.Application.Authorization;
+using PharmaPOS.Application.Common.Authorization;
 using PharmaPOS.Application.Purchases.Commands.UpdatePurchase;
 using PharmaPOS.Application.Purchases.Queries.GetPurchase;
 using PharmaPOS.Application.Suppliers.Queries.ListSuppliersLookup;

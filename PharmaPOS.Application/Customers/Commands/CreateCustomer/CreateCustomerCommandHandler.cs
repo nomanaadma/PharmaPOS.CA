@@ -1,7 +1,7 @@
 using ErrorOr;
 using MediatR;
-using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Application.Services;
+using PharmaPOS.Application.Common.Interfaces;
+using PharmaPOS.Application.Common.Services;
 using PharmaPOS.Domain.CustomerAggregate;
 
 namespace PharmaPOS.Application.Customers.Commands.CreateCustomer;

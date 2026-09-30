@@ -1,7 +1,7 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Shared.Enums;
 
 namespace PharmaPOS.Application.Stock.Commands.DeleteStock;

@@ -1,5 +1,5 @@
 using MediatR;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 
 namespace PharmaPOS.Application.Medicines.Queries.SearchMedicines;
 

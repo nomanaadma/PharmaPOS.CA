@@ -1,6 +1,6 @@
 using ErrorOr;
 using MediatR;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.SettingAggregate;
 
 namespace PharmaPOS.Application.Settings.Commands.UpdateSettings;

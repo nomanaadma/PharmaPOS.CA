@@ -2,9 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using PharmaPOS.Application.Authorization;
-using PharmaPOS.Application.Helpers;
-using PharmaPOS.Application.IProviders;
+using PharmaPOS.Application.Common.Authorization;
+using PharmaPOS.Application.Common.Helpers;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Application.Settings.Queries.ListMedia;
 
 namespace PharmaPOS.Razor.Pages.Media;

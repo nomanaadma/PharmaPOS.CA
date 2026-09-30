@@ -1,4 +1,4 @@
-﻿using PharmaPOS.Application.IProviders;
+﻿using PharmaPOS.Application.Common.Interfaces;
 
 namespace PharmaPOS.Razor.Providers;
 

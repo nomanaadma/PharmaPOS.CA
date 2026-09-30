@@ -3,7 +3,7 @@ using ErrorOr;
 using Mapster;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using PharmaPOS.Application.Interfaces;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Application.PaymentMethods.Commands.UpdatePaymentMethod;

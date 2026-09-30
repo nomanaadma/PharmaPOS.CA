@@ -1,8 +1,7 @@
 using ErrorOr;
 using MediatR;
-using PharmaPOS.Application.Helpers;
-using PharmaPOS.Application.Interfaces;
-using PharmaPOS.Application.IProviders;
+using PharmaPOS.Application.Common.Helpers;
+using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Contracts.Responses;
 using PharmaPOS.Domain.MediaAggregate;
 
