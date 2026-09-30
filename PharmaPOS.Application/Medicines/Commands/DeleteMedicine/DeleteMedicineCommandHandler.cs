@@ -9,6 +9,7 @@ namespace PharmaPOS.Application.Medicines.Commands.DeleteMedicine;
 
 public class DeleteMedicineCommandHandler(
 	IMedicineRepository medicineRepo,
+	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
 	ILogger<DeleteMedicineCommandHandler> logger) : IRequestHandler<DeleteMedicineCommand, ErrorOr<Deleted>>
 {
@@ -18,6 +19,10 @@ public class DeleteMedicineCommandHandler(
 
 		if (medicine == null)
 			return CommonErrors<Medicine>.NotFound(command.Id);
+
+		var hasBatches = await batchRepo.HasBatchesByMedicineAsync(command.Id, ct);
+		if (hasBatches)
+			return MedicineApplicationErrors.CannotDeleteWithBatches;
 
 		medicineRepo.Remove(medicine);
 		await unitOfWork.SaveChangesAsync(ct);

@@ -29,7 +29,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
         var result = await sender.Send(new DeleteCustomerCommand(id), ct);
         if (result.IsError)
-            return HandleErrors(result.Errors);
+            return HandleErrors(result.Errors, redirectOnError: true);
 
         NotifySuccess("Customer deleted successfully.");
         return RedirectToPage();

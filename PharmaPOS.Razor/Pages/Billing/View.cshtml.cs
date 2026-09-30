@@ -19,7 +19,7 @@ public class ViewModel(ISender sender) : BasePageModel
         var result = await sender.Send(new GetBillQuery(id), ct);
 
         if (result.IsError)
-            return HandleErrors(result.Errors);
+            return HandleErrors(result.Errors, redirectOnError: true);
 
         Bill = result.Value;
         SiteInfo = await sender.Send(new GetSettingsQuery(), ct);

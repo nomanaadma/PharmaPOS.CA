@@ -47,7 +47,8 @@ public abstract class BasePageModel : PageModel
 
     protected IActionResult HandleErrors(
         List<Error> errors,
-        Dictionary<string, string>? conflictFieldMap = null)
+        Dictionary<string, string>? conflictFieldMap = null,
+        bool redirectOnError = false)
     {
         var firstError = errors[0];
 
@@ -65,7 +66,7 @@ public abstract class BasePageModel : PageModel
                     ModelState.AddModelError($"Input.{error.Code}", error.Description);
                 }
                 NotifyError("Please check your inputs.");
-                return Page();
+                return redirectOnError ? RedirectToPage() : Page();
 
             case ErrorType.Conflict:
                 if (conflictFieldMap != null
@@ -78,11 +79,11 @@ public abstract class BasePageModel : PageModel
                     NotifyError(firstError.Description);
                 }
 
-                return Page();
+                return redirectOnError ? RedirectToPage() : Page();
 
             default:
                 NotifyError("An unexpected error occurred. Please try again.");
-                return Page();
+                return redirectOnError ? RedirectToPage() : Page();
         }
     }
 }

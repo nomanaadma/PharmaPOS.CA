@@ -33,4 +33,9 @@ public class PurchaseRepository(
 
 		return await query.ToDataTableAsync(request, columns, ct);
 	}
+
+	public async Task<bool> HasPurchasesBySupplierAsync(int supplierId, CancellationToken ct = default)
+	{
+		return await DbSet.AnyAsync(p => p.SupplierId == supplierId, ct);
+	}
 }

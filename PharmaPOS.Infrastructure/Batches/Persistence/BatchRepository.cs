@@ -118,4 +118,9 @@ public class BatchRepository(ApplicationDbContext context) : Repository<Batch>(c
 	{
 		DbSet.RemoveRange(batches);
 	}
+
+	public async Task<bool> HasBatchesByMedicineAsync(int medicineId, CancellationToken ct = default)
+	{
+		return await DbSet.AnyAsync(b => b.MedicineId == medicineId, ct);
+	}
 }

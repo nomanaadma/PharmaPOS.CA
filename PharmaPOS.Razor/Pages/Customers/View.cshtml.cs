@@ -18,7 +18,7 @@ public class ViewModel(ISender sender) : BasePageModel
     {
         var result = await sender.Send(new GetCustomerQuery(id), ct);
         if (result.IsError)
-            return HandleErrors(result.Errors);
+            return HandleErrors(result.Errors, redirectOnError: true);
 
         var customer = result.Value;
         var recentBills = await sender.Send(new ListRecentBillsQuery(customer.Id, customer.Email), ct);

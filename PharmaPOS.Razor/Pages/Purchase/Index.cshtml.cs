@@ -21,7 +21,7 @@ public class IndexModel(ISender sender) : BasePageModel
 
         var result = await sender.Send(new DeletePurchaseCommand(id), ct);
         if (result.IsError)
-            return HandleErrors(result.Errors);
+            return HandleErrors(result.Errors, redirectOnError: true);
 
         NotifySuccess("Purchase deleted successfully.");
         return RedirectToPage();

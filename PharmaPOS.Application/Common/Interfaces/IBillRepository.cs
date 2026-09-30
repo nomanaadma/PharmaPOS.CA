@@ -15,4 +15,5 @@ public interface IBillRepository : IRepository<Bill>
 	Task<Bill?> GetBillWithItemsAsync(int id, CancellationToken ct = default);
 	Task<List<Bill>> GetRecentBillsAsync(int customerId, string? email, CancellationToken ct = default);
 	Task<List<BillItem>> GetBillItemsForBatchesAsync(List<int> batchIds, CancellationToken ct = default);
+	Task<bool> HasBillsByCustomerAsync(int customerId, CancellationToken ct = default);
 }

@@ -16,4 +16,5 @@ public interface IBatchRepository : IRepository<Batch>
 	Task<List<Batch>> GetActiveBatchesAsync(string? expiryFilterType = null, CancellationToken ct = default);
 	Task AddRangeAsync(IEnumerable<Batch> batches, CancellationToken ct = default);
 	void RemoveRange(IEnumerable<Batch> batches);
+	Task<bool> HasBatchesByMedicineAsync(int medicineId, CancellationToken ct = default);
 }

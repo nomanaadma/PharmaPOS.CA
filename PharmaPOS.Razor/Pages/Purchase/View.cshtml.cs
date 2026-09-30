@@ -16,7 +16,7 @@ public class ViewModel(ISender sender) : BasePageModel
     {
         var result = await sender.Send(new GetPurchaseQuery(id), ct);
         if (result.IsError)
-            return HandleErrors(result.Errors);
+            return HandleErrors(result.Errors, redirectOnError: true);
 
         Purchase = result.Value;
         return Page();

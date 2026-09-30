@@ -9,6 +9,7 @@ namespace PharmaPOS.Application.Customers.Commands.DeleteCustomer;
 
 public class DeleteCustomerCommandHandler(
 	ICustomerRepository customerRepo,
+	IBillRepository billRepo,
 	IUnitOfWork unitOfWork,
 	ILogger<DeleteCustomerCommandHandler> logger) : IRequestHandler<DeleteCustomerCommand, ErrorOr<Deleted>>
 {
@@ -17,6 +18,10 @@ public class DeleteCustomerCommandHandler(
 		var customer = await customerRepo.GetByIdAsync(command.Id, ct);
 		if (customer == null)
 			return CommonErrors<Customer>.NotFound(command.Id);
+
+		var hasBills = await billRepo.HasBillsByCustomerAsync(command.Id, ct);
+		if (hasBills)
+			return CustomerApplicationErrors.CannotDeleteWithBills;
 
 		customerRepo.Remove(customer);
 		await unitOfWork.SaveChangesAsync(ct);

@@ -51,4 +51,9 @@ public class BillRepository(ApplicationDbContext context) : Repository<Bill>(con
 			.Where(bi => batchIds.Contains(bi.BatchId))
 			.ToListAsync(ct);
 	}
+
+	public async Task<bool> HasBillsByCustomerAsync(int customerId, CancellationToken ct = default)
+	{
+		return await DbSet.AnyAsync(b => b.CustomerId == customerId, ct);
+	}
 }
