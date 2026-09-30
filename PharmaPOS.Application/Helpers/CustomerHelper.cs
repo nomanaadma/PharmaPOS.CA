@@ -7,7 +7,7 @@ public static class CustomerHelper
 {
     public static CustomerRequest CreateCustomerRequest(BillingRequest billingRequest)
     {
-        var nameParts = (billingRequest.Name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var nameParts = (billingRequest.Name).Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         // Default to empty strings if the array is empty
         var lastName = nameParts.Length > 0 ? nameParts[^1] : string.Empty;

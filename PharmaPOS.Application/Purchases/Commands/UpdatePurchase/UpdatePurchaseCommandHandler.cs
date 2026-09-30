@@ -19,9 +19,6 @@ public class UpdatePurchaseCommandHandler(
 	{
 		var request = command.Request;
 
-		if (request.Items.Count == 0)
-			return PurchaseApplicationErrors.MissingItems;
-		
 		var existingPurchase = await purchaseRepo.GetByIdAsync(command.Id, ct);
 
 		if (existingPurchase == null)

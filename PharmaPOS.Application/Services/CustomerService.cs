@@ -22,9 +22,6 @@ public class CustomerService(
 	{
 		if (request.Id > 0)
 			return request.Id.Value;
-
-		if (string.IsNullOrWhiteSpace(request.FirstName))
-			return BillApplicationErrors.CustomerNameRequired;
 		
 		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
 	}

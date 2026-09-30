@@ -2,6 +2,8 @@ using System.Reflection;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Services;
+using FluentValidation;
+using PharmaPOS.Application.Common.Behaviors;
 
 namespace PharmaPOS.Application;
 
@@ -19,8 +21,14 @@ public static class ApplicationServiceCollectionExtensions
 			services.AddScoped(type);
 		}
 
-		// Register MediatR handlers from this assembly
-		services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+		// Register MediatR handlers and Pipeline Behaviors
+		services.AddMediatR(cfg => {
+			cfg.RegisterServicesFromAssembly(assembly);
+			cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+		});
+
+		// Register FluentValidation validators
+		services.AddValidatorsFromAssembly(assembly);
 		
 		var config = TypeAdapterConfig.GlobalSettings;
 		config.Scan(assembly);

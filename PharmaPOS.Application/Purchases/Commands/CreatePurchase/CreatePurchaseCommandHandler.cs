@@ -18,9 +18,6 @@ public class CreatePurchaseCommandHandler(
 	{
 		var request = command.Request;
 
-		if (request.Items.Count == 0)
-			return PurchaseApplicationErrors.MissingItems;
-
 		var purchaseFields = new PurchaseFields(
 			request.Supplier,
 			request.Date,

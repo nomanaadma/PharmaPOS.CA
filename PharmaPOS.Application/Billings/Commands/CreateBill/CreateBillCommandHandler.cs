@@ -19,9 +19,6 @@ public class CreateBillCommandHandler(
 	{
 		var request = command.Request;
 
-		if (request.Items.Count == 0)
-			return BillApplicationErrors.MissingItems;
-
 		var customerRequest = CustomerHelper.CreateCustomerRequest(request);
 		
 		var customerResult = await customerService.GetOrCreateCustomerAsync(customerRequest, ct); 

@@ -19,9 +19,6 @@ public class UpdateBillCommandHandler(
 	public async Task<ErrorOr<Updated>> Handle(UpdateBillCommand command, CancellationToken ct)
 	{
 		var request = command.Request;
-
-		if (request.Items.Count == 0)
-			return BillApplicationErrors.MissingItems;
 		
 		var bill = await billRepo.GetBillWithItemsAsync(command.Id, ct);
 

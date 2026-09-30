@@ -58,6 +58,15 @@ public abstract class BasePageModel : PageModel
                 return NotFound();
 
             case ErrorType.Validation:
+                // Add all validation errors to ModelState
+                foreach (var error in errors)
+                {
+                    // For FluentValidation, Code is usually the PropertyName
+                    ModelState.AddModelError($"Input.{error.Code}", error.Description);
+                }
+                NotifyError("Please check your inputs.");
+                return Page();
+
             case ErrorType.Conflict:
                 if (conflictFieldMap != null
                     && conflictFieldMap.TryGetValue(firstError.Code, out var fieldName))

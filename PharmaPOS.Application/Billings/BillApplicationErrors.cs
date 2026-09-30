@@ -11,11 +11,4 @@ public static class BillApplicationErrors
         Error.Validation("Bill.InsufficientStock",
             $"Insufficient stock for batch {batchName}. Available: {available}, Requested: {requested}");
     
-    public static readonly Error MissingItems =
-	    Error.Validation("Bill.MissingItems", "Bill must have at least one item.");
-    
-    public static readonly Error CustomerNameRequired =
-	    Error.Validation("Bill.CustomerNameRequired",
-		    "Customer name is required when no existing customer is selected.");
-    
 }
