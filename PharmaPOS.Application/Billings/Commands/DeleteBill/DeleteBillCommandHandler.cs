@@ -35,6 +35,7 @@ public class DeleteBillCommandHandler(
 				return soldResult.Errors;
 		}
 
+		bill.Delete();
 		billRepo.Remove(bill);
 		await unitOfWork.SaveChangesAsync(ct);
 

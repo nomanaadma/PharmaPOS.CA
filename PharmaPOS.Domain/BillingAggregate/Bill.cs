@@ -1,7 +1,6 @@
 using ErrorOr;
+using PharmaPOS.Domain.BillingAggregate.Events;
 using PharmaPOS.Domain.Common;
-using PharmaPOS.Domain.CustomerAggregate;
-using PharmaPOS.Domain.PaymentMethodAggregate;
 
 namespace PharmaPOS.Domain.BillingAggregate;
 
@@ -64,6 +63,11 @@ public class Bill : OrderDetails
 	public void ClearItems()
 	{
 		_items.Clear();
+	}
+
+	public void Delete()
+	{
+		RaiseDomainEvent(new BillDeletedEvent(CustomerId));
 	}
 
 	private void SetDetails(BillFields fields)
