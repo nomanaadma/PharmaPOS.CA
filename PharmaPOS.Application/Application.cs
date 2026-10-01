@@ -24,6 +24,7 @@ public static class ApplicationServiceCollectionExtensions
 		// Register MediatR handlers and Pipeline Behaviors
 		services.AddMediatR(cfg => {
 			cfg.RegisterServicesFromAssembly(assembly);
+			cfg.AddOpenBehavior(typeof(AuthorizationBehavior<,>));
 			cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 		});
 

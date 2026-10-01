@@ -48,9 +48,9 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseMigrationsEndPoint();
 	
-	using var scope = app.Services.CreateScope();
-	var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-	await dbInitializer.SeedAuthDataAsync();
+	// using var scope = app.Services.CreateScope();
+	// var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+	// await dbInitializer.SeedAuthDataAsync();
 }
 else
 {
@@ -65,6 +65,7 @@ app.UseStatusCodePagesWithReExecute("/Dashboard/Status", "?code={0}");
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseMiddleware<UnauthorizedExceptionMiddleware>();
 app.UseMiddleware<BlockRegisterMiddleware>();
 
 app.UseAuthorization();

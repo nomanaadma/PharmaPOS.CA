@@ -48,6 +48,7 @@ public static class InfrastructureServiceCollectionExtensions
 		
 		services.AddScoped<IReportRepository, ReportRepository>();
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
+		services.AddScoped<ICurrentUserProvider, Common.Services.CurrentUserProvider>();
 		
 		return services;
 	}

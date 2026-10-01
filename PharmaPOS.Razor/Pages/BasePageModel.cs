@@ -81,6 +81,10 @@ public abstract class BasePageModel : PageModel
 
                 return redirectOnError ? RedirectToPage() : Page();
 
+            case ErrorType.Forbidden:
+                NotifyError(firstError.Description);
+                return redirectOnError ? RedirectToPage() : Page();
+
             default:
                 NotifyError("An unexpected error occurred. Please try again.");
                 return redirectOnError ? RedirectToPage() : Page();
