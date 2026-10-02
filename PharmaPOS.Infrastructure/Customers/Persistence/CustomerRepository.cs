@@ -35,4 +35,15 @@ public class CustomerRepository(ApplicationDbContext context) : Repository<Custo
 			))
 			.ToListAsync(ct);
 	}
+
+	public async Task<Customer?> FindByEmailOrPhoneAsync(string? email, string? phone, CancellationToken ct = default)
+	{
+		if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(phone))
+			return null;
+
+		return await DbSet
+			.FirstOrDefaultAsync(c => 
+				(!string.IsNullOrWhiteSpace(email) && c.Email == email) || 
+				(!string.IsNullOrWhiteSpace(phone) && c.Mobile == phone), ct);
+	}
 }

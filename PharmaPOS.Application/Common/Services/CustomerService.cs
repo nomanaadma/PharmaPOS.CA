@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
@@ -20,6 +20,10 @@ public class CustomerService(
 	{
 		if (request.Id > 0)
 			return request.Id.Value;
+			
+		var existingCustomer = await customerRepo.FindByEmailOrPhoneAsync(request.Email, request.Mobile, ct);
+		if (existingCustomer != null)
+			return existingCustomer.Id;
 		
 		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
 	}
