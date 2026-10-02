@@ -13,7 +13,7 @@ using PharmaPOS.Infrastructure.Common.Persistence;
 namespace PharmaPOS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260615181928_AddCategoriesTable")]
+    [Migration("20260615181928_AddMedicineCategoriesTable")]
     partial class AddCategoriesTable
     {
         /// <inheritdoc />

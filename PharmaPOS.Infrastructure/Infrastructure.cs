@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Common.Interfaces;
+using PharmaPOS.Infrastructure.Common.BackgroundJobs;
 using PharmaPOS.Infrastructure.Common.Persistence;
 
 namespace PharmaPOS.Infrastructure;
@@ -49,6 +50,8 @@ public static class InfrastructureServiceCollectionExtensions
 		services.AddScoped<IReportRepository, ReportRepository>();
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
 		services.AddScoped<ICurrentUserProvider, Common.Services.CurrentUserProvider>();
+		
+		services.AddHostedService<OutboxMessageProcessor>();
 		
 		return services;
 	}

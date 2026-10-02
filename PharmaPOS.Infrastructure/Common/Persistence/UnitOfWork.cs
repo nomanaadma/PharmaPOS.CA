@@ -1,15 +1,14 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.Common;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 
 public class UnitOfWork(
 	ApplicationDbContext context, 
-	IPublisher publisher,
-	IServiceScopeFactory scopeFactory) : IUnitOfWork
+	IPublisher publisher) : IUnitOfWork
 {
 	private readonly Dictionary<Type, object> _repositories = new();
 
@@ -45,38 +44,26 @@ public class UnitOfWork(
 			await publisher.Publish(domainEvent, ct);
 		}
 		
-		// Save changes to the database
-		var result = await context.SaveChangesAsync(ct);
-
-		// Fire and forget asynchronous events
+		// Serialize async events into OutboxMessages (saved in the same transaction)
 		var asyncEvents = domainEvents
 			.Where(e => e is IAsyncDomainEvent)
 			.ToList();
-
-		if (asyncEvents.Count == 0) return result;
 		
-		
-		var nullToken = CancellationToken.None;
-			
-		_ = Task.Run(async () =>
+		foreach (var asyncEvent in asyncEvents)
 		{
-			using var scope = scopeFactory.CreateScope();
-			var scopedPublisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
-
-			foreach (var asyncEvent in asyncEvents)
+			var outboxMessage = new OutboxMessage
 			{
-				try
-				{
-					await scopedPublisher.Publish(asyncEvent, nullToken);
-				}
-				catch
-				{
-					// retry and error handling mechanism
-				}
-			}
-		}, nullToken);
-
-		return result;
+				Id = Guid.NewGuid(),
+				Type = asyncEvent.GetType().AssemblyQualifiedName!,
+				Content = JsonSerializer.Serialize(asyncEvent, asyncEvent.GetType()),
+				OccurredOn = DateTime.UtcNow,
+			};
+			
+			context.OutboxMessages.Add(outboxMessage);
+		}
+		
+		// Save changes to the database (business data + outbox messages in one transaction)
+		return await context.SaveChangesAsync(ct);
 		
 	}
 

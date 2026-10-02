@@ -13,13 +13,12 @@ using PharmaPOS.Domain.PaymentMethodAggregate;
 using PharmaPOS.Domain.PurchaseAggregate;
 using PharmaPOS.Domain.SettingAggregate;
 using PharmaPOS.Domain.SupplierAggregate;
+using PharmaPOS.Domain.Common;
 
 namespace PharmaPOS.Infrastructure.Common.Persistence;
 
 public class ApplicationDbContext(
-	DbContextOptions<ApplicationDbContext> options,
-	IHttpContextAccessor httpContextAccessor,
-	IPublisher publisher
+	DbContextOptions<ApplicationDbContext> options
 	) : IdentityDbContext(options)
 {
 	public DbSet<Setting> Settings { get; set; } = null!;
@@ -33,6 +32,7 @@ public class ApplicationDbContext(
 	public DbSet<Batch> Batches { get; set; } = null!;
 	public DbSet<Bill> Bills { get; set; } = null!;
 	public DbSet<BillItem> BillItems { get; set; } = null!;
+	public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder builder)
 	{
