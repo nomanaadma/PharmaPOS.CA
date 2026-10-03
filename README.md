@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/images/logo.png" alt="PharmaPOS Logo" width="320"/>
+  <img src="PharmaPOS.Razor/wwwroot/resources/logos/logo.png" alt="PharmaPOS Logo" width="320"/>
 </p>
 
 <h1 align="center">PharmaPOS</h1>
@@ -12,16 +12,16 @@
   <a href="#features">Features</a> •
   <a href="#screenshots">Screenshots</a> •
   <a href="#tech-stack">Tech Stack</a> •
+  <a href="#architecture--project-structure">Architecture</a> •
   <a href="#installation">Installation</a> •
-  <a href="#database-setup">Database</a> •
-  <a href="#project-structure">Structure</a> •
   <a href="#license">License</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP"/>
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL"/>
-  <img src="https://img.shields.io/badge/Twig-3.x-bacf29?style=for-the-badge&logo=symfony&logoColor=white" alt="Twig"/>
+  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 10"/>
+  <img src="https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white" alt="C#"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Razor_Pages-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt="Razor Pages"/>
   <img src="https://img.shields.io/badge/Bootstrap-4.x-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"/>
   <img src="https://img.shields.io/badge/jQuery-DataTables-0769AD?style=for-the-badge&logo=jquery&logoColor=white" alt="jQuery"/>
 </p>
@@ -30,7 +30,9 @@
 
 ## 📋 Overview
 
-**PharmaPOS** is a full-featured pharmacy point-of-sale and inventory management web application. It streamlines pharmacy operations — from medicine inventory tracking and purchase management to customer billing, stock adjustment, and financial reporting — all within a clean, responsive dashboard interface.
+**PharmaPOS** is a full-featured pharmacy point-of-sale and inventory management web application. It streamlines pharmacy operations — from medicine inventory tracking and purchase management to customer billing, stock adjustment, and financial reporting — all within a clean, responsive dashboard interface. 
+
+Originally built in PHP, it has been **completely re-architected into a robust, enterprise-grade .NET 10 application** utilizing Clean Architecture, CQRS, and Domain-Driven Design principles.
 
 ---
 
@@ -40,7 +42,7 @@
 - Create and manage customer bills with itemized medicine entries
 - Auto-fetch medicine batches with sale price, tax, and discount calculations
 - Support for multiple payment methods (Cash, Card, etc.)
-- Bill view with printable invoice layout (PDF export via DomPDF)
+- Bill view with printable invoice layout
 - Date-range filtering and advanced search on billing records
 
 ### 💊 Medicine Management
@@ -74,14 +76,14 @@
 - Admin dashboard with 12-month trend charts (revenue, income, transactions)
 
 ### 🔐 Authentication & User Management
-- Secure login with hashed passwords (bcrypt)
-- Forgot password & reset password via email (PHPMailer)
-- Login attempt tracking for brute-force protection
-- CSRF token validation on all POST requests
+- Secure cookie-based authentication via ASP.NET Core Identity
+- Declarative Role and Permission-based authorization
+- Granular permission system enforced via MediatR pipeline behaviors (`[AuthorizeCommand]`)
 
 ### 👤 Role-Based Access Control (RBAC)
-- Granular permission system per user role
-- Custom role creation with per-route permission assignment
+- Custom role creation with per-route and per-command permission assignment
+- Pre-configured roles for Admin, Store Manager, and Employee
+- Middleware catches authorization exceptions and handles UI-friendly 403 Forbidden views securely.
 - Pre-configured roles:
 
 | Role | Description | Key Permissions |
@@ -96,7 +98,6 @@
 - Configurable pharmacy name, logo, favicon, and branding
 - Contact information and address management
 - Currency and date format configuration
-- Media library with drag-and-drop image upload (Dropzone.js)
 - Supplier management (name, email, phone, address)
 - Payment method configuration
 
@@ -105,73 +106,75 @@
 ## 📸 Screenshots
 
 ### Login
-![Login](public/resources/screenshots/login.png)
+![Login](PharmaPOS.Razor/wwwroot/resources/screenshots/login.png)
 
 ### POS / Billing
 | New Bill | Billing List |
 |---|---|
-| ![New Bill](public/resources/screenshots/new_bill.png) | ![POS](public/resources/screenshots/pos.png) |
+| ![New Bill](PharmaPOS.Razor/wwwroot/resources/screenshots/new_bill.png) | ![POS](PharmaPOS.Razor/wwwroot/resources/screenshots/pos.png) |
 
 ### Medicine Management
 | Medicine List | Add Medicine | Medicine Categories |
 |---|---|---|
-| ![Medicines](public/resources/screenshots/medicines.png) | ![Add Medicine](public/resources/screenshots/add_medicine.png) | ![Categories](public/resources/screenshots/medicine_categories.png) |
+| ![Medicines](PharmaPOS.Razor/wwwroot/resources/screenshots/medicines.png) | ![Add Medicine](PharmaPOS.Razor/wwwroot/resources/screenshots/add_medicine.png) | ![Categories](PharmaPOS.Razor/wwwroot/resources/screenshots/medicine_categories.png) |
 
 ### Purchase Management
 | Purchase List | Add Purchase |
 |---|---|
-| ![Purchases](public/resources/screenshots/purchases.png) | ![Add Purchase](public/resources/screenshots/add_purchase.png) |
+| ![Purchases](PharmaPOS.Razor/wwwroot/resources/screenshots/purchases.png) | ![Add Purchase](PharmaPOS.Razor/wwwroot/resources/screenshots/add_purchase.png) |
 
 ### Stock Adjustment
 | Live Stock | Expired Stock |
 |---|---|
-| ![Live Stock](public/resources/screenshots/live_stock.png) | ![Expired Stock](public/resources/screenshots/expire_stock.png) |
+| ![Live Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/live_stock.png) | ![Expired Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/expire_stock.png) |
 
 ### Customer Management
 | Customer List | Add Customer |
 |---|---|
-| ![Customers](public/resources/screenshots/customers.png) | ![Add Customer](public/resources/screenshots/add_customer.png) |
+| ![Customers](PharmaPOS.Razor/wwwroot/resources/screenshots/customers.png) | ![Add Customer](PharmaPOS.Razor/wwwroot/resources/screenshots/add_customer.png) |
 
 ### Reports
-![Reports](public/resources/screenshots/reports.png)
+![Reports](PharmaPOS.Razor/wwwroot/resources/screenshots/reports.png)
 
 ### User Management & RBAC
 | Users | Add User | User Roles | Permissions |
 |---|---|---|---|
-| ![Users](public/resources/screenshots/users.png) | ![Add User](public/resources/screenshots/add_user.png) | ![Roles](public/resources/screenshots/user_roles.png) | ![Permissions](public/resources/screenshots/user_permissions.png) |
+| ![Users](PharmaPOS.Razor/wwwroot/resources/screenshots/users.png) | ![Add User](PharmaPOS.Razor/wwwroot/resources/screenshots/add_user.png) | ![Roles](PharmaPOS.Razor/wwwroot/resources/screenshots/user_roles.png) | ![Permissions](PharmaPOS.Razor/wwwroot/resources/screenshots/user_permissions.png) |
 
 ### Settings & Configuration
 | System Settings | Suppliers | Add Supplier | Payment Methods | Add Payment Method |
 |---|---|---|---|---|
-| ![Settings](public/resources/screenshots/settings.png) | ![Suppliers](public/resources/screenshots/suppliers.png) | ![Add Supplier](public/resources/screenshots/add_supplier.png) | ![Payment Methods](public/resources/screenshots/payment_methods.png) | ![Add Payment](public/resources/screenshots/add_payment_method.png) |
+| ![Settings](PharmaPOS.Razor/wwwroot/resources/screenshots/settings.png) | ![Suppliers](PharmaPOS.Razor/wwwroot/resources/screenshots/suppliers.png) | ![Add Supplier](PharmaPOS.Razor/wwwroot/resources/screenshots/add_supplier.png) | ![Payment Methods](PharmaPOS.Razor/wwwroot/resources/screenshots/payment_methods.png) | ![Add Payment](PharmaPOS.Razor/wwwroot/resources/screenshots/add_payment_method.png) |
 
 ### Database Schema (ERD)
 <p align="center">
-  <img src="public/resources/screenshots/erd.png" alt="PharmaPOS ERD - Database Schema" width="100%"/>
+  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/erd.png" alt="PharmaPOS ERD - Database Schema" width="100%"/>
 </p>
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend
+### Backend & Architecture
 | Technology | Purpose |
 |---|---|
-| **PHP 8.0+** | Core server-side language |
-| **Custom MVC Framework** | Lightweight framework with Router, Controller, Model, Loader, and Repository pattern |
-| **Twig 3.x** | Template engine for view rendering |
-| **MySQL 8.0** | Relational database with views and foreign key constraints |
-| **PHPMailer 6.x** | Email delivery for password resets |
-| **DomPDF 0.8.x** | PDF generation for invoices and reports |
-| **HTML Purifier** | Input sanitization and XSS prevention |
-| **Composer** | PHP dependency management |
+| **.NET 10 / C#** | Core server-side framework |
+| **Clean Architecture** | Separation of concerns (Domain, Application, Infrastructure, Presentation) |
+| **CQRS (MediatR)** | Separation of Commands and Queries |
+| **Entity Framework Core** | ORM for PostgreSQL database interactions |
+| **PostgreSQL** | Relational database |
+| **FluentValidation** | Robust API and command request validation |
+| **Mapster** | High-performance object mapping |
+| **Outbox Pattern** | Transactional guarantees for asynchronous Domain Events (via BackgroundService) |
 
 ### Frontend
 | Technology | Purpose |
 |---|---|
+| **ASP.NET Core Razor Pages** | Server-rendered UI |
 | **Bootstrap 4** | Responsive UI framework |
-| **jQuery** | DOM manipulation and AJAX requests |
+| **jQuery & AJAX** | DOM manipulation and dynamic data loading |
 | **DataTables** | Advanced data tables with sorting, searching, and pagination |
+| **Select2 / Autocomplete** | Enhanced search inputs |
 | **Chart.js** | Dashboard analytics charts |
 | **Flatpickr** | Modern date picker for forms |
 | **Summernote** | Rich text editor for notes |
@@ -182,75 +185,31 @@
 
 ---
 
-## 🚀 Installation
+## 🏗️ Architecture & Project Structure
 
-### Prerequisites
-- **PHP** >= 8.0
-- **MySQL** >= 8.0
-- **Composer** (for PHP dependencies)
-- **Apache** with `mod_rewrite` enabled (or Nginx equivalent)
-- A local development environment like [Laragon](https://laragon.org/), [XAMPP](https://www.apachefriends.org/), or [WAMP](https://www.wampserver.com/)
+The solution heavily follows **Clean Architecture** and **Domain-Driven Design (DDD)**:
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/nomanaadma/pharmaPOS.git
-cd pharmaPOS
+```
+PharmaPOS.slnx
+├── PharmaPOS.Domain/        # Enterprise logic, Entities, Aggregates, Domain Events
+├── PharmaPOS.Contracts/     # DTOs, API Requests/Responses
+├── PharmaPOS.Shared/        # Enums, Constants, Shared Utilities
+├── PharmaPOS.Application/   # Use cases (CQRS), MediatR Handlers, Validators, Authorization Behaviors
+├── PharmaPOS.Infrastructure/# EF Core DbContext, Repositories, Background Jobs (OutboxProcessor)
+└── PharmaPOS.Razor/         # Presentation Layer (Razor Pages, Program.cs, UI Assets, Middlewares)
 ```
 
-### Step 2: Install PHP Dependencies
-```bash
-cd builder
-composer install
-cd ..
-```
+**Key Architectural Patterns:**
+- **Outbox Pattern:** When domain events (like `BillDeletedEvent`) are raised, they are serialized to an `OutboxMessages` table within the same database transaction. A hosted background service (`OutboxMessageProcessor`) safely processes them asynchronously with Polly retry pipelines.
+- **Pipeline Behaviors:** MediatR behaviors are used for Cross-Cutting Concerns like **Validation** and **Authorization** (`[AuthorizeCommand]`).
+- **Rich Domain Model:** Business rules and state changes (like updating stock quantities) are encapsulated inside Domain Aggregate Roots (e.g. `Bill`, `Batch`).
 
-### Step 3: Database Setup
-1. Create a new MySQL database named `pharmaPOS`:
-   ```sql
-   CREATE DATABASE pharmaPOS;
-   ```
-2. Import the SQL dump:
-   ```bash
-   mysql -u root -p pharmaPOS < pharmapos.sql
-   ```
-   > Alternatively, use phpMyAdmin or any MySQL GUI to import `pharmapos.sql`. It is located inside `public/resources/` folder.
-
-### Step 4: Configure the Application
-Edit `config/config.php` and update the following:
-
-```php
-// Application URL (must match your local server setup)
-define('URL', 'http://pharmapos.test/');
-
-// Absolute path to the project root
-define('DIR', 'D:/laragon/www/pharmaPOS/');
-
-// Database credentials
-define('DB_HOSTNAME', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_DATABASE', 'pharmaPOS');
-```
-
-### Step 5: Launch
-- If using **Laragon**, the app is accessible at `http://pharmapos.test/`
-- If using **XAMPP/WAMP**, ensure the project is inside `htdocs` and visit `http://localhost/pharmaPOS/`
-
-### Default Login Credentials
-| Role | Username | Password |
-|---|---|---|
-| Admin | `nomanaadma` | `$upeEam#@!f0` |
-
----
-
-## 🗄️ Database Setup
+**Database
 
 The database consists of the following tables:
 
 | Table | Description |
 |---|---|
-| `users` | User accounts with roles and authentication |
-| `user_role` | Role definitions with granular permissions |
 | `customers` | Customer records |
 | `medicines` | Medicine catalog |
 | `medicine_category` | Medicine categories (Tablet, Syrup, etc.) |
@@ -260,87 +219,57 @@ The database consists of the following tables:
 | `bill_items` | Line items per bill |
 | `suppliers` | Supplier contacts |
 | `payment_method` | Payment method configuration |
-| `menu` | Dynamic sidebar navigation |
 | `setting` | System settings (JSON) |
 | `media` | Uploaded media files |
-| `login_attempts` | Brute-force protection tracking |
+| `AspNetRoles` | Stores application roles (e.g., Admin, Employee, Store Manager) |
+| `AspNetUserRoles` | Junction table mapping users to their assigned roles |
+| `AspNetRoleClaims` | Stores permissions granted to specific roles |
+| `AspNetUserClaims` | Stores custom claims of users such as gender, fullname |
 
-**Database Views:**
-- `medicine_batch_view` — Enriched batch data with unit prices, total sales/purchase, and profit
-- `bill_items_view` — Aggregated bill items by medicine and batch
 
 ---
 
-## 📁 Project Structure
+## 🚀 Installation
 
+### Prerequisites
+- **.NET 10 SDK**
+- **PostgreSQL** (running locally or via Docker)
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/nomanaadma/PharmaPOS.CA.git
+cd PharmaPOS
 ```
-pharmaPOS/
-├── index.php                  # Application entry point
-├── config/
-│   └── config.php             # Configuration (DB, URLs, keys)
-├── builder/                   # Framework core
-│   ├── startup.php            # Autoloader and initialization
-│   ├── bootstrap.php          # Application bootstrapping
-│   ├── routes.php             # Route definitions
-│   ├── core/                  # MVC engine (Controller, Router, Model, Loader, Repository)
-│   ├── library/               # Utility libraries (Database, Session, URL, Response, Template)
-│   ├── storage/               # Storage directory
-│   ├── vendor/                # Composer dependencies
-│   └── composer.json          # PHP dependencies
-├── app/
-│   ├── http/
-│   │   ├── controllers/       # Request handlers
-│   │   │   ├── DashboardController.php
-│   │   │   ├── MedicineController.php
-│   │   │   ├── CustomerController.php
-│   │   │   ├── LoginController.php
-│   │   │   ├── UserController.php
-│   │   │   ├── ReportController.php
-│   │   │   ├── SettingController.php
-│   │   │   ├── FinanceController.php
-│   │   │   ├── ProfileController.php
-│   │   │   ├── UploadController.php
-│   │   │   └── ...
-│   │   └── models/            # Database query layer
-│   │       ├── Medicine.php
-│   │       ├── Customer.php
-│   │       ├── Dashboard.php
-│   │       ├── Report.php
-│   │       ├── User.php
-│   │       └── ...
-│   └── views/                 # Twig templates
-│       ├── auth/              # Login, forgot/reset password
-│       ├── dashboard/         # Admin & employee dashboards
-│       ├── medicine/          # Medicine CRUD, billing, purchase, stock
-│       ├── customer/          # Customer CRUD & view
-│       ├── report/            # Reports (inventory, income/expense)
-│       ├── user/              # User & role management
-│       ├── setting/           # System info & suppliers
-│       ├── finance/           # Payment methods
-│       ├── profile/           # User profile
-│       └── common/            # Shared header, footer, modals
-├── public/
-│   ├── css/                   # Stylesheets
-│   ├── js/                    # JavaScript files
-│   ├── images/                # Logo, favicon, backgrounds
-│   ├── fonts/                 # Web fonts
-│   ├── uploads/               # User-uploaded media
-│   └── resources/             # Static resources like screenshots and database sql file
-└── .gitignore
+
+### Step 2: Database Setup
+1. Create a PostgreSQL database (e.g., `pharmapos`).
+2. Update the connection string in `PharmaPOS.Razor/appsettings.json`:
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost;Port=5432;Database=pharmapos;User ID=postgres;Password=your_password;"
+}
 ```
+3. Apply Entity Framework Migrations to generate the schema:
+```bash
+dotnet ef database update --project PharmaPOS.Infrastructure --startup-project PharmaPOS.Razor
+```
+
+### Step 3: Run the Application
+```bash
+dotnet run --project PharmaPOS.Razor
+```
+
+The application will be accessible at `https://localhost:5001` or `http://localhost:5000`.
 
 ---
-
-
 
 ## 🔒 Security Features
 
-- **Password Hashing** — bcrypt via PHP's `password_hash()`
-- **CSRF Protection** — Token validation on all POST requests
-- **XSS Prevention** — HTML Purifier for input sanitization
-- **Login Attempt Tracking** — Brute-force protection with attempt counting
-- **Session Management** — Secure session handling with user agent tracking
-- **`.htaccess` Protection** — Directory access restriction on sensitive folders
+- **Defense-in-Depth Authorization** — Enforced both at the Razor Page route level and deep within the Application layer via MediatR pipelines.
+- **Server-Side Data Validation** — Critical financial math (billing totals, tax, discounts) is strictly re-calculated and verified server-side.
+- **CSRF Protection** — ASP.NET Core built-in Antiforgery token validation.
+- **XSS Prevention** — Razor's automatic HTML encoding.
+- **SQL Injection Prevention** — Via Entity Framework Core parameterized queries.
 
 ---
 
