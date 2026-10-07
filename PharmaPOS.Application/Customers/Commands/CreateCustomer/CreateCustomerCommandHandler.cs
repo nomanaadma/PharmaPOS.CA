@@ -18,7 +18,7 @@ public class CreateCustomerCommandHandler(
 			return CustomerApplicationErrors.EmailNotUnique;
 
 		
-		var customerResult = await customerService.SaveCustomerAsync(request, "Customer {CustomerId} created", ct);
+		var customerResult = await customerService.SaveCustomerAsync(request, ct);
 		if(customerResult.IsError)
 			return customerResult.Errors;
 		

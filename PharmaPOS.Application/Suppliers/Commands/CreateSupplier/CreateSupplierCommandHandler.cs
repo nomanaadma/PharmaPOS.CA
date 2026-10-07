@@ -1,7 +1,6 @@
 using ErrorOr;
 using Mapster;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.SupplierAggregate;
 
@@ -9,8 +8,7 @@ namespace PharmaPOS.Application.Suppliers.Commands.CreateSupplier;
 
 public class CreateSupplierCommandHandler(
 	ISupplierRepository supplierRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<CreateSupplierCommandHandler> logger) : IRequestHandler<CreateSupplierCommand, ErrorOr<Created>>
+	IUnitOfWork unitOfWork) : IRequestHandler<CreateSupplierCommand, ErrorOr<Created>>
 {
 	public async Task<ErrorOr<Created>> Handle(CreateSupplierCommand command, CancellationToken ct)
 	{
@@ -26,10 +24,9 @@ public class CreateSupplierCommandHandler(
 			return supplierResult.Errors;
 
 		var supplier = supplierResult.Value;
-		await supplierRepo.AddAsync(supplier, ct);
+		supplierRepo.Add(supplier);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Supplier {SupplierId} '{Name}' created", supplier.Id, supplier.Name);
 		return Result.Created;
 	}
 }

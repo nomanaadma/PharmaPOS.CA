@@ -17,11 +17,6 @@ builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("De
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-	.AddRoles<IdentityRole>()
-	.AddEntityFrameworkStores<ApplicationDbContext>()
-	.AddDefaultTokenProviders();
-
 builder.Services.AddRazorPages();
 
 builder.Services.AddAuthorization(options =>

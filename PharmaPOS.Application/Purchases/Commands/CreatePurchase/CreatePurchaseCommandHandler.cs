@@ -1,6 +1,5 @@
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Helpers;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.BatchAggregate;
@@ -11,8 +10,7 @@ namespace PharmaPOS.Application.Purchases.Commands.CreatePurchase;
 public class CreatePurchaseCommandHandler(
 	IPurchaseRepository purchaseRepo,
 	IBatchRepository batchRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<CreatePurchaseCommandHandler> logger) : IRequestHandler<CreatePurchaseCommand, ErrorOr<Created>>
+	IUnitOfWork unitOfWork) : IRequestHandler<CreatePurchaseCommand, ErrorOr<Created>>
 {
 	public async Task<ErrorOr<Created>> Handle(CreatePurchaseCommand command, CancellationToken ct)
 	{
@@ -38,7 +36,7 @@ public class CreatePurchaseCommandHandler(
 		
 		try
 		{
-			await purchaseRepo.AddAsync(purchase, ct);
+			purchaseRepo.Add(purchase);
 			await unitOfWork.SaveChangesAsync(ct);
 
 			var batches = new List<Batch>();
@@ -71,7 +69,6 @@ public class CreatePurchaseCommandHandler(
 			
 			await transaction.CommitAsync(ct);
 			
-			logger.LogInformation("Purchase {PurchaseId} created with {BatchCount} batches", purchase.Id, request.Items.Count);
 			return Result.Created;
 		}
 		catch

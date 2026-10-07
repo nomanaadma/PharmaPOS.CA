@@ -2,7 +2,6 @@ using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.MedicineAggregate;
 
@@ -10,8 +9,7 @@ namespace PharmaPOS.Application.Medicines.Commands.UpdateMedicine;
 
 public class UpdateMedicineCommandHandler(
 	IMedicineRepository medicineRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<UpdateMedicineCommandHandler> logger) : IRequestHandler<UpdateMedicineCommand, ErrorOr<Updated>>
+	IUnitOfWork unitOfWork) : IRequestHandler<UpdateMedicineCommand, ErrorOr<Updated>>
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateMedicineCommand command, CancellationToken ct)
 	{
@@ -29,7 +27,6 @@ public class UpdateMedicineCommandHandler(
 		medicineRepo.Update(medicine);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Medicine {MedicineId} '{Name}' updated", medicine.Id, medicine.Name);
 		return Result.Updated;
 	}
 }

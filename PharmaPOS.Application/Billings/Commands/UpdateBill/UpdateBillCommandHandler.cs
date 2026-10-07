@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Helpers;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Application.Common.Services;
@@ -13,8 +12,7 @@ public class UpdateBillCommandHandler(
 	IBillRepository billRepo,
 	IBatchRepository batchRepo,
 	IUnitOfWork unitOfWork,
-	CustomerService customerService,
-	ILogger<UpdateBillCommandHandler> logger) : IRequestHandler<UpdateBillCommand, ErrorOr<Updated>>
+	CustomerService customerService) : IRequestHandler<UpdateBillCommand, ErrorOr<Updated>>
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateBillCommand command, CancellationToken ct)
 	{
@@ -105,7 +103,6 @@ public class UpdateBillCommandHandler(
 
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Bill {BillId} updated with {ItemCount} items", bill.Id, request.Items.Count);
 		return Result.Updated;
 	}
 }

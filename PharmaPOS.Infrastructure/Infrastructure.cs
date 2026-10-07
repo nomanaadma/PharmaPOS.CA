@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PharmaPOS.Application.Common.Interfaces;
@@ -52,6 +53,11 @@ public static class InfrastructureServiceCollectionExtensions
 		services.AddScoped<ICurrentUserProvider, Common.Services.CurrentUserProvider>();
 		
 		services.AddHostedService<OutboxMessageProcessor>();
+		
+		services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+			.AddRoles<IdentityRole>()
+			.AddEntityFrameworkStores<ApplicationDbContext>()
+			.AddDefaultTokenProviders();
 		
 		return services;
 	}

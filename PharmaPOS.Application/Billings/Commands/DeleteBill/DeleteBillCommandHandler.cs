@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.BillingAggregate;
 
@@ -10,8 +9,7 @@ namespace PharmaPOS.Application.Billings.Commands.DeleteBill;
 public class DeleteBillCommandHandler(
 	IBillRepository billRepo,
 	IBatchRepository batchRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<DeleteBillCommandHandler> logger) : IRequestHandler<DeleteBillCommand, ErrorOr<Deleted>>
+	IUnitOfWork unitOfWork) : IRequestHandler<DeleteBillCommand, ErrorOr<Deleted>>
 {
 	public async Task<ErrorOr<Deleted>> Handle(DeleteBillCommand command, CancellationToken ct)
 	{
@@ -39,7 +37,6 @@ public class DeleteBillCommandHandler(
 		billRepo.Remove(bill);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Bill {BillId} deleted, {ItemCount} items reverted", command.Id, bill.Items.Count);
 		return Result.Deleted;
 	}
 }

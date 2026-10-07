@@ -23,7 +23,7 @@ public class UpdateSettingsCommandHandler(
 				return settingsResult.Errors;
 			}
 			settings = settingsResult.Value;
-			await settingRepo.AddAsync(settings, ct);
+			settingRepo.Add(settings);
 		}
 		else
 		{

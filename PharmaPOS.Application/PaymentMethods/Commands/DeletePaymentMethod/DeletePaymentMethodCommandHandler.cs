@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.PaymentMethodAggregate;
 
@@ -9,8 +8,7 @@ namespace PharmaPOS.Application.PaymentMethods.Commands.DeletePaymentMethod;
 
 public class DeletePaymentMethodCommandHandler(
 	IPaymentMethodRepository paymentMethodRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<DeletePaymentMethodCommandHandler> logger) : IRequestHandler<DeletePaymentMethodCommand, ErrorOr<Deleted>>
+	IUnitOfWork unitOfWork) : IRequestHandler<DeletePaymentMethodCommand, ErrorOr<Deleted>>
 {
 	public async Task<ErrorOr<Deleted>> Handle(DeletePaymentMethodCommand command, CancellationToken ct)
 	{
@@ -21,7 +19,6 @@ public class DeletePaymentMethodCommandHandler(
 		paymentMethodRepo.Remove(method);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Payment method {MethodId} deleted", command.Id);
 		return Result.Deleted;
 	}
 }

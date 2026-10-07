@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.SupplierAggregate;
 
@@ -10,8 +9,7 @@ namespace PharmaPOS.Application.Suppliers.Commands.DeleteSupplier;
 public class DeleteSupplierCommandHandler(
 	ISupplierRepository supplierRepo,
 	IPurchaseRepository purchaseRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<DeleteSupplierCommandHandler> logger) : IRequestHandler<DeleteSupplierCommand, ErrorOr<Deleted>>
+	IUnitOfWork unitOfWork) : IRequestHandler<DeleteSupplierCommand, ErrorOr<Deleted>>
 {
 	public async Task<ErrorOr<Deleted>> Handle(DeleteSupplierCommand command, CancellationToken ct)
 	{
@@ -26,7 +24,6 @@ public class DeleteSupplierCommandHandler(
 		supplierRepo.Remove(supplier);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Supplier {SupplierId} deleted", command.Id);
 		return Result.Deleted;
 	}
 }

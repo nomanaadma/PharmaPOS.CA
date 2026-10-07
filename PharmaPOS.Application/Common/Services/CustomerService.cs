@@ -1,6 +1,5 @@
 using ErrorOr;
 using Mapster;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Contracts.Requests;
 using PharmaPOS.Domain.CustomerAggregate;
@@ -9,8 +8,7 @@ namespace PharmaPOS.Application.Common.Services;
 
 public class CustomerService(
 	ICustomerRepository customerRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<CustomerService> logger) : IApplicationService
+	IUnitOfWork unitOfWork) : IApplicationService
 {
 	/// <summary>
 	/// Resolves an existing customer by ID, or creates a new walk-in customer from the billing form data.
@@ -25,10 +23,10 @@ public class CustomerService(
 		if (existingCustomer != null)
 			return existingCustomer.Id;
 		
-		return await SaveCustomerAsync(request, "Created walk-in customer {CustomerId} from billing form", ct);
+		return await SaveCustomerAsync(request, ct);
 	}
 	
-	public async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, string logMessage, CancellationToken ct)
+	public async Task<ErrorOr<int>> SaveCustomerAsync(CustomerRequest request, CancellationToken ct)
 	{
 		var details = request.Adapt<CustomerFields>();
 		
@@ -37,10 +35,9 @@ public class CustomerService(
 			return customerResult.Errors;
 
 		var customer = customerResult.Value;
-		await customerRepo.AddAsync(customer, ct);
+		customerRepo.Add(customer);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation(logMessage, customer.Id);
 		return customer.Id;
 	}
 	

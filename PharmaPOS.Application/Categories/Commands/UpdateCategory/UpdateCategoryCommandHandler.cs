@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.CategoryAggregate;
 
@@ -9,8 +8,7 @@ namespace PharmaPOS.Application.Categories.Commands.UpdateCategory;
 
 public class UpdateCategoryCommandHandler(
 	ICategoryRepository categoryRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<UpdateCategoryCommandHandler> logger) : IRequestHandler<UpdateCategoryCommand, ErrorOr<Updated>>
+	IUnitOfWork unitOfWork) : IRequestHandler<UpdateCategoryCommand, ErrorOr<Updated>>
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateCategoryCommand command, CancellationToken ct)
 	{
@@ -30,7 +28,6 @@ public class UpdateCategoryCommandHandler(
 		categoryRepo.Update(category);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Category {CategoryId} updated", command.Id);
 		return Result.Updated;
 	}
 }

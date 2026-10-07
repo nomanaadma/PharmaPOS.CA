@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.CategoryAggregate;
 
@@ -9,8 +8,7 @@ namespace PharmaPOS.Application.Categories.Commands.DeleteCategory;
 
 public class DeleteCategoryCommandHandler(
 	ICategoryRepository categoryRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<DeleteCategoryCommandHandler> logger) : IRequestHandler<DeleteCategoryCommand, ErrorOr<Deleted>>
+	IUnitOfWork unitOfWork) : IRequestHandler<DeleteCategoryCommand, ErrorOr<Deleted>>
 {
 	public async Task<ErrorOr<Deleted>> Handle(DeleteCategoryCommand command, CancellationToken ct)
 	{
@@ -21,7 +19,6 @@ public class DeleteCategoryCommandHandler(
 		categoryRepo.Remove(category);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Category {CategoryId} deleted", command.Id);
 		return Result.Deleted;
 	}
 }

@@ -1,7 +1,6 @@
 using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.MedicineAggregate;
 
@@ -10,8 +9,7 @@ namespace PharmaPOS.Application.Medicines.Commands.DeleteMedicine;
 public class DeleteMedicineCommandHandler(
 	IMedicineRepository medicineRepo,
 	IBatchRepository batchRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<DeleteMedicineCommandHandler> logger) : IRequestHandler<DeleteMedicineCommand, ErrorOr<Deleted>>
+	IUnitOfWork unitOfWork) : IRequestHandler<DeleteMedicineCommand, ErrorOr<Deleted>>
 {
 	public async Task<ErrorOr<Deleted>> Handle(DeleteMedicineCommand command, CancellationToken ct)
 	{
@@ -27,7 +25,6 @@ public class DeleteMedicineCommandHandler(
 		medicineRepo.Remove(medicine);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Medicine {MedicineId} deleted", command.Id);
 		return Result.Deleted;
 	}
 }

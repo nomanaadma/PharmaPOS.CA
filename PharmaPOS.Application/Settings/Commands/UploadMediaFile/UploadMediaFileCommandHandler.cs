@@ -29,7 +29,7 @@ public class UploadMediaFileCommandHandler(
 			return mediaResult.Errors;
 
 		var media = mediaResult.Value;
-		await mediaRepo.AddAsync(media, ct);
+		mediaRepo.Add(media);
 		await unitOfWork.SaveChangesAsync(ct);
 
 		var (width, height) = ImageHelper.GetImageDimensions(filePath);

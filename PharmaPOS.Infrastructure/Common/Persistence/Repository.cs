@@ -18,10 +18,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
 		return await DbSet.ToListAsync(ct);
 	}
 
-	public virtual async Task<T> AddAsync(T entity, CancellationToken ct = default)
+	public virtual void Add(T entity)
 	{
-		await DbSet.AddAsync(entity, ct);
-		return entity;
+		DbSet.Add(entity);
 	}
 
 	public virtual void Update(T entity)

@@ -2,7 +2,6 @@ using PharmaPOS.Domain.Common.Errors;
 using ErrorOr;
 using Mapster;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using PharmaPOS.Application.Common.Interfaces;
 using PharmaPOS.Domain.SupplierAggregate;
 
@@ -10,8 +9,7 @@ namespace PharmaPOS.Application.Suppliers.Commands.UpdateSupplier;
 
 public class UpdateSupplierCommandHandler(
 	ISupplierRepository supplierRepo,
-	IUnitOfWork unitOfWork,
-	ILogger<UpdateSupplierCommandHandler> logger) : IRequestHandler<UpdateSupplierCommand, ErrorOr<Updated>>
+	IUnitOfWork unitOfWork) : IRequestHandler<UpdateSupplierCommand, ErrorOr<Updated>>
 {
 	public async Task<ErrorOr<Updated>> Handle(UpdateSupplierCommand command, CancellationToken ct)
 	{
@@ -33,7 +31,6 @@ public class UpdateSupplierCommandHandler(
 		supplierRepo.Update(supplier);
 		await unitOfWork.SaveChangesAsync(ct);
 
-		logger.LogInformation("Supplier {SupplierId} updated", command.Id);
 		return Result.Updated;
 	}
 }
