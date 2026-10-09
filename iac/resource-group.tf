@@ -1,5 +1,5 @@
 ﻿resource "azurerm_resource_group" "myPCArg" {
-  location = "West Europe"
+  location = "East Asia"
   name     = "pca-rg"
   
   tags = {
