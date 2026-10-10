@@ -1,0 +1,10 @@
+﻿services:
+  postgres:
+    container_name: postgres-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 'proot'
+      # POSTGRES_DB: mydatabase # Uncomment to automatically create a default database
+    ports:
+      - "5432:5432"
