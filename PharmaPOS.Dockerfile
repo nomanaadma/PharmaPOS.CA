@@ -15,7 +15,7 @@ COPY ["PharmaPOS.Infrastructure/PharmaPOS.Infrastructure.csproj", "PharmaPOS.Inf
 COPY ["PharmaPOS.Shared/PharmaPOS.Shared.csproj", "PharmaPOS.Shared/"]
 RUN dotnet restore "PharmaPOS.Razor/PharmaPOS.Razor.csproj"
 COPY . .
-WORKDIR "/PharmaPOS.Razor"
+WORKDIR "/src/PharmaPOS.Razor"
 RUN dotnet build "PharmaPOS.Razor.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

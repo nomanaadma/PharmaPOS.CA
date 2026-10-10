@@ -1,6 +1,6 @@
 ﻿resource "azurerm_container_app" "app" {
   container_app_environment_id = azurerm_container_app_environment.app_env.id
-  name                         = "pca-razor-${var.env_id}"
+  name                         = "pca-razor-app-${var.env_id}"
   resource_group_name          = azurerm_resource_group.myPCArg.name
   revision_mode                = "Single"
 
@@ -11,7 +11,7 @@
       cpu    = 0.25
       image  = "mcr.microsoft.com/k8se/quickstart:latest"
       memory = "0.5Gi"
-      name   = "pcaapp-${var.env_id}"
+      name   = "pca-razor-container-${var.env_id}"
     }
   }
 

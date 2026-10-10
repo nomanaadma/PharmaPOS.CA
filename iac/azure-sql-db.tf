@@ -13,6 +13,12 @@
   # Example SKU; verify availability and subscription quota.
   sku_name = "B_Standard_B1ms"
 
+  lifecycle {
+    ignore_changes = [
+      zone
+    ]
+  }
+
   tags = {
     environment = var.env_id
     src         = var.src_key
