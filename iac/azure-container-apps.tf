@@ -7,7 +7,6 @@
   template {
     min_replicas = 1
     max_replicas = 3
-y
     container {
       cpu    = 0.25
       image  = "mcr.microsoft.com/k8se/quickstart:latest"

@@ -10,4 +10,8 @@ notes.txt
 *.user
 *.suo
 
+./iac/.terraform
+./iac/.tfstate
+./iac/*.tfstate.*
+
 
