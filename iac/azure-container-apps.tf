@@ -11,7 +11,7 @@
       cpu    = 0.25
       image  = "mcr.microsoft.com/k8se/quickstart:latest"
       memory = "0.5Gi"
-      name   = "pca-razor-container-${var.env_id}"
+      name   = "pca-razor-app-${var.env_id}"
     }
   }
 
