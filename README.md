@@ -9,16 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#architecture--project-structure">Architecture</a> •
-  <a href="#-cloud-infrastructure--deployment">Deployment</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#license">License</a>
-</p>
-
-<p align="center">
   <a href="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml">
     <img src="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml/badge.svg" alt="IaC Deploy"/>
   </a>
@@ -41,7 +31,22 @@
 
 ---
 
-## 📋 Overview
+## Table of Contents
+
+- [Overview](#overview)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Technologies](#technologies)
+- [Architecture](#architecture)
+- [Deployment](#deployment)
+- [Usage](#usage)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
 
 **PharmaPOS** is a full-featured pharmacy point-of-sale and inventory management web application. It streamlines pharmacy operations — from medicine inventory tracking and purchase management to customer billing, stock adjustment, and financial reporting — all within a clean, responsive dashboard interface. 
 
@@ -49,7 +54,67 @@ Originally built in PHP, it has been **completely re-architected into a robust, 
 
 ---
 
-## ✨ Features
+## Screenshots
+
+### Login
+![Login](PharmaPOS.Razor/wwwroot/resources/screenshots/login.png)
+
+### POS / Billing
+| New Bill | Billing List |
+|---|---|
+| ![New Bill](PharmaPOS.Razor/wwwroot/resources/screenshots/new_bill.png) | ![POS](PharmaPOS.Razor/wwwroot/resources/screenshots/pos.png) |
+
+### Medicine Management
+| Medicine List | Add Medicine | Medicine Categories |
+|---|---|---|
+| ![Medicines](PharmaPOS.Razor/wwwroot/resources/screenshots/medicines.png) | ![Add Medicine](PharmaPOS.Razor/wwwroot/resources/screenshots/add_medicine.png) | ![Categories](PharmaPOS.Razor/wwwroot/resources/screenshots/medicine_categories.png) |
+
+### Purchase Management
+| Purchase List | Add Purchase |
+|---|---|
+| ![Purchases](PharmaPOS.Razor/wwwroot/resources/screenshots/purchases.png) | ![Add Purchase](PharmaPOS.Razor/wwwroot/resources/screenshots/add_purchase.png) |
+
+### Stock Adjustment
+| Live Stock | Expired Stock |
+|---|---|
+| ![Live Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/live_stock.png) | ![Expired Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/expire_stock.png) |
+
+### Customer Management
+| Customer List | Add Customer |
+|---|---|
+| ![Customers](PharmaPOS.Razor/wwwroot/resources/screenshots/customers.png) | ![Add Customer](PharmaPOS.Razor/wwwroot/resources/screenshots/add_customer.png) |
+
+### Reports
+![Reports](PharmaPOS.Razor/wwwroot/resources/screenshots/reports.png)
+
+### User Management & RBAC
+| Users | Add User | User Roles | Permissions |
+|---|---|---|---|
+| ![Users](PharmaPOS.Razor/wwwroot/resources/screenshots/users.png) | ![Add User](PharmaPOS.Razor/wwwroot/resources/screenshots/add_user.png) | ![Roles](PharmaPOS.Razor/wwwroot/resources/screenshots/user_roles.png) | ![Permissions](PharmaPOS.Razor/wwwroot/resources/screenshots/user_permissions.png) |
+
+### Settings & Configuration
+| System Settings | Suppliers | Add Supplier | Payment Methods | Add Payment Method |
+|---|---|---|---|---|
+| ![Settings](PharmaPOS.Razor/wwwroot/resources/screenshots/settings.png) | ![Suppliers](PharmaPOS.Razor/wwwroot/resources/screenshots/suppliers.png) | ![Add Supplier](PharmaPOS.Razor/wwwroot/resources/screenshots/add_supplier.png) | ![Payment Methods](PharmaPOS.Razor/wwwroot/resources/screenshots/payment_methods.png) | ![Add Payment](PharmaPOS.Razor/wwwroot/resources/screenshots/add_payment_method.png) |
+
+### Database Schema (ERD)
+<p align="center">
+  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/erd.png" alt="PharmaPOS ERD - Database Schema" width="100%"/>
+</p>
+
+### Cloud Infrastructure & CI/CD Architecture
+| Cloud Architecture & Deployment Flow | Azure Resource Group Stack |
+|---|---|
+| ![Cloud Architecture](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_1.jpg) | ![Azure Resource Group](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_2.jpg) |
+
+#### End-to-End CI/CD Pipeline Workflow
+<p align="center">
+  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/infra_3.jpg" alt="PharmaPOS CI/CD Deployment Process" width="100%"/>
+</p>
+
+---
+
+## Features
 
 ### 🏪 Point of Sale (POS) / Billing
 - Create and manage customer bills with itemized medicine entries
@@ -116,67 +181,7 @@ Originally built in PHP, it has been **completely re-architected into a robust, 
 
 ---
 
-## 📸 Screenshots
-
-### Login
-![Login](PharmaPOS.Razor/wwwroot/resources/screenshots/login.png)
-
-### POS / Billing
-| New Bill | Billing List |
-|---|---|
-| ![New Bill](PharmaPOS.Razor/wwwroot/resources/screenshots/new_bill.png) | ![POS](PharmaPOS.Razor/wwwroot/resources/screenshots/pos.png) |
-
-### Medicine Management
-| Medicine List | Add Medicine | Medicine Categories |
-|---|---|---|
-| ![Medicines](PharmaPOS.Razor/wwwroot/resources/screenshots/medicines.png) | ![Add Medicine](PharmaPOS.Razor/wwwroot/resources/screenshots/add_medicine.png) | ![Categories](PharmaPOS.Razor/wwwroot/resources/screenshots/medicine_categories.png) |
-
-### Purchase Management
-| Purchase List | Add Purchase |
-|---|---|
-| ![Purchases](PharmaPOS.Razor/wwwroot/resources/screenshots/purchases.png) | ![Add Purchase](PharmaPOS.Razor/wwwroot/resources/screenshots/add_purchase.png) |
-
-### Stock Adjustment
-| Live Stock | Expired Stock |
-|---|---|
-| ![Live Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/live_stock.png) | ![Expired Stock](PharmaPOS.Razor/wwwroot/resources/screenshots/expire_stock.png) |
-
-### Customer Management
-| Customer List | Add Customer |
-|---|---|
-| ![Customers](PharmaPOS.Razor/wwwroot/resources/screenshots/customers.png) | ![Add Customer](PharmaPOS.Razor/wwwroot/resources/screenshots/add_customer.png) |
-
-### Reports
-![Reports](PharmaPOS.Razor/wwwroot/resources/screenshots/reports.png)
-
-### User Management & RBAC
-| Users | Add User | User Roles | Permissions |
-|---|---|---|---|
-| ![Users](PharmaPOS.Razor/wwwroot/resources/screenshots/users.png) | ![Add User](PharmaPOS.Razor/wwwroot/resources/screenshots/add_user.png) | ![Roles](PharmaPOS.Razor/wwwroot/resources/screenshots/user_roles.png) | ![Permissions](PharmaPOS.Razor/wwwroot/resources/screenshots/user_permissions.png) |
-
-### Settings & Configuration
-| System Settings | Suppliers | Add Supplier | Payment Methods | Add Payment Method |
-|---|---|---|---|---|
-| ![Settings](PharmaPOS.Razor/wwwroot/resources/screenshots/settings.png) | ![Suppliers](PharmaPOS.Razor/wwwroot/resources/screenshots/suppliers.png) | ![Add Supplier](PharmaPOS.Razor/wwwroot/resources/screenshots/add_supplier.png) | ![Payment Methods](PharmaPOS.Razor/wwwroot/resources/screenshots/payment_methods.png) | ![Add Payment](PharmaPOS.Razor/wwwroot/resources/screenshots/add_payment_method.png) |
-
-### Database Schema (ERD)
-<p align="center">
-  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/erd.png" alt="PharmaPOS ERD - Database Schema" width="100%"/>
-</p>
-
-### ☁️ Cloud Infrastructure & CI/CD Architecture
-| Cloud Architecture & Deployment Flow | Azure Resource Group Stack |
-|---|---|
-| ![Cloud Architecture](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_1.jpg) | ![Azure Resource Group](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_2.jpg) |
-
-#### End-to-End CI/CD Pipeline Workflow
-<p align="center">
-  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/infra_3.jpg" alt="PharmaPOS CI/CD Deployment Process" width="100%"/>
-</p>
-
----
-
-## 🛠️ Tech Stack
+## Technologies
 
 ### Backend & Architecture
 | Technology | Purpose |
@@ -220,7 +225,7 @@ Originally built in PHP, it has been **completely re-architected into a robust, 
 
 ---
 
-## 🏗️ Architecture & Project Structure
+## Architecture
 
 The solution heavily follows **Clean Architecture** and **Domain-Driven Design (DDD)**:
 
@@ -265,7 +270,7 @@ The database consists of the following tables:
 
 ---
 
-## ☁️ Cloud Infrastructure & Deployment
+## Deployment
 
 PharmaPOS is fully automated for cloud-native deployment to **Microsoft Azure**, using **Terraform** for Infrastructure as Code (IaC) and **GitHub Actions** for end-to-end continuous integration and continuous deployment (CI/CD).
 
@@ -305,7 +310,7 @@ Triggered automatically on pushes to `master` affecting the `iac/**` directory:
 - **Execution**: Generates a deterministic plan (`terraform plan`) injecting the database password via secrets, and applies infrastructure changes (`terraform apply -auto-approve`).
 
 #### 2. Application Build & Deploy Pipeline (`deploy-app.yaml`)
-Triggered on code commits to `master` (ignoring changes confined to `iac/**`):
+Triggered on code commits to `master` (ignoring changes confined to `iac/**`, `README.md`, or markdown files):
 - **Job 1: Build & Push (`build-and-deploy`)**:
   1. Sets up the .NET 10 SDK environment.
   2. Authenticates to Azure Container Registry (`azure/docker-login@v2`).
@@ -330,10 +335,9 @@ The application can also be run locally using Docker:
   docker compose up -d
   ```
 
-
 ---
 
-## 🚀 Installation
+## Usage
 
 ### Prerequisites
 - **.NET 10 SDK**
@@ -367,7 +371,7 @@ The application will be accessible at `https://localhost:5001` or `http://localh
 
 ---
 
-## 🔒 Security Features
+## Security
 
 - **Defense-in-Depth Authorization** — Enforced both at the Razor Page route level and deep within the Application layer via MediatR pipelines.
 - **Server-Side Data Validation** — Critical financial math (billing totals, tax, discounts) is strictly re-calculated and verified server-side.
@@ -377,7 +381,7 @@ The application will be accessible at `https://localhost:5001` or `http://localh
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/your-feature`)
@@ -387,7 +391,7 @@ The application will be accessible at `https://localhost:5001` or `http://localh
 
 ---
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
