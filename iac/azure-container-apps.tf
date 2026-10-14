@@ -15,6 +15,10 @@
     }
   }
 
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+
   ingress {
     allow_insecure_connections = false
     external_enabled = true
