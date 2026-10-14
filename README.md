@@ -13,8 +13,18 @@
   <a href="#screenshots">Screenshots</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#architecture--project-structure">Architecture</a> •
+  <a href="#-cloud-infrastructure--deployment">Deployment</a> •
   <a href="#installation">Installation</a> •
   <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml">
+    <img src="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml/badge.svg" alt="IaC Deploy"/>
+  </a>
+  <a href="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/deploy-app.yaml">
+    <img src="https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/deploy-app.yaml/badge.svg" alt="Build and Deploy APP to Azure"/>
+  </a>
 </p>
 
 <p align="center">
@@ -22,6 +32,9 @@
   <img src="https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white" alt="C#"/>
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
   <img src="https://img.shields.io/badge/Razor_Pages-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt="Razor Pages"/>
+  <img src="https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform"/>
+  <img src="https://img.shields.io/badge/Microsoft_Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white" alt="Microsoft Azure"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
   <img src="https://img.shields.io/badge/Bootstrap-4.x-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap"/>
   <img src="https://img.shields.io/badge/jQuery-DataTables-0769AD?style=for-the-badge&logo=jquery&logoColor=white" alt="jQuery"/>
 </p>
@@ -151,6 +164,16 @@ Originally built in PHP, it has been **completely re-architected into a robust, 
   <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/erd.png" alt="PharmaPOS ERD - Database Schema" width="100%"/>
 </p>
 
+### ☁️ Cloud Infrastructure & CI/CD Architecture
+| Cloud Architecture & Deployment Flow | Azure Resource Group Stack |
+|---|---|
+| ![Cloud Architecture](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_1.jpg) | ![Azure Resource Group](PharmaPOS.Razor/wwwroot/resources/screenshots/infra_2.jpg) |
+
+#### End-to-End CI/CD Pipeline Workflow
+<p align="center">
+  <img src="PharmaPOS.Razor/wwwroot/resources/screenshots/infra_3.jpg" alt="PharmaPOS CI/CD Deployment Process" width="100%"/>
+</p>
+
 ---
 
 ## 🛠️ Tech Stack
@@ -183,6 +206,18 @@ Originally built in PHP, it has been **completely re-architected into a robust, 
 | **Line Awesome** | Icon library |
 | **Inter (Google Fonts)** | Typography |
 
+### Cloud, Infrastructure & DevOps
+| Technology | Purpose |
+|---|---|
+| **Microsoft Azure** | Cloud hosting platform (Container Apps, ACR, PostgreSQL Flexible Server) |
+| **Terraform (IaC)** | Declarative Infrastructure as Code for automated Azure provisioning |
+| **Docker** | Containerization with multi-stage build optimization |
+| **Azure Container Apps** | Serverless micro-container hosting with auto-scaling and HTTPS ingress |
+| **Azure Container Registry** | Secure OCI private container registry for versioned image storage |
+| **Azure PostgreSQL Flexible Server** | Managed PostgreSQL 16 database with SSL enforcement |
+| **Azure Log Analytics** | Centralized diagnostic logging and container monitoring |
+| **GitHub Actions** | Automated CI/CD pipelines for IaC and application deployment |
+
 ---
 
 ## 🏗️ Architecture & Project Structure
@@ -196,7 +231,9 @@ PharmaPOS.slnx
 ├── PharmaPOS.Shared/        # Enums, Constants, Shared Utilities
 ├── PharmaPOS.Application/   # Use cases (CQRS), MediatR Handlers, Validators, Authorization Behaviors
 ├── PharmaPOS.Infrastructure/# EF Core DbContext, Repositories, Background Jobs (OutboxProcessor)
-└── PharmaPOS.Razor/         # Presentation Layer (Razor Pages, Program.cs, UI Assets, Middlewares)
+├── PharmaPOS.Razor/         # Presentation Layer (Razor Pages, Program.cs, UI Assets, Middlewares)
+├── iac/                     # Infrastructure as Code (Terraform configs for Azure resources)
+└── .github/workflows/       # Automated CI/CD Pipelines (IaC deploy, App build & deploy)
 ```
 
 **Key Architectural Patterns:**
@@ -204,7 +241,7 @@ PharmaPOS.slnx
 - **Pipeline Behaviors:** MediatR behaviors are used for Cross-Cutting Concerns like **Validation** and **Authorization** (`[AuthorizeCommand]`).
 - **Rich Domain Model:** Business rules and state changes (like updating stock quantities) are encapsulated inside Domain Aggregate Roots (e.g. `Bill`, `Batch`).
 
-**Database
+### Database Schema & Tables
 
 The database consists of the following tables:
 
@@ -225,6 +262,73 @@ The database consists of the following tables:
 | `AspNetUserRoles` | Junction table mapping users to their assigned roles |
 | `AspNetRoleClaims` | Stores permissions granted to specific roles |
 | `AspNetUserClaims` | Stores custom claims of users such as gender, fullname |
+
+---
+
+## ☁️ Cloud Infrastructure & Deployment
+
+PharmaPOS is fully automated for cloud-native deployment to **Microsoft Azure**, using **Terraform** for Infrastructure as Code (IaC) and **GitHub Actions** for end-to-end continuous integration and continuous deployment (CI/CD).
+
+[![IaC Deploy](https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml/badge.svg)](https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/iac-deploy.yaml)
+[![Build and Deploy APP to Azure](https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/deploy-app.yaml/badge.svg)](https://github.com/nomanaadma/PharmaPOS.CA/actions/workflows/deploy-app.yaml)
+
+### 🏛️ Azure Cloud Architecture (`/iac`)
+
+All cloud infrastructure is declared as code inside the [`iac/`](iac/) directory using HashiCorp Terraform and the `azurerm` provider (v4.7.0). State is managed remotely and locked in an Azure Blob Storage container (`myiacfile/terraform`).
+
+The provisioned architecture includes:
+
+- **Azure Container Apps (ACA)** (`pca-razor-app-dev`):
+  - Serverless micro-container hosting the ASP.NET Core Razor Pages application.
+  - Configured with automatic horizontal scaling (1 to 2 replicas), 0.25 vCPU, and 0.5 GiB memory.
+  - Single revision mode with zero-downtime rolling deployments and external HTTPS ingress on port `8080`.
+- **Azure Container Registry (ACR)** (`pcaregistrydev`):
+  - Secure private container registry storing versioned Docker images tagged by commit SHA and `latest`.
+- **Azure Database for PostgreSQL Flexible Server** (`pharmapos-psql-deva1q`):
+  - Managed PostgreSQL 16 Flexible Server instance with 32 GB storage (`B_Standard_B1ms` SKU).
+  - Secure SSL enforcement and Azure firewall rules configured for container app access.
+- **Azure Log Analytics Workspace (LAW)** (`pcalawdev`):
+  - Centralized log aggregation and metrics monitoring with 30-day retention.
+- **Azure Container App Environment** (`pcaappenvdev`):
+  - Secure managed network environment binding the container apps to the Log Analytics workspace.
+- **Azure Resource Group** (`pca-rg`):
+  - Located in the **East Asia** region with standard environment tagging.
+
+### 🔄 CI/CD Pipelines (GitHub Actions)
+
+The repository features two automated, decoupled GitHub Actions workflows under [`.github/workflows/`](.github/workflows/):
+
+#### 1. Infrastructure as Code Pipeline (`iac-deploy.yaml`)
+Triggered automatically on pushes to `master` affecting the `iac/**` directory:
+- **Authentication**: Connects to Azure using an Azure Service Principal (`AZURE_CREDENTIALS`).
+- **Validation**: Installs Terraform v1.16.5, runs `terraform init` against remote Azure Blob storage, and validates configuration syntax (`terraform validate`).
+- **Execution**: Generates a deterministic plan (`terraform plan`) injecting the database password via secrets, and applies infrastructure changes (`terraform apply -auto-approve`).
+
+#### 2. Application Build & Deploy Pipeline (`deploy-app.yaml`)
+Triggered on code commits to `master` (ignoring changes confined to `iac/**`):
+- **Job 1: Build & Push (`build-and-deploy`)**:
+  1. Sets up the .NET 10 SDK environment.
+  2. Authenticates to Azure Container Registry (`azure/docker-login@v2`).
+  3. Computes the git commit short SHA (`git rev-parse --short`).
+  4. Builds the container image using the multi-stage [PharmaPOS.Dockerfile](PharmaPOS.Dockerfile).
+  5. Pushes the image tagged with both the commit SHA (`$ACR_REGISTRY/pcaapp:$IMAGE_TAG`) and `latest`.
+- **Job 2: Deploy Container App (`deploy-container-to-ACS`)**:
+  1. Authenticates to Azure via Service Principal credentials.
+  2. Uses `azure/container-apps-deploy-action@v1` to trigger a revision rollout in Azure Container Apps.
+  3. Injects runtime configuration and connection strings:
+     - `ASPNETCORE_ENVIRONMENT=Development`
+     - `ASPNETCORE_URLS=http://+:8080`
+     - `ConnectionStrings__DefaultConnection` (Secure PostgreSQL connection string)
+
+### 🐳 Containerization & Local Development
+
+The application can also be run locally using Docker:
+
+- **Multi-Stage Dockerfile**: [PharmaPOS.Dockerfile](PharmaPOS.Dockerfile) uses `mcr.microsoft.com/dotnet/sdk:10.0` for cached building and publishing, and copies binaries into a lightweight `mcr.microsoft.com/dotnet/aspnet:10.0` runtime image exposing port `8080`.
+- **Docker Compose**: [docker-compose.yml](docker-compose.yml) spins up a local PostgreSQL instance:
+  ```bash
+  docker compose up -d
+  ```
 
 
 ---
